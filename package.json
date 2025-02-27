@@ -7,7 +7,7 @@
     "rebuild-autoconsent": "rollup -c"
   },
   "devDependencies": {
-    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "rollup": "^2.61.0",
     "rollup-plugin-copy": "^3.4.0",

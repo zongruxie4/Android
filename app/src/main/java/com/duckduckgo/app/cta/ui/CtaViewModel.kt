@@ -19,29 +19,29 @@ package com.duckduckgo.app.cta.ui
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
+import com.duckduckgo.app.browser.DuckDuckGoUrlDetector
 import com.duckduckgo.app.cta.db.DismissedCtaDao
 import com.duckduckgo.app.cta.model.CtaId
 import com.duckduckgo.app.cta.model.DismissedCta
-import com.duckduckgo.app.cta.ui.HomePanelCta.*
+import com.duckduckgo.app.cta.ui.HomePanelCta.AddWidgetAuto
+import com.duckduckgo.app.cta.ui.HomePanelCta.AddWidgetInstructions
 import com.duckduckgo.app.global.DispatcherProvider
-import com.duckduckgo.app.global.events.db.UserEventKey
-import com.duckduckgo.app.global.events.db.UserEventsStore
 import com.duckduckgo.app.global.install.AppInstallStore
 import com.duckduckgo.app.global.install.daysInstalled
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.global.model.domain
 import com.duckduckgo.app.global.model.orderedTrackingEntities
-import com.duckduckgo.app.global.useourapp.UseOurAppDetector
 import com.duckduckgo.app.onboarding.store.*
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.privacy.db.UserWhitelistDao
 import com.duckduckgo.app.settings.db.SettingsDataStore
-import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.survey.db.SurveyDao
 import com.duckduckgo.app.survey.model.Survey
 import com.duckduckgo.app.tabs.model.TabRepository
 import com.duckduckgo.app.widget.ui.WidgetCapabilities
+import com.duckduckgo.di.scopes.AppScope
+import com.duckduckgo.mobile.android.ui.store.AppTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -49,12 +49,12 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
-@Singleton
+@SingleInstanceIn(AppScope::class)
 class CtaViewModel @Inject constructor(
     private val appInstallStore: AppInstallStore,
     private val pixel: Pixel,
@@ -62,16 +62,16 @@ class CtaViewModel @Inject constructor(
     private val widgetCapabilities: WidgetCapabilities,
     private val dismissedCtaDao: DismissedCtaDao,
     private val userWhitelistDao: UserWhitelistDao,
-    private val variantManager: VariantManager,
     private val settingsDataStore: SettingsDataStore,
     private val onboardingStore: OnboardingStore,
     private val userStageStore: UserStageStore,
-    private val userEventsStore: UserEventsStore,
-    private val useOurAppDetector: UseOurAppDetector,
     private val tabRepository: TabRepository,
-    private val dispatchers: DispatcherProvider
+    private val dispatchers: DispatcherProvider,
+    private val duckDuckGoUrlDetector: DuckDuckGoUrlDetector,
+    private val appTheme: AppTheme,
 ) {
     val surveyLiveData: LiveData<Survey> = surveyDao.getLiveScheduled()
+    var canShowAutoconsentCta: AtomicBoolean = AtomicBoolean(false)
 
     @ExperimentalCoroutinesApi
     @VisibleForTesting
@@ -148,13 +148,6 @@ class CtaViewModel @Inject constructor(
         }
     }
 
-    private suspend fun completeStageIfUserInUseOurAppCompleted() {
-        if (useOurAppActive()) {
-            Timber.d("Completing USE OUR APP ONBOARDING")
-            userStageStore.stageCompleted(AppStage.USE_OUR_APP_ONBOARDING)
-        }
-    }
-
     suspend fun onUserDismissedCta(cta: Cta) {
         withContext(dispatchers.io()) {
             cta.cancelPixel?.let {
@@ -168,7 +161,6 @@ class CtaViewModel @Inject constructor(
                 dismissedCtaDao.insert(DismissedCta(cta.ctaId))
             }
 
-            completeStageIfUserInUseOurAppCompleted()
             completeStageIfDaxOnboardingCompleted()
         }
     }
@@ -179,16 +171,27 @@ class CtaViewModel @Inject constructor(
         }
     }
 
-    suspend fun refreshCta(dispatcher: CoroutineContext, isBrowserShowing: Boolean, site: Site? = null, locale: Locale = Locale.getDefault()): Cta? {
+    suspend fun refreshCta(
+        dispatcher: CoroutineContext,
+        isBrowserShowing: Boolean,
+        site: Site? = null,
+        favoritesOnboarding: Boolean = false,
+        locale: Locale = Locale.getDefault()
+    ): Cta? {
         surveyCta(locale)?.let {
             return it
         }
 
         return withContext(dispatcher) {
             if (isBrowserShowing) {
-                getBrowserCta(site)
+                getDaxDialogCta(site)
             } else {
-                getHomeCta()
+                Timber.i("favoritesOnboarding: - refreshCta $favoritesOnboarding")
+                if (favoritesOnboarding) {
+                    BubbleCta.DaxFavoritesOnboardingCta()
+                } else {
+                    getHomeCta()
+                }
             }
         }
     }
@@ -197,7 +200,7 @@ class CtaViewModel @Inject constructor(
         if (!daxOnboardingActive()) return null
 
         return withContext(dispatchers.io()) {
-            if (settingsDataStore.hideTips || daxDialogFireEducationShown()) return@withContext null
+            if (hideTips() || daxDialogFireEducationShown()) return@withContext null
             return@withContext DaxFireDialogCta.TryClearDataCta(onboardingStore, appInstallStore)
         }
     }
@@ -210,23 +213,8 @@ class CtaViewModel @Inject constructor(
             canShowDaxCtaEndOfJourney() -> {
                 DaxBubbleCta.DaxEndCta(onboardingStore, appInstallStore)
             }
-            canShowUseOurAppDialog() -> {
-                UseOurAppCta()
-            }
             canShowWidgetCta() -> {
                 if (widgetCapabilities.supportsAutomaticWidgetAdd) AddWidgetAuto else AddWidgetInstructions
-            }
-            else -> null
-        }
-    }
-
-    private suspend fun getBrowserCta(site: Site?): Cta? {
-        return when {
-            canShowDaxDialogCta() -> {
-                getDaxDialogCta(site)
-            }
-            canShowUseOurAppDeletionDialog(site) -> {
-                UseOurAppDeletionCta()
             }
             else -> null
         }
@@ -235,62 +223,48 @@ class CtaViewModel @Inject constructor(
     private fun surveyCta(locale: Locale): HomePanelCta.Survey? {
         val survey = activeSurvey
 
-        if (survey == null || survey.url == null) {
+        if (survey?.url == null) {
             return null
         }
 
-        if (locale != Locale.US) {
+        if (!ALLOWED_LOCALES.contains(locale)) {
             return null
         }
 
         val showOnDay = survey.daysInstalled?.toLong()
         val daysInstalled = appInstallStore.daysInstalled()
-        if ((showOnDay == null && daysInstalled >= SURVEY_DEFAULT_MIN_DAYS_INSTALLED) || showOnDay == daysInstalled) {
-            return Survey(survey)
+        if ((showOnDay == null && daysInstalled >= SURVEY_DEFAULT_MIN_DAYS_INSTALLED) ||
+            showOnDay == daysInstalled || showOnDay == SURVEY_NO_MIN_DAYS_INSTALLED_REQUIRED
+        ) {
+            return HomePanelCta.Survey(survey)
         }
         return null
     }
 
     @WorkerThread
-    private suspend fun canShowUseOurAppDeletionDialog(site: Site?): Boolean =
-        !settingsDataStore.hideTips && !useOurAppDeletionDialogShown() && useOurAppDetector.isUseOurAppUrl(site?.url) && twoDaysSinceShortcutAdded()
-
-    @WorkerThread
-    private suspend fun twoDaysSinceShortcutAdded(): Boolean {
-        val timestampKey = userEventsStore.getUserEvent(UserEventKey.USE_OUR_APP_SHORTCUT_ADDED) ?: return false
-        val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestampKey.timestamp)
-        return (days >= 2)
-    }
-
-    @WorkerThread
-    private suspend fun canShowUseOurAppDialog(): Boolean = !settingsDataStore.hideTips && useOurAppActive() && !useOurAppDialogShown()
-
-    @WorkerThread
     private fun canShowWidgetCta(): Boolean {
-        return widgetCapabilities.supportsStandardWidgetAdd &&
-            !widgetCapabilities.hasInstalledWidgets &&
-            !dismissedCtaDao.exists(CtaId.ADD_WIDGET)
+        return !widgetCapabilities.hasInstalledWidgets && !dismissedCtaDao.exists(CtaId.ADD_WIDGET)
     }
 
     @WorkerThread
-    private suspend fun canShowDaxIntroCta(): Boolean = daxOnboardingActive() && !daxDialogIntroShown() && !settingsDataStore.hideTips
+    private suspend fun canShowDaxIntroCta(): Boolean = daxOnboardingActive() && !daxDialogIntroShown() && !hideTips()
 
     @WorkerThread
     private suspend fun canShowDaxCtaEndOfJourney(): Boolean = daxOnboardingActive() &&
         !daxDialogEndShown() &&
         daxDialogIntroShown() &&
-        !settingsDataStore.hideTips &&
+        !hideTips() &&
         (daxDialogNetworkShown() || daxDialogOtherShown() || daxDialogSerpShown() || daxDialogTrackersFoundShown())
 
     private suspend fun canShowDaxDialogCta(): Boolean {
-        if (!daxOnboardingActive() || settingsDataStore.hideTips) {
+        if (!daxOnboardingActive() || hideTips()) {
             return false
         }
         return true
     }
 
     @WorkerThread
-    private fun getDaxDialogCta(site: Site?): Cta? {
+    private suspend fun getDaxDialogCta(site: Site?): Cta? {
         val nonNullSite = site ?: return null
 
         val host = nonNullSite.domain
@@ -299,6 +273,26 @@ class CtaViewModel @Inject constructor(
         }
 
         nonNullSite.let {
+
+            if (duckDuckGoUrlDetector.isDuckDuckGoEmailUrl(it.url)) {
+                return null
+            }
+
+            val oldAutoconsentValue = canShowAutoconsentCta.get()
+            canShowAutoconsentCta.set(false)
+
+            // Autoconsent
+            if (oldAutoconsentValue && !daxDialogAutoconsentShown()) {
+                return DaxDialogCta.DaxAutoconsentCta(onboardingStore, appInstallStore, appTheme)
+            }
+
+            if (!canShowDaxDialogCta()) return null
+
+            // Trackers blocked
+            if (!daxDialogTrackersFoundShown() && !isSerpUrl(it.url) && it.orderedTrackingEntities().isNotEmpty()) {
+                return DaxDialogCta.DaxTrackersBlockedCta(onboardingStore, appInstallStore, it.orderedTrackingEntities(), host)
+            }
+
             // Is major network
             if (it.entity != null) {
                 it.entity?.let { entity ->
@@ -308,26 +302,25 @@ class CtaViewModel @Inject constructor(
                 }
             }
 
+            // SERP
             if (isSerpUrl(it.url) && !daxDialogSerpShown()) {
                 return DaxDialogCta.DaxSerpCta(onboardingStore, appInstallStore)
             }
 
-            // Trackers blocked
-            return if (!daxDialogTrackersFoundShown() && !isSerpUrl(it.url) && it.orderedTrackingEntities().isNotEmpty()) {
-                DaxDialogCta.DaxTrackersBlockedCta(onboardingStore, appInstallStore, it.orderedTrackingEntities(), host)
-            } else if (!isSerpUrl(it.url) && !daxDialogOtherShown() && !daxDialogTrackersFoundShown() && !daxDialogNetworkShown()) {
-                DaxDialogCta.DaxNoSerpCta(onboardingStore, appInstallStore)
-            } else {
-                null
+            if (!isSerpUrl(it.url) && !daxDialogOtherShown() && !daxDialogTrackersFoundShown() && !daxDialogNetworkShown()) {
+                return DaxDialogCta.DaxNoSerpCta(onboardingStore, appInstallStore)
             }
+            return null
         }
     }
 
-    fun useOurAppDeletionDialogShown(): Boolean = dismissedCtaDao.exists(CtaId.USE_OUR_APP_DELETION)
-
-    private fun useOurAppDialogShown(): Boolean = dismissedCtaDao.exists(CtaId.USE_OUR_APP)
+    fun enableAutoconsentCta() {
+        canShowAutoconsentCta.set(true)
+    }
 
     private fun daxDialogIntroShown(): Boolean = dismissedCtaDao.exists(CtaId.DAX_INTRO)
+
+    private fun daxDialogAutoconsentShown(): Boolean = dismissedCtaDao.exists(CtaId.DAX_DIALOG_AUTOCONSENT)
 
     private fun daxDialogEndShown(): Boolean = dismissedCtaDao.exists(CtaId.DAX_END)
 
@@ -345,11 +338,10 @@ class CtaViewModel @Inject constructor(
 
     private fun isSerpUrl(url: String): Boolean = url.contains(DaxDialogCta.SERP)
 
-    private suspend fun useOurAppActive(): Boolean = userStageStore.useOurAppOnboarding()
-
     private suspend fun daxOnboardingActive(): Boolean = userStageStore.daxOnboardingActive()
 
-    private suspend fun pulseAnimationDisabled(): Boolean = !daxOnboardingActive() || pulseFireButtonShown() || daxDialogFireEducationShown() || settingsDataStore.hideTips
+    private suspend fun pulseAnimationDisabled(): Boolean =
+        !daxOnboardingActive() || pulseFireButtonShown() || daxDialogFireEducationShown() || hideTips()
 
     private suspend fun allOnboardingCtasShown(): Boolean {
         return withContext(dispatchers.io()) {
@@ -394,8 +386,12 @@ class CtaViewModel @Inject constructor(
         }
     }
 
+    private fun hideTips() = settingsDataStore.hideTips
+
     companion object {
         private const val SURVEY_DEFAULT_MIN_DAYS_INSTALLED = 30
+        private const val SURVEY_NO_MIN_DAYS_INSTALLED_REQUIRED = -1L
         private const val MAX_TABS_OPEN_FIRE_EDUCATION = 2
+        private val ALLOWED_LOCALES = listOf(Locale.US, Locale.UK, Locale.CANADA)
     }
 }

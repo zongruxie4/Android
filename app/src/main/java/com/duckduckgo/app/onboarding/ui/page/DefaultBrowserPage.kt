@@ -18,39 +18,40 @@ package com.duckduckgo.app.onboarding.ui.page
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.view.ViewCompat.requestApplyInsets
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.BrowserActivity
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.browser.defaultbrowsing.DefaultBrowserSystemSettings
-import com.duckduckgo.app.global.ViewModelFactory
-import com.duckduckgo.app.global.view.show
+import com.duckduckgo.app.global.FragmentViewModelFactory
+import com.duckduckgo.mobile.android.ui.view.show
 import com.duckduckgo.app.statistics.VariantManager
-import dagger.android.support.AndroidSupportInjection
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.FragmentScope
 import kotlinx.android.synthetic.main.content_onboarding_default_browser.*
 import kotlinx.android.synthetic.main.include_default_browser_buttons.*
 import timber.log.Timber
 import javax.inject.Inject
 
+@InjectWith(FragmentScope::class)
 class DefaultBrowserPage : OnboardingPageFragment() {
 
     @Inject
-    lateinit var viewModelFactory: ViewModelFactory
+    lateinit var viewModelFactory: FragmentViewModelFactory
 
     @Inject
     lateinit var variantManager: VariantManager
+
+    @Inject
+    lateinit var appBuildConfig: AppBuildConfig
 
     private var userTriedToSetDDGAsDefault = false
     private var userSelectedExternalBrowser = false
@@ -63,15 +64,9 @@ class DefaultBrowserPage : OnboardingPageFragment() {
 
     override fun layoutResource(): Int = R.layout.content_onboarding_default_browser
 
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
-    }
-
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
         if (isVisibleToUser) {
-            applyStyle()
             viewModel.pageBecameVisible()
         }
     }
@@ -104,54 +99,36 @@ class DefaultBrowserPage : OnboardingPageFragment() {
         outState.putBoolean(SAVED_STATE_LAUNCHED_DEFAULT, userTriedToSetDDGAsDefault)
     }
 
-    private fun applyStyle() {
-        activity?.window?.apply {
-            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
-            statusBarColor = Color.WHITE
-        }
-        requestApplyInsets(longDescriptionContainer)
-    }
-
     private fun observeViewModel() {
-        viewModel.viewState.observe(
-            viewLifecycleOwner,
-            Observer { viewState ->
-                viewState?.let {
-                    when (it) {
-                        is DefaultBrowserPageViewModel.ViewState.DefaultBrowserSettingsUI -> {
-                            setUiForSettings()
-                            hideInstructionsCard()
-                        }
-                        is DefaultBrowserPageViewModel.ViewState.DefaultBrowserDialogUI -> {
-                            setUiForDialog()
-                            if (it.showInstructionsCard) showInstructionsCard() else hideInstructionsCard()
-                        }
-                        is DefaultBrowserPageViewModel.ViewState.ContinueToBrowser -> {
-                            hideInstructionsCard()
-                            onContinuePressed()
-                        }
-                    }
-                }
-            }
-        )
-
-        viewModel.command.observe(
-            this,
-            Observer {
+        viewModel.viewState.observe(viewLifecycleOwner) { viewState ->
+            viewState?.let {
                 when (it) {
-                    is DefaultBrowserPageViewModel.Command.OpenDialog -> onLaunchDefaultBrowserWithDialogClicked(it.url)
-                    is DefaultBrowserPageViewModel.Command.OpenSettings -> onLaunchDefaultBrowserSettingsClicked()
-                    is DefaultBrowserPageViewModel.Command.ContinueToBrowser -> {
+                    is DefaultBrowserPageViewModel.ViewState.DefaultBrowserSettingsUI -> {
+                        setUiForSettings()
+                        hideInstructionsCard()
+                    }
+                    is DefaultBrowserPageViewModel.ViewState.DefaultBrowserDialogUI -> {
+                        setUiForDialog()
+                        if (it.showInstructionsCard) showInstructionsCard() else hideInstructionsCard()
+                    }
+                    is DefaultBrowserPageViewModel.ViewState.ContinueToBrowser -> {
                         hideInstructionsCard()
                         onContinuePressed()
                     }
                 }
             }
-        )
+        }
+
+        viewModel.command.observe(viewLifecycleOwner) {
+            when (it) {
+                is DefaultBrowserPageViewModel.Command.OpenDialog -> onLaunchDefaultBrowserWithDialogClicked(it.url)
+                is DefaultBrowserPageViewModel.Command.OpenSettings -> onLaunchDefaultBrowserSettingsClicked()
+                is DefaultBrowserPageViewModel.Command.ContinueToBrowser -> {
+                    hideInstructionsCard()
+                    onContinuePressed()
+                }
+            }
+        }
     }
 
     private fun setUiForDialog() {
@@ -208,9 +185,10 @@ class DefaultBrowserPage : OnboardingPageFragment() {
         startActivityForResult(intent, DEFAULT_BROWSER_REQUEST_CODE_DIALOG)
     }
 
+    @Suppress("NewApi") // we use appBuildConfig
     private fun onLaunchDefaultBrowserSettingsClicked() {
         userTriedToSetDDGAsDefault = true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (appBuildConfig.sdkInt >= Build.VERSION_CODES.N) {
             val intent = DefaultBrowserSystemSettings.intent()
             try {
                 startActivityForResult(intent, DEFAULT_BROWSER_REQUEST_CODE_SETTINGS)
@@ -220,7 +198,11 @@ class DefaultBrowserPage : OnboardingPageFragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         when (requestCode) {
             DEFAULT_BROWSER_REQUEST_CODE_SETTINGS -> {
                 viewModel.handleResult(DefaultBrowserPageViewModel.Origin.Settings)

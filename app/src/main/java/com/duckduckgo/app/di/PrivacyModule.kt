@@ -17,18 +17,23 @@
 package com.duckduckgo.app.di
 
 import android.content.Context
-import androidx.work.WorkManager
+import androidx.lifecycle.LifecycleObserver
+import com.duckduckgo.adclick.api.AdClickManager
 import com.duckduckgo.app.browser.WebDataManager
 import com.duckduckgo.app.browser.cookies.ThirdPartyCookieManager
+import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.fire.*
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteRepository
+import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteRepositoryAPI
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.file.FileDeleter
 import com.duckduckgo.app.global.view.ClearDataAction
 import com.duckduckgo.app.global.view.ClearPersonalDataAction
 import com.duckduckgo.app.location.GeoLocationPermissions
 import com.duckduckgo.app.location.GeoLocationPermissionsManager
+import com.duckduckgo.app.location.data.LocationPermissionsDao
 import com.duckduckgo.app.location.data.LocationPermissionsRepository
+import com.duckduckgo.app.location.data.LocationPermissionsRepositoryAPI
 import com.duckduckgo.app.privacy.model.PrivacyPractices
 import com.duckduckgo.app.privacy.model.PrivacyPracticesImpl
 import com.duckduckgo.app.privacy.store.TermsOfServiceStore
@@ -38,21 +43,32 @@ import com.duckduckgo.app.trackerdetection.EntityLookup
 import com.duckduckgo.app.trackerdetection.TdsEntityLookup
 import com.duckduckgo.app.trackerdetection.db.TdsDomainEntityDao
 import com.duckduckgo.app.trackerdetection.db.TdsEntityDao
+import com.duckduckgo.cookies.api.DuckDuckGoCookieManager
+import com.duckduckgo.di.scopes.AppScope
+import com.duckduckgo.site.permissions.api.SitePermissionsManager
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
-import javax.inject.Singleton
+import dagger.multibindings.IntoSet
+import dagger.SingleInstanceIn
 
 @Module
-class PrivacyModule {
+object PrivacyModule {
 
     @Provides
-    @Singleton
-    fun privacyPractices(termsOfServiceStore: TermsOfServiceStore, entityLookup: EntityLookup): PrivacyPractices =
+    @SingleInstanceIn(AppScope::class)
+    fun privacyPractices(
+        termsOfServiceStore: TermsOfServiceStore,
+        entityLookup: EntityLookup
+    ): PrivacyPractices =
         PrivacyPracticesImpl(termsOfServiceStore, entityLookup)
 
     @Provides
-    @Singleton
-    fun entityLookup(entityDao: TdsEntityDao, domainEntityDao: TdsDomainEntityDao): EntityLookup =
+    @SingleInstanceIn(AppScope::class)
+    fun entityLookup(
+        entityDao: TdsEntityDao,
+        domainEntityDao: TdsDomainEntityDao
+    ): EntityLookup =
         TdsEntityLookup(entityDao, domainEntityDao)
 
     @Provides
@@ -65,7 +81,12 @@ class PrivacyModule {
         cookieManager: DuckDuckGoCookieManager,
         appCacheClearer: AppCacheClearer,
         geoLocationPermissions: GeoLocationPermissions,
-        thirdPartyCookieManager: ThirdPartyCookieManager
+        thirdPartyCookieManager: ThirdPartyCookieManager,
+        adClickManager: AdClickManager,
+        fireproofWebsiteRepository: FireproofWebsiteRepositoryAPI,
+        sitePermissionsManager: SitePermissionsManager,
+        dispatcherProvider: DispatcherProvider,
+        clearDataPixel: ClearDataPixel
     ): ClearDataAction {
         return ClearPersonalDataAction(
             context,
@@ -76,7 +97,12 @@ class PrivacyModule {
             cookieManager,
             appCacheClearer,
             geoLocationPermissions,
-            thirdPartyCookieManager
+            thirdPartyCookieManager,
+            adClickManager,
+            fireproofWebsiteRepository,
+            sitePermissionsManager,
+            dispatcherProvider,
+            clearDataPixel
         )
     }
 
@@ -86,25 +112,23 @@ class PrivacyModule {
     }
 
     @Provides
-    @Singleton
-    fun automaticDataClearer(
-        workManager: WorkManager,
-        settingsDataStore: SettingsDataStore,
-        clearDataAction: ClearDataAction,
-        dataClearerTimeKeeper: BackgroundTimeKeeper,
+    @SingleInstanceIn(AppScope::class)
+    @IntoSet
+    fun dataClearerForegroundAppRestartPixelObserver(
         dataClearerForegroundAppRestartPixel: DataClearerForegroundAppRestartPixel
-    ): DataClearer {
-        return AutomaticDataClearer(workManager, settingsDataStore, clearDataAction, dataClearerTimeKeeper, dataClearerForegroundAppRestartPixel)
-    }
+    ): LifecycleObserver = dataClearerForegroundAppRestartPixel
 
     @Provides
-    @Singleton
-    fun appCacheCleaner(context: Context, fileDeleter: FileDeleter): AppCacheClearer {
+    @SingleInstanceIn(AppScope::class)
+    fun appCacheCleaner(
+        context: Context,
+        fileDeleter: FileDeleter
+    ): AppCacheClearer {
         return AndroidAppCacheClearer(context, fileDeleter)
     }
 
     @Provides
-    @Singleton
+    @SingleInstanceIn(AppScope::class)
     fun geoLocationPermissions(
         context: Context,
         locationPermissionsRepository: LocationPermissionsRepository,
@@ -112,5 +136,14 @@ class PrivacyModule {
         dispatcherProvider: DispatcherProvider
     ): GeoLocationPermissions {
         return GeoLocationPermissionsManager(context, locationPermissionsRepository, fireproofWebsiteRepository, dispatcherProvider)
+    }
+
+    @Provides
+    fun providesLocationPermissionsRepository(
+        locationPermissionsDao: LocationPermissionsDao,
+        faviconManager: Lazy<FaviconManager>,
+        dispatchers: DispatcherProvider
+    ): LocationPermissionsRepositoryAPI {
+        return LocationPermissionsRepository(locationPermissionsDao, faviconManager, dispatchers)
     }
 }

@@ -21,15 +21,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import androidx.fragment.app.Fragment
+import com.duckduckgo.app.global.DuckDuckGoFragment
 import com.duckduckgo.app.onboarding.ui.OnboardingActivity
 
-abstract class OnboardingPageFragment : Fragment() {
+abstract class OnboardingPageFragment : DuckDuckGoFragment() {
 
     @LayoutRes
     abstract fun layoutResource(): Int
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? =
         inflater.inflate(layoutResource(), container, false)
 
     fun onContinuePressed() {

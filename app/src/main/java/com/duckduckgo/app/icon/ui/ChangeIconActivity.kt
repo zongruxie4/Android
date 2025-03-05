@@ -20,31 +20,30 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.R
+import com.duckduckgo.mobile.android.R as CommonR
+import com.duckduckgo.app.browser.databinding.ActivityAppIconsBinding
 import com.duckduckgo.app.global.DuckDuckGoActivity
-import kotlinx.android.synthetic.main.content_app_icons.appIconsList
-import kotlinx.android.synthetic.main.include_toolbar.toolbar
-import kotlinx.android.synthetic.main.content_app_icons.*
-import kotlinx.android.synthetic.main.include_toolbar.*
+import com.duckduckgo.di.scopes.ActivityScope
+import com.duckduckgo.mobile.android.ui.viewbinding.viewBinding
 
+@InjectWith(ActivityScope::class)
 class ChangeIconActivity : DuckDuckGoActivity() {
 
+    private val binding: ActivityAppIconsBinding by viewBinding()
     private val viewModel: ChangeIconViewModel by bindViewModel()
     private val iconsAdapter: AppIconsAdapter = AppIconsAdapter { icon ->
         viewModel.onIconSelected(icon)
     }
 
-    companion object {
-        fun intent(context: Context): Intent {
-            return Intent(context, ChangeIconActivity::class.java)
-        }
-    }
+    private val toolbar
+        get() = binding.includeToolbar.toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_app_icons)
+        setContentView(binding.root)
         setupToolbar(toolbar)
         configureRecycler()
 
@@ -52,28 +51,22 @@ class ChangeIconActivity : DuckDuckGoActivity() {
     }
 
     private fun configureRecycler() {
-        appIconsList.layoutManager = GridLayoutManager(this, 4)
-        appIconsList.addItemDecoration(ItemOffsetDecoration(this, R.dimen.changeAppIconListPadding))
-        appIconsList.adapter = iconsAdapter
+        binding.appIconsList.layoutManager = GridLayoutManager(this, 4)
+        binding.appIconsList.addItemDecoration(ItemOffsetDecoration(this, CommonR.dimen.changeAppIconListPadding))
+        binding.appIconsList.adapter = iconsAdapter
     }
 
     private fun observeViewModel() {
 
-        viewModel.viewState.observe(
-            this,
-            Observer<ChangeIconViewModel.ViewState> { viewState ->
-                viewState?.let {
-                    render(it)
-                }
+        viewModel.viewState.observe(this) { viewState ->
+            viewState?.let {
+                render(it)
             }
-        )
+        }
 
-        viewModel.command.observe(
-            this,
-            Observer {
-                processCommand(it)
-            }
-        )
+        viewModel.command.observe(this) {
+            processCommand(it)
+        }
 
         viewModel.start()
     }
@@ -82,7 +75,7 @@ class ChangeIconActivity : DuckDuckGoActivity() {
         iconsAdapter.notifyChanges(viewState.appIcons)
     }
 
-    private fun processCommand(it: ChangeIconViewModel.Command?) {
+    private fun processCommand(it: ChangeIconViewModel.Command) {
         when (it) {
             is ChangeIconViewModel.Command.IconChanged -> {
                 finish()
@@ -99,6 +92,12 @@ class ChangeIconActivity : DuckDuckGoActivity() {
                     }
                     .show()
             }
+        }
+    }
+
+    companion object {
+        fun intent(context: Context): Intent {
+            return Intent(context, ChangeIconActivity::class.java)
         }
     }
 }

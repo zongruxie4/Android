@@ -32,6 +32,5 @@ interface OnboardingPageBuilder {
 class OnboardingFragmentPageBuilder : OnboardingPageBuilder {
 
     override fun buildWelcomePage() = WelcomePage()
-
     override fun buildDefaultBrowserPage() = DefaultBrowserPage()
 }

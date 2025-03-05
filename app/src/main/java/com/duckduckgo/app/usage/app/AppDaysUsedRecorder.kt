@@ -16,18 +16,19 @@
 
 package com.duckduckgo.app.usage.app
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class AppDaysUsedRecorder(private val appDaysUsedRepository: AppDaysUsedRepository) : LifecycleObserver {
+class AppDaysUsedRecorder(
+    private val appDaysUsedRepository: AppDaysUsedRepository,
+    private val appCoroutineScope: CoroutineScope
+) : DefaultLifecycleObserver {
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    fun onAppStart() {
-        GlobalScope.launch {
+    override fun onStart(owner: LifecycleOwner) {
+        appCoroutineScope.launch {
             Timber.i("Recording app used today")
             appDaysUsedRepository.recordAppUsedToday()
         }

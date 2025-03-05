@@ -20,19 +20,35 @@ import androidx.lifecycle.LiveData
 import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.global.DispatcherProvider
 import dagger.Lazy
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+interface LocationPermissionsRepositoryAPI {
+    fun getLocationPermissionsSync(): List<LocationPermissionEntity>
+    fun getLocationPermissionsAsync(): LiveData<List<LocationPermissionEntity>>
+    fun getLocationPermissionsFlow(): Flow<List<LocationPermissionEntity>>
+    suspend fun savePermission(domain: String, permission: LocationPermissionType): LocationPermissionEntity?
+    suspend fun getDomainPermission(domain: String): LocationPermissionEntity?
+    suspend fun deletePermission(domain: String)
+    suspend fun permissionEntitiesCountByDomain(domain: String): Int
+    fun savePermissionEntity(entity: LocationPermissionEntity)
+}
 
 class LocationPermissionsRepository @Inject constructor(
     private val locationPermissionsDao: LocationPermissionsDao,
     private val faviconManager: Lazy<FaviconManager>,
     private val dispatchers: DispatcherProvider
-) {
+) : LocationPermissionsRepositoryAPI {
 
-    fun getLocationPermissionsSync(): List<LocationPermissionEntity> = locationPermissionsDao.allPermissions()
-    fun getLocationPermissionsAsync(): LiveData<List<LocationPermissionEntity>> = locationPermissionsDao.allPermissionsEntities()
+    override fun getLocationPermissionsSync(): List<LocationPermissionEntity> = locationPermissionsDao.allPermissions()
+    override fun getLocationPermissionsAsync(): LiveData<List<LocationPermissionEntity>> = locationPermissionsDao.allPermissionsEntities()
+    override fun getLocationPermissionsFlow(): Flow<List<LocationPermissionEntity>> = locationPermissionsDao.allPermissionsAsFlow()
 
-    suspend fun savePermission(domain: String, permission: LocationPermissionType): LocationPermissionEntity? {
+    override suspend fun savePermission(
+        domain: String,
+        permission: LocationPermissionType
+    ): LocationPermissionEntity? {
         val locationPermissionEntity = LocationPermissionEntity(domain = domain, permission = permission)
         val id = withContext(dispatchers.io()) {
             locationPermissionsDao.insert(locationPermissionEntity)
@@ -44,13 +60,13 @@ class LocationPermissionsRepository @Inject constructor(
         }
     }
 
-    suspend fun getDomainPermission(domain: String): LocationPermissionEntity? {
+    override suspend fun getDomainPermission(domain: String): LocationPermissionEntity? {
         return withContext(dispatchers.io()) {
             locationPermissionsDao.getPermission(domain)
         }
     }
 
-    suspend fun deletePermission(domain: String) {
+    override suspend fun deletePermission(domain: String) {
         withContext(dispatchers.io()) {
             val entity = locationPermissionsDao.getPermission(domain)
             entity?.let {
@@ -60,10 +76,13 @@ class LocationPermissionsRepository @Inject constructor(
         }
     }
 
-    suspend fun permissionEntitiesCountByDomain(domain: String): Int {
+    override suspend fun permissionEntitiesCountByDomain(domain: String): Int {
         return withContext(dispatchers.io()) {
             locationPermissionsDao.permissionEntitiesCountByDomain(domain)
         }
     }
 
+    override fun savePermissionEntity(entity: LocationPermissionEntity) {
+        locationPermissionsDao.insert(entity)
+    }
 }

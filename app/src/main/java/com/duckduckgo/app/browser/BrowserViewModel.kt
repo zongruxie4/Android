@@ -16,53 +16,46 @@
 
 package com.duckduckgo.app.browser
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import com.duckduckgo.app.browser.BrowserViewModel.Command.DisplayMessage
+import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.app.browser.BrowserViewModel.Command.Refresh
 import com.duckduckgo.app.browser.omnibar.OmnibarEntryConverter
-import com.duckduckgo.app.browser.omnibar.QueryUrlConverter
 import com.duckduckgo.app.browser.rating.ui.AppEnjoymentDialogFragment
 import com.duckduckgo.app.browser.rating.ui.GiveFeedbackDialogFragment
 import com.duckduckgo.app.browser.rating.ui.RateAppDialogFragment
 import com.duckduckgo.app.fire.DataClearer
 import com.duckduckgo.app.global.ApplicationClearDataState
-import com.duckduckgo.app.global.DefaultDispatcherProvider
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.SingleLiveEvent
-import com.duckduckgo.app.global.plugins.view_model.ViewModelFactoryPlugin
 import com.duckduckgo.app.global.rating.AppEnjoymentPromptEmitter
 import com.duckduckgo.app.global.rating.AppEnjoymentPromptOptions
 import com.duckduckgo.app.global.rating.AppEnjoymentUserEventRecorder
 import com.duckduckgo.app.global.rating.PromptCount
-import com.duckduckgo.app.global.useourapp.UseOurAppDetector
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.privacy.ui.PrivacyDashboardActivity.Companion.RELOAD_RESULT_CODE
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.tabs.model.TabEntity
 import com.duckduckgo.app.tabs.model.TabRepository
-import com.duckduckgo.di.scopes.AppObjectGraph
-import com.squareup.anvil.annotations.ContributesMultibinding
+import com.duckduckgo.di.scopes.ActivityScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Provider
 import kotlin.coroutines.CoroutineContext
 
-class BrowserViewModel(
+@ContributesViewModel(ActivityScope::class)
+class BrowserViewModel @Inject constructor(
     private val tabRepository: TabRepository,
     private val queryUrlConverter: OmnibarEntryConverter,
     private val dataClearer: DataClearer,
     private val appEnjoymentPromptEmitter: AppEnjoymentPromptEmitter,
     private val appEnjoymentUserEventRecorder: AppEnjoymentUserEventRecorder,
-    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider(),
-    private val pixel: Pixel,
-    private val useOurAppDetector: UseOurAppDetector
+    private val dispatchers: DispatcherProvider,
+    private val pixel: Pixel
 ) : AppEnjoymentDialogFragment.Listener,
     RateAppDialogFragment.Listener,
     GiveFeedbackDialogFragment.Listener,
@@ -79,7 +72,6 @@ class BrowserViewModel(
     sealed class Command {
         object Refresh : Command()
         data class Query(val query: String) : Command()
-        data class DisplayMessage(@StringRes val messageId: Int) : Command()
         object LaunchPlayStore : Command()
         object LaunchFeedbackView : Command()
         data class ShowAppEnjoymentPrompt(val promptCount: PromptCount) : Command()
@@ -125,6 +117,7 @@ class BrowserViewModel(
                 is AppEnjoymentPromptOptions.ShowFeedbackPrompt -> {
                     command.value = Command.ShowAppFeedbackPrompt(promptType.promptCount)
                 }
+                else -> {}
             }
         }
     }
@@ -141,7 +134,11 @@ class BrowserViewModel(
         }
     }
 
-    suspend fun onOpenInNewTabRequested(query: String, sourceTabId: String? = null, skipHome: Boolean = false): String {
+    suspend fun onOpenInNewTabRequested(
+        query: String,
+        sourceTabId: String? = null,
+        skipHome: Boolean = false
+    ): String {
         return if (sourceTabId != null) {
             tabRepository.addFromSourceTab(
                 url = queryUrlConverter.convertQueryToUrl(query),
@@ -156,6 +153,11 @@ class BrowserViewModel(
         }
     }
 
+    suspend fun onOpenFavoriteFromWidget(query: String) {
+        pixel.fire(AppPixelName.APP_FAVORITES_ITEM_WIDGET_LAUNCH)
+        tabRepository.selectByUrlOrNewTab(queryUrlConverter.convertQueryToUrl(query))
+    }
+
     suspend fun onTabsUpdated(tabs: List<TabEntity>?) {
         if (tabs.isNullOrEmpty()) {
             Timber.i("Tabs list is null or empty; adding default tab")
@@ -166,10 +168,6 @@ class BrowserViewModel(
 
     fun receivedDashboardResult(resultCode: Int) {
         if (resultCode == RELOAD_RESULT_CODE) command.value = Refresh
-    }
-
-    fun onClearComplete() {
-        command.value = DisplayMessage(R.string.fireDataCleared)
     }
 
     /**
@@ -230,32 +228,7 @@ class BrowserViewModel(
     fun onOpenShortcut(url: String) {
         launch(dispatchers.io()) {
             tabRepository.selectByUrlOrNewTab(queryUrlConverter.convertQueryToUrl(url))
-            if (useOurAppDetector.isUseOurAppUrl(url)) {
-                pixel.fire(AppPixelName.USE_OUR_APP_SHORTCUT_OPENED)
-            } else {
-                pixel.fire(AppPixelName.SHORTCUT_OPENED)
-            }
-        }
-    }
-}
-
-@ContributesMultibinding(AppObjectGraph::class)
-class BrowserViewModelFactory @Inject constructor(
-    val tabRepository: Provider<TabRepository>,
-    val queryUrlConverter: Provider<QueryUrlConverter>,
-    val dataClearer: Provider<DataClearer>,
-    val appEnjoymentPromptEmitter: Provider<AppEnjoymentPromptEmitter>,
-    val appEnjoymentUserEventRecorder: Provider<AppEnjoymentUserEventRecorder>,
-    val dispatchers: DispatcherProvider = DefaultDispatcherProvider(),
-    val pixel: Provider<Pixel>,
-    val useOurAppDetector: Provider<UseOurAppDetector>
-) : ViewModelFactoryPlugin {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T? {
-        with(modelClass) {
-            return when {
-                isAssignableFrom(BrowserViewModel::class.java) -> BrowserViewModel(tabRepository.get(), queryUrlConverter.get(), dataClearer.get(), appEnjoymentPromptEmitter.get(), appEnjoymentUserEventRecorder.get(), dispatchers, pixel.get(), useOurAppDetector.get()) as T
-                else -> null
-            }
+            pixel.fire(AppPixelName.SHORTCUT_OPENED)
         }
     }
 }

@@ -23,6 +23,12 @@ import javax.inject.Inject
 
 class DuckDuckGoUrlDetector @Inject constructor() {
 
+    fun isDuckDuckGoEmailUrl(url: String): Boolean {
+        val uri = url.toUri()
+        val firstSegment = uri.pathSegments.firstOrNull()
+        return isDuckDuckGoUrl(url) && firstSegment == AppUrl.Url.EMAIL_SEGMENT
+    }
+
     fun isDuckDuckGoUrl(uri: String): Boolean {
         return AppUrl.Url.HOST == uri.toUri().host
     }

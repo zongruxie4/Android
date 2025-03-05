@@ -16,38 +16,63 @@
 
 package com.duckduckgo.app.trackerdetection
 
+import androidx.core.net.toUri
 import com.duckduckgo.app.global.UriString.Companion.sameOrSubdomain
 import com.duckduckgo.app.trackerdetection.model.Action.BLOCK
 import com.duckduckgo.app.trackerdetection.model.Action.IGNORE
 import com.duckduckgo.app.trackerdetection.model.RuleExceptions
 import com.duckduckgo.app.trackerdetection.model.TdsTracker
+import java.net.URI
 
-class TdsClient(override val name: Client.ClientName, private val trackers: List<TdsTracker>) : Client {
+class TdsClient(
+    override val name: Client.ClientName,
+    private val trackers: List<TdsTracker>
+) : Client {
 
-    override fun matches(url: String, documentUrl: String): Client.Result {
-        val tracker = trackers.firstOrNull { sameOrSubdomain(url, it.domain) } ?: return Client.Result(false)
-        val matches = matchesTrackerEntry(tracker, url, documentUrl)
-        return Client.Result(matches, tracker.ownerName, tracker.categories)
+    override fun matches(
+        url: String,
+        documentUrl: String
+    ): Client.Result {
+        val cleanedUrl = removePortFromUrl(url)
+        val tracker = trackers.firstOrNull { sameOrSubdomain(cleanedUrl, it.domain) } ?: return Client.Result(matches = false, isATracker = false)
+        val matches = matchesTrackerEntry(tracker, cleanedUrl, documentUrl)
+        return Client.Result(
+            matches = matches.shouldBlock,
+            entityName = tracker.ownerName,
+            categories = tracker.categories,
+            surrogate = matches.surrogate,
+            isATracker = matches.isATracker
+        )
     }
 
-    private fun matchesTrackerEntry(tracker: TdsTracker, url: String, documentUrl: String): Boolean {
+    private fun matchesTrackerEntry(
+        tracker: TdsTracker,
+        url: String,
+        documentUrl: String
+    ): MatchedResult {
         tracker.rules.forEach { rule ->
             val regex = ".*${rule.rule}.*".toRegex()
             if (url.matches(regex)) {
                 if (matchedException(rule.exceptions, documentUrl)) {
-                    return false
+                    return MatchedResult(shouldBlock = false, isATracker = true)
                 }
                 if (rule.action == IGNORE) {
-                    return false
+                    return MatchedResult(shouldBlock = false, isATracker = true)
                 }
-                return true
+                if (rule.surrogate?.isNotEmpty() == true) {
+                    return MatchedResult(shouldBlock = true, surrogate = rule.surrogate, isATracker = true)
+                }
+                return MatchedResult(shouldBlock = true, isATracker = true)
             }
         }
 
-        return tracker.defaultAction == BLOCK
+        return MatchedResult(shouldBlock = (tracker.defaultAction == BLOCK), isATracker = true)
     }
 
-    private fun matchedException(exceptions: RuleExceptions?, documentUrl: String): Boolean {
+    private fun matchedException(
+        exceptions: RuleExceptions?,
+        documentUrl: String
+    ): Boolean {
 
         if (exceptions == null) return false
 
@@ -67,4 +92,19 @@ class TdsClient(override val name: Client.ClientName, private val trackers: List
         }
         return false
     }
+
+    private fun removePortFromUrl(url: String): String {
+        return try {
+            val uri = url.toUri()
+            URI(uri.scheme, uri.host, uri.path, uri.fragment).toString()
+        } catch (e: Exception) {
+            url
+        }
+    }
+
+    private data class MatchedResult(
+        val shouldBlock: Boolean,
+        val isATracker: Boolean,
+        val surrogate: String? = null
+    )
 }

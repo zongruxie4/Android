@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022 DuckDuckGo
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="appName" translatable="false">DuckDuckGo</string>
@@ -33,19 +48,30 @@
     <string name="clearButtonContentDescription">Изчистване на въведеното търсене</string>
     <string name="no_compatible_third_party_app_installed">Няма инсталирано съвместимо приложение</string>
     <string name="addBookmarkMenuTitle">Добави отметка</string>
+    <string name="editBookmarkMenuTitle">Редактиране на отметка</string>
+    <string name="addFavoriteMenuTitle">Добавяне в любими</string>
+    <string name="removeFavoriteMenuTitle">Премахване от любими</string>
+    <string name="favoriteAddedMessage">Добавено в любими</string>
+    <string name="bookmarkAddedMessage">Добавена е отметка</string>
     <string name="requestDesktopSiteMenuTitle">Сайт на работния плот</string>
+    <string name="fireproofWebsiteMenuTitleRemove">Премахване на огнеустойчивост</string>
+    <string name="requestMobileSiteMenuTitle">Мобилна версия на сайта</string>
+    <string name="downloadsMenuTitle">Изтеглени файлове</string>
+    <string name="printMenuTitle">Отпечатване на страницата</string>
+    <string name="favoriteDeleteConfirmationMessage">Премахнато от любими</string>
+    <string name="fireproofDeleteConfirmationMessage">Премахната огнеустойчивост</string>
+    <string name="privacyProtectionEnabledConfirmationMessage">Защитата на поверителността е активирана за %1$s</string>
+    <string name="privacyProtectionDisabledConfirmationMessage">Защитата на поверителността е деактивирана за %1$s</string>
+    <string name="undoSnackbarAction">Отмяна</string>
 
     <!-- Downloading files -->
     <string name="downloadImage">Изтегляне на изображение</string>
     <string name="permissionRequiredToDownload">Изтеглянето изисква разрешение за съхранение</string>
-    <string name="downloadComplete">Изтеглянето е завършено</string>
-    <string name="downloadFailed">Неуспешно изтегляне</string>
-    <string name="downloadInProgress">Изтегля се</string>
 
     <!-- Sharing options -->
     <string name="options">Опции</string>
     <string name="shareLink">Споделяне на връзка</string>
-    <string name="shareMenuTitle">Споделяне…</string>
+    <string name="shareMenuTitle">Споделяне</string>
     <string name="copyUrl">Копиране на адреса на връзката</string>
 
     <!-- Find in page -->
@@ -80,6 +106,7 @@
     <string name="closeTab">Затваряне на раздел</string>
     <string name="tabClosed">Разделът е затворен</string>
     <string name="tabClosedUndo">Отмяна</string>
+    <string name="downloadsMenuItemTitle">Изтеглени файлове</string>
 
     <!-- Privacy Dashboard Activities -->
     <string name="privacyProtectionToggle">Защита на поверителността на сайта</string>
@@ -88,34 +115,11 @@
     <string name="privacyDashboardActivityTitle">Табло за управление на поверителността</string>
     <string name="privacyProtectionUpgraded" tools:ignore="TypographyQuotes">ПОДОБРЕН ОТ &lt;img src=\"%1$d\" /&gt; ДО &lt;img src=\"%2$d\" /&gt;</string>
     <string name="privacyGradeContentDescription">Клас на поверителност</string>
+    <string name="privacyProtectionTemporarilyDisabled">Деактивирахме временно защитата на поверителността, защото изглежда, че пречи на зареждането на този сайт.</string>
 
     <string name="httpsGood">Шифрована връзка</string>
     <string name="httpsMixed">Смесена връзка за шифроване</string>
     <string name="httpsBad">Нешифрована връзка</string>
-
-    <string name="networksActivityTitle">Проследяващи мрежи</string>
-    <string name="networksContentDescription">Проследяващи мрежи</string>
-    <string name="networksOverview">Проследяващите мрежи обединяват историята на мрежата ви в профил с данни за вас. Основните проследяващи мрежи са по-вредни, защото могат да ви проследяват и насочват през по-голяма част от интернет.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">%1$s открит тракер</item>
-        <item quantity="other">%1$s открити проследяващи устройства</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">%1$s блокирани тракера</item>
-        <item quantity="other">%1$s блокирани проследяващи устройства</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">%1$s открита основна проследяваща мрежа</item>
-        <item quantity="other">%1$s открити основни проследяващи мрежи</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">%1$s блокирана основна проследяваща мрежа</item>
-        <item quantity="other">%1$s блокирани основни проследяващи мрежи</item>
-    </plurals>
 
     <string name="scorecardActivityTitle">Клас на поверителност</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">Сайтът е основна проследяваща мрежа</string>
@@ -135,22 +139,74 @@
     <string name="networkTrackerSummaryHeader">ОСНОВНИ НАРУШИТЕЛИ В ПРОСЛЕДЯВАЩАТА МРЕЖА</string>
     <string name="networkTrackerSummaryNotReady">Все още събираме данни, за да покажем колко проследяващи елемента сме блокирали.</string>
 
+    <string name="trackersActivityTitle">Блокирани заявки за проследяване</string>
+    <string name="trackersContentDescription">Блокирани заявки за проследяване</string>
+    <string name="trackersOverview">Блокирано е зареждането на заявки от следните домейни на трети страни, тъй като са идентифицирани като заявки за проследяване. Ако бъдат заредени заявки от дадена компания, те могат да ѝ позволят да Ви профилира.</string>
+    <string name="trackersOverviewProtectionsOff">Няма блокирано зареждане на заявки проследяване, тъй като защитите за този сайт са изключени. Ако бъдат заредени заявки от дадена компания, те могат да ѝ позволят да Ви профилира.</string>
+
+    <string name="domainsLoadedActivityTitle">Заредени заявки от трети страни</string>
+    <string name="domainsLoadedContentDescription">Заредени заявки от трети страни</string>
+    <string name="domainsLoadedOverview">Заредени са заявки от следните домейни на трети страни. Ако бъдат заредени заявки от дадена компания, те могат да ѝ позволят да Ви профилира, въпреки че останалите ни защити срещу проследяване в мрежата все още се прилагат.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">Няма блокирано зареждане на заявки от трети страни, тъй като защитите за този сайт са изключени. Ако бъдат заредени заявки от дадена компания, те могат да ѝ позволят да Ви профилира.</string>
+    <string name="domainsLoadedOverviewEmpty">Не открихме заявки от домейни на трети страни.</string>
+    <string name="domainsLoadedHeadingText">Няма заредени домейни на трети страни</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">Относно нашите защити срещу проследяване в мрежата</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">Заредени са заявки от следните домейни.</string>
+
+    <string name="adLoadedSectionDescription">Заредени са заявки от следния домейн, защото наскоро сте щракнали върху реклама на %1$s в DuckDuckGo. Тези заявки помагат за оценка на ефективността на рекламата. Рекламите в DuckDuckGo не са профилиращи.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">Какво влияние оказват нашите реклами при търсене върху нашите защити</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">Заредени са също и заявки от следния домейн.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">Заредени са заявки за проследяване от следните домейни.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">Не открихме заявки от домейни на трети страни.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">Заредени са заявки от следния домейн, за да се предотврати срив на сайта.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">Заредени са заявки от следния домейн, защото са свързани с %1$s.</string>
+
+    <string name="trackersBlockedText">Блокирано зареждане на заявки</string>
+    <string name="trackersNotBlockedText">Няма блокирани заявки за проследяване</string>
+    <string name="trackersNoFoundText">Няма открити заявки за проследяване</string>
+    <string name="trackersFoundText">Открити заявки за проследяване</string>
+
+    <string name="domainsLoadedText">Заредени заявки от трети страни</string>
+    <string name="domainsNotLoadedText">Няма заредени заявки от трети страни</string>
+
+    <string name="majorNetworksNoFound">Не са открити основни проследяващи мрежи</string>
+    <string name="majorNetworksFound">Открити са основни проследяващи мрежи</string>
+
     <!-- Fire -->
     <string name="fireMenu">Изчистване на данни</string>
-    <string name="fireClearAll">Изчистване на всички подпрозорци и данни</string>
+    <string name="fireClearAll">Изчистване на всички раздели и данни</string>
     <string name="fireCancel">Отмени</string>
     <string name="fireDataCleared">Данните са изчистени</string>
 
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Настройки</string>
     <string name="settingsMenuItemTitle">Настройки</string>
-    <string name="settingsHeadingGeneral">Обща информация</string>
-    <string name="settingsHeadingOther">Други</string>
     <string name="settingsHeadingPrivacy">Поверителност</string>
-    <string name="settingsLightTheme">Светла тема</string>
     <string name="settingsAboutDuckduckgo">За DuckDuckGo</string>
     <string name="settingsVersion">Версия</string>
     <string name="leaveFeedback">Споделяне на отзив</string>
+    <string name="settingsEmailProtectionTitle">Защита на имейл</string>
+    <string name="settingsEmailProtectionSubtitle">Блокирайте имейл тракерите и скрийте своя адрес</string>
+    <string name="settingsHeadingMore">Още от DuckDuckGo</string>
+    <string name="settingsLightTheme">Светла</string>
+    <string name="settingsTheme">Тема</string>
+    <string name="settingsDarkTheme">Тъмен</string>
+    <string name="settingsSystemTheme">По подразбиране за системата</string>
+    <string name="settingsThemeDialogSave">Задаване на тема</string>
+    <string name="settingsTitleAppLinks">Отваряне на връзки в приложения</string>
+    <string name="settingsTitleAppLinksDialog">Отваряне на връзки в приложения</string>
+    <string name="settingsAppLinksAskEveryTime">Питай всеки път</string>
+    <string name="settingsAppLinksAlways">Винаги</string>
+    <string name="settingsAppLinksNever">Никога</string>
+    <string name="settingsHeadingAppearance">Външен вид</string>
+    <string name="settingsHeadingCustomize">Персонализиране</string>
+    <string name="settingsHeadingAbout">За нас</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Запази</string>
@@ -199,31 +255,59 @@
     <!-- Bookmarks Activity -->
     <string name="bookmarksMenuTitle">Отметки</string>
     <string name="bookmarksActivityTitle">Отметки</string>
-    <string name="bookmarkDeleteConfirmMessage">Наистина ли искате да изтриете отметка &lt;b&gt;%1$s&lt;/b&gt;?</string>
-    <string name="bookmarkAddedFeedback">Добавена е отметка</string>
-    <string name="bookmarkTitleHint">Заглавие на отметката</string>
-    <string name="bookmarkUrlHint">URL адрес на отметката</string>
-    <string name="bookmarkTitleEdit">Редактиране на отметка</string>
     <string name="noBookmarks">Все още няма добавени отметки</string>
     <string name="bookmarkOverflowContentDescription">Още опции за отметка %1$s</string>
-    <string name="bookmarkEdited">Добавена е отметка</string>
     <string name="bookmarkDeleteConfirmationMessage">Изтрито &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="exportBookmarksMenu">Експортиране</string>
+    <string name="exportBookmarksEmpty">Нямате отметки, няма да бъде експортирано нищо</string>
+    <string name="exportBookmarksError">Не успяхме да експортираме отметките, възникна някаква грешка</string>
+    <string name="exportBookmarksSuccess">Всички отметки бяха експортирани успешно</string>
+    <string name="importBookmarksMenu">Импортиране</string>
+    <string name="importBookmarksFileTitle">Изберете файл с отметки за импортиране</string>
+    <string name="importBookmarksError">Не успяхме да импортираме отметките, възникна някаква грешка</string>
+    <string name="importBookmarksEmpty">Във файла няма отметки за импортиране</string>
+    <string name="importBookmarksSuccess">%1$d отметки са импортирани успешно</string>
+    <string name="savedSiteDialogTitleHint">Заглавие</string>
+    <string name="savedSiteDialogUrlHint">URL</string>
+    <string name="savedSiteDialogTitleEdit">Редактиране</string>
+    <string name="bookmarksSectionTitle">Отметки</string>
+    <string name="favoritesSectionTitle">Любими</string>
+    <string name="bookmarksEmptyHint">Все още няма добавени отметки</string>
+    <string name="favoritesEmptyHint">Все още няма добавени любими</string>
 
     <!-- Dialogs -->
     <string name="dialogConfirmTitle">Потвърдете</string>
     <string name="dialogSave">Запази</string>
     <string name="delete">Изтриване</string>
     <string name="edit">Редактиране</string>
+    <string name="remove">Премахване</string>
+    <string name="removeAll">Премахване на всички</string>
 
     <!-- Widget -->
     <string name="searchWidgetTextHint">Търсене с DuckDuckGo</string>
 
+    <!-- Favorites widget -->
+    <string name="addFavoriteMenuTitleHighlighted">👋 Добавяне към „Предпочитани“</string>
+    <string name="widgetConfigurationTitleText">Изберете тема</string>
+    <string name="widgetConfigurationSystemThemeOption">По подразбиране за системата</string>
+    <string name="widgetConfigurationLightThemeOption">Светла</string>
+    <string name="widgetConfigurationDarkThemeOption">Тъмен</string>
+    <string name="widgetConfigurationAddWidgetOption">Добави приспособлението</string>
+    <string name="searchWidgetEmtpyFavoritesHint">Все още няма добавени любими</string>
+    <string name="searchWidgetEmtpyFavoritesCta">Добавяне в любими</string>
+    <string name="daxFavoritesOnboardingCtaText"><![CDATA[Отварянето на вашите предпочитани сайтове става светкавично!<br/><br/>Отворете сайт, който харесвате. След това докоснете иконата \" ⠇\" и изберете „Добавяне към Предпочитани“.]]></string>
+    <string name="daxFavoritesOnboardingCtaContentDescription">Отварянето на вашите предпочитани сайтове става светкавично! Отворете сайт, който харесвате. След това докоснете иконата за меню на браузъра и изберете „Добавяне към Предпочитани“.</string>
+    <string name="widgetConfigurationActivityTitle">Конфигуриране на уиджет</string>
+    <string name="favoritesWidgetLabel">Любими</string>
+    <string name="searchWidgetLabel">Търсене</string>
+
     <!-- Home Screen Shortcuts -->
-    <string name="addToHome">Добави към Начало</string>
+    <string name="addToHome">Добавете към Начална Страница</string>
+    <string name="shortcutAddedText">Готово! %1$s е добавен към началния екран.</string>
 
     <!-- User Survey -->
     <string name="surveyCtaTitle">Помогнете ни да подобрим приложението!</string>
-    <string name="surveyCtaDescription">Попълнете нашата кратка, анонимна анкета и споделете отзивите си.</string>
+    <string name="surveyCtaDescription">Попълнете нашата кратка анкета и споделете отзивите си.</string>
     <string name="surveyCtaLaunchButton">Попълнете анкетата</string>
     <string name="surveyCtaDismissButton">Не, благодаря</string>
     <string name="surveyActivityTitle">Потребителска анкета</string>
@@ -267,8 +351,6 @@
     <string name="noThanks">Не, благодаря</string>
 
     <!-- Notification Channel Names -->
-    <string name="notificationChannelFileDownloading">Файлът се изтегля</string>
-    <string name="notificationChannelFileDownloaded">Файлът е изтеглен</string>
     <string name="notificationChannelTutorials">Указания</string>
 
     <!-- Clear Notification -->
@@ -400,7 +482,7 @@
     <string name="onboardingLetsDoItButton">Да го направим!</string>
     <string name="daxIntroCtaText"><![CDATA[Сега, отворете един от любимите си сайтове! <br/><br/>Ще блокирам тракерите, за да не ви шпионират. Също така ще надстроя сигурността на вашата връзка, ако е възможно. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[Вече разбрахте!<br/><br/>Запомнете: Всеки път, когато сърфирате с мен, аз подрязвам крилцата на някоя досадна реклама. 👍]]></string>
-    <string name="daxSerpCtaText">Търсенията ви в DuckDuckGo са анонимни и никога не съхранявам историята на вашите търсения. Никога. 🙌</string>
+    <string name="daxSerpCtaText">Търсенето в DuckDuckGo е анонимно. Винаги. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[ и още <b>%1$d друг</b> се опитват да ви проследят тук. <br/><br/>Блокирах ги!<br/><br/> ☝️Вижте адресната лента, за да разберете кой се опитва да ви проследи, когато посещавате нов сайт.️]]></item>
         <item quantity="other"><![CDATA[ и още <b>%1$d други</b> се опитват да ви проследят тук. <br/><br/>Блокирах ги!<br/><br/> ☝️Вижте адресната лента, за да разберете кой се опитва да ви проследи, когато посещавате нов сайт.️]]></item>
@@ -414,7 +496,7 @@
     <string name="daxMainNetworkOwnedCtaText">Внимание! Тъй като %1$s притежава %2$s, той вижда какво правите тук а аз не мога да предотвратя това.&lt;br/&gt;&lt;br/&gt;Но ако сърфирайте с мен, като цяло мога да намаля информацията, която %3$s научава за вас, като блокирам неговите тракери на много други сайтове.</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Продължи</string>
+    <string name="downloadConfirmationContinue">Запазване в Изтеглени файлове</string>
     <string name="downloadConfirmationSaveFileTitle">Запази %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Запазване на двете</string>
     <string name="downloadConfirmationReplaceOldFileText">Заместване</string>
@@ -440,7 +522,7 @@
     <string name="dialogSaveAction">Запази</string>
 
     <!-- Whitelist -->
-    <string name="whitelisetActivityTitle">Незащитени сайтове</string>
+    <string name="whitelistActivityTitle">Незащитени сайтове</string>
     <string name="enablePrivacyProtection">Активиране на защита на поверителността</string>
     <string name="disablePrivacyProtection">Деактивиране на защита на поверителността</string>
     <string name="whitelistEntryOverflowContentDescription">Още опции за незащитен сайт %1$s</string>
@@ -456,24 +538,34 @@
     <!-- Fireproof websites -->
     <string name="fireproofWebsitesActivityTitle">Огнеустойчиви сайтове</string>
     <string name="settingsFireproofWebsites">Огнеустойчиви сайтове</string>
-    <string name="fireproofWebsiteMenuTitleAdd">Огнеустойчив сайт</string>
-    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; вече е огнеустойчив! Отворете настройките за управление.</string>
+    <string name="fireproofWebsiteMenuTitleAdd">Направи този сайт огнеустойчив</string>
+    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; вече е огнеустойчив</string>
     <string name="fireproofWebsiteSnackbarAction">Отмяна</string>
     <string name="fireproofWebsiteDeleteConfirmMessage">Сигурни ли сте, че искате да изтриете &lt;b&gt;%1$s&lt;/b&gt;?</string>
-    <string name="fireproofWebsiteEmptyListHint">Няма огнеустойчиви уебсайтове</string>
     <string name="fireproofWebsiteFeatureDescription">Уеб сайтовете разчитат на бисквитки, за да поддържат сесията ви активна. Когато направите сайта огнеустойчив, бисквитките няма да бъдат изтрити и ще останете вписани, дори след като използвате огнения бутон. Ние все пак блокираме тракери на трети страни, които се намират на огнеустойчиви сайтове.</string>
     <string name="fireproofWebsiteOverflowContentDescription">Още опции за огнеустойчивост на уебсайт %1$s</string>
     <string name="fireproofWebsiteLoginDialogTitle">Искате ли да направите %1$s огнеустойчив?</string>
     <string name="fireproofWebsiteLoginDialogDescription">Ако направите този сайт огнеустойчив, ще останете вписани, след като използвате огнения бутон.</string>
     <string name="fireproofWebsiteLoginDialogPositive">Направи огнеустойчив</string>
     <string name="fireproofWebsiteLoginDialogNegative">Не сега</string>
-    <string name="fireproofWebsiteItemsSectionTitle">Уебсайтове</string>
-    <string name="fireproofWebsiteToogleText">Питай при влизане</string>
+    <string name="fireproofWebsiteItemsSectionTitle">Огнеустойчиви сайтове</string>
+    <string name="fireproofWebsiteEmptyListHint">Все още няма огнеустойчиви уебсайтове</string>
+    <string name="fireproofWebsiteSettingSelectionTitle">Прави уебсайтовете огнеустойчиви при влизане</string>
+    <string name="fireproofWebsiteRemoveAllConfirmation">Премахнати са всички уебсайтове от списъка с огнеустойчиви</string>
+    <string name="fireproofWebsiteRemovalConfirmation">Премахната огнеустойчивост за &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogAskEveryTime">Питай всеки път</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogAlways">Винаги</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogNever">Никога</string>
     <string name="disableLoginDetectionDialogTitle">Да се деактивира ли напомняне за огнеустойчивост при вход в сайтове?</string>
     <string name="disableLoginDetectionDialogDescription">Можете да промените това предпочитание по всяко време в настройките.</string>
     <string name="disableLoginDetectionDialogPositive">ЗАБРАНИ</string>
     <string name="disableLoginDetectionDialogNegative">ОТМЕНИ</string>
-    <string name="fireproofWebsiteRemovalConfirmation">Премахната огнеустойчивост за &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="automaticFireproofWebsiteLoginDialogTitle">Да се правят ли уебсайтовете огнеустойчиви автоматично при влизане?</string>
+    <string name="automaticFireproofWebsiteLoginDialogDescription">Ако направите сайтовете огнеустойчиви, ще останете вписани, след като използвате огнения бутон. Можете винаги да промените това по-късно в Настройки. </string>
+    <string name="automaticFireproofWebsiteLoginDialogFirstOption">Винаги прави огнеустойчиви</string>
+    <string name="automaticFireproofWebsiteLoginDialogSecondOption">Направи този сайт огнеустойчив</string>
+    <string name="automaticFireproofWebsiteLoginDialogThirdOption">Не сега</string>
+
 
     <!-- Fire Animation settings -->
     <string name="settingsFireAnimation">Анимация на огнения бутон</string>
@@ -487,11 +579,6 @@
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Връзката е прекъсната. Този уебсайт може да навреди на вашето устройство.</string>
 
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">Управлението на изтеглени файлове е деактивирано</string>
-    <string name="downloadManagerIncompatible">Управлението на изтеглени файлове не е налично на това устройство</string>
-    <string name="enable">Активиране</string>
-
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">Да се активира ли местоположение на устройството за поверителния браузър на DuckDuckGo?</string>
     <string name="preciseLocationSystemDialogSubtitle">%1$s иска информация за местоположението на устройството. Първо трябва да разрешите на приложението да изпраща местоположението на устройството и след това %2$s може да поиска разрешение.</string>
@@ -499,12 +586,12 @@
     <string name="preciseLocationSystemDialogDeny">Може би по-късно</string>
     <string name="preciseLocationSystemDialogNeverAllow">Не питай отново за този сайт</string>
     <string name="preciseLocationSiteDialogTitle">Давате ли разрешение на %1$s за достъп до местоположението?</string>
+    <string name="preciseLocationDDGDialogSubtitle">Използваме анонимното Ви местоположение само за да Ви осигурим по-добри резултати близо до мястото, на което се намирате. Можете винаги да промените решението си по-късно.</string>
     <string name="preciseLocationSiteDialogSubtitle">В Настройки можете да управлявате разрешенията за достъп до местоположението, които сте дали на отделни сайтове.</string>
     <string name="preciseLocationSiteDialogAllowAlways">Винаги</string>
     <string name="preciseLocationSiteDialogAllowOnce">Само за тази сесия</string>
     <string name="preciseLocationSiteDialogDenyAlways">Винаги да се отказва</string>
     <string name="preciseLocationSiteDialogDenyOnce">Отказ само за тази сесия</string>
-    <string name="settingsPreciseLocation">Местоположение</string>
     <string name="preciseLocationFeatureDescription">Сайтовете, които посещавате, може да поискат да научат местоположението на устройството. Те няма да имат достъп до него, докато не им дадете изрично разрешение. DuckDuckGo използва местоположението само анонимно, за да осигурява локални резултати от търсенето.</string>
     <string name="preciseLocationToggleText">Сайтовете може да питат за местоположението ми</string>
     <string name="preciseLocationEmptyListHint">Никой уебсайт няма разрешение за достъп до местоположението</string>
@@ -522,12 +609,132 @@
     <!--  Global Privacy Control-->
     <string name="globalPrivacyControlActivityTitle">Глобален контрол на поверителността (GPC)</string>
     <string name="globalPrivacyControlDescription">
-        Вашите лични данни не са за продажба. Ние в DuckDuckGo сме съгласни с това. Активирайте настройката \"Глобален контрол на поверителността\" (GPC) и ние ще уведомяваме уебсайтовете за вашето предпочитание:&lt;br/&gt;&lt;br/&gt;• Да не продават вашите лични данни.&lt;br/&gt;• Да ограничат споделянето на личните ви данни с други компании.
+        <![CDATA[DuckDuckGo блокира автоматично много тракери. С настройката \"Глобален контрол на поверителността\" (GPC) можете също да поискате от участващите уебсайтове да ограничат продажбата или споделянето на Вашите лични данни на/с други компании. <u><a href=\"\">Научете повече</a><u/>]]>
     </string>
     <string name="globalPrivacyControlSetting">Глобален контрол на поверителността (GPC)</string>
     <string name="globalPrivacyControlToggle">Глобален контрол на поверителността (GPC)</string>
-    <string name="globalPrivacyControlDescriptionLegal"><b>Тъй като Глобалният контрол на поверителността (GPC) е нов стандарт, повечето уебсайтове все още не го разпознават, но ние полагаме усилия стандартът да бъде приет по целия свят.</b> Въпреки това от уеб сайтовете се изисква да предприемат действия по даден сигнал до степента, до която приложимото законодателство им налага това.</string>
-    <string name="globalPrivacyControlLearnMore"><u>Научете повече</u></string>
     <string name="disabled">Деактивирано</string>
     <string name="enabled">Активирано</string>
+
+    <!-- Opening app links -->
+    <string name="settingTitleOpenLinksInAssociatedApps">Отваряне на връзките в свързаните приложения</string>
+    <string name="settingSubtitleOpenLinksInAssociatedApps">Деактивирайте, за да предотвратите автоматично отваряне на връзки в други инсталирани приложения.</string>
+    <string name="appLinkDialogTitle">Отваряне в друго приложение?</string>
+    <string name="appLinkSnackBarAction">Отваряне в приложението</string>
+    <string name="appLinkMultipleSnackBarAction">Изберете приложение</string>
+    <string name="appLinkSnackBarMessage">Можете да отворите тази връзка в %1$s.</string>
+    <string name="appLinkMultipleSnackBarMessage">Можете да отворите тази връзка в други приложения.</string>
+    <string name="appLinkIntentChooserTitle">Отваряне с</string>
+    <string name="appLinkMenuItemTitle">Отваряне в приложението</string>
+
+    <!-- Email Autofill -->
+    <string name="aliasToClipboardMessage">Новият адрес е копиран в клипборда</string>
+    <string name="autofillTooltipUseYourAlias">Използване на %1$s</string>
+    <string name="autofillTooltipUseYourAliasDescription">Блокира имейл тракери</string>
+    <string name="autofillTooltipGenerateAddress">Генериране на личен адрес</string>
+    <string name="autofillTooltipGenerateAddressDescription">Блокира имейл тракерите и скрива Вашия адрес</string>
+    <string name="newEmailAliasMenuTitle">Създаване на Duck адрес</string>
+
+    <!-- Waitlist Notification -->
+    <string name="waitlistNotificationDialogDescription">Искате ли да Ви изпратим известие, когато дойде Вашият ред?</string>
+    <string name="waitlistNotificationDialogNoThanks">Не, благодаря</string>
+    <string name="waitlistNotificationDialogNotifyMe">УВЕДОМЕТЕ МЕ</string>
+
+    <!-- Email Protection -->
+    <string name="emailProtectionActivityTitle">Защита на имейл (Бета версия)</string>
+    <string name="emailNotSupported">Устройството не се поддържа</string>
+    <string name="emailNotSupportedExplanation">Защитата на имейла ви позволява да създавате поверителни имейл адреси, които премахват имейл тракерите. Необходимо е да криптираме и съхраняваме създадените от вас адреси локално на вашето устройство. Тъй като вашето устройство не поддържа криптирано съхранение, защитата на имейл не е достъпна.</string>
+
+    <!-- Bookmark folders -->
+    <string name="bookmarkDialogTitleEdit">Редактиране на отметка</string>
+    <string name="favoriteDialogTitleEdit">Редактиране на Предпочитан</string>
+    <string name="locationLabel">Местоположение</string>
+    <string name="folderLocationTitle">Изберете местоположение</string>
+    <string name="addFolder">Добавяне на папка</string>
+    <string name="editFolder">Редактиране на папка</string>
+    <string name="bookmarkFolderDeleteDialogMessage">"Сигурни ли сте, че искате да изтриете "</string>
+    <string name="bookmarkFolderEmpty">Празна</string>
+
+    <plurals name="bookmarkFolderDeleteDialogMessage">
+        <item quantity="one">%1$s%2$s и %3$d елемент?</item>
+        <item quantity="other">%1$s%2$s и %3$d елемента?</item>
+    </plurals>
+
+    <plurals name="bookmarkFolderItems">
+        <item quantity="one">%1$d елемент</item>
+        <item quantity="other">%1$d елемента</item>
+    </plurals>
+
+    <!-- Accessibility-->
+    <string name="settingsAccessibility">Достъпност</string>
+    <string name="accessibilityActivityTitle">Достъпност</string>
+    <string name="accessibilityFontSizeTitle">Размер на текста</string>
+    <string name="accessibilityFontSizeHint">Придвижете плъзгача до положение, в което можете да виждате текста добре. Уебсайтовете, които разглеждате в DuckDuckGo, ще се регулират спрямо него.</string>
+    <string name="accessibilityForceZoomTitle">Прилагане на ръчно мащабиране на страницата</string>
+    <string name="accessibilityForceZoomSubtitle">Щипнете и увеличете всеки сайт, дори и тези, които не позволяват мащабиране</string>
+    <string name="accessibilityTextSizeOverrideTitle">Управление на размера на текста</string>
+    <string name="accessibilityTextSizeOverrideSubtitle">Текстът на уебсайтовете, които разглеждате с DuckDuckGo, ще се регулира спрямо настройката по-долу</string>
+
+    <!-- Privacy Policy -->
+    <string name="settingsPrivacyPolicyDuckduckgo">Политика за поверителност</string>
+
+    <!-- Home Screen Widget -->
+    <string name="homeScreenWidgetAdded">Уиджетът %1$s е добавен към началния екран</string>
+    <string name="settingsAddHomeScreenWidget">Уиджет на началния екран</string>
+
+    <!-- MacOs Settings -->
+    <string name="macos_settings_description">Сърфирайте поверително с нашето приложение за Mac</string>
+    <string name="macos_settings_title">Приложение DuckDuckGo за настолен компютър</string>
+
+    <!-- Downloads -->
+    <string name="downloadsMenuItem">Изтеглени файлове</string>
+    <string name="downloadsActivityTitle">Изтеглени файлове</string>
+    <string name="downloadsActivityNoItemsDescription">Все още няма изтеглени файлове</string>
+    <string name="downloadsShareTitle">Споделяне с…</string>
+    <string name="downloadsDownloadFinishedActionName">Отваряне</string>
+    <string name="downloadsCannotOpenFileErrorMessage">Файлът не може да се отвори. Проверете за съвместимо приложение.</string>
+    <string name="downloadsFileNotFoundErrorMessage">Файлът вече не съществува</string>
+    <string name="downloadsItemMenuShare">Споделяне</string>
+    <string name="downloadsItemMenuDelete">Изтриване</string>
+    <string name="downloadsItemMenuCancel">Отмени</string>
+    <string name="downloadsActivityMenuDeleteAll">Изтриване на всички</string>
+    <string name="downloadsFileDeletedMessage">Изтрито %1$s</string>
+    <string name="downloadsAllFilesDeletedMessage">Всички файлове са изтрити</string>
+    <string name="downloadsMoreOptionsContentDescription">Още опции за %1$s</string>
+    <string name="downloadsUndoActionName">Отмяна</string>
+    <string name="downloadsStateInProgress">В процес на изпълнение…</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">Защита от проследяване в приложения</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Блокиране на тракерите на Вашето устройство</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Активирано</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Деактивирано</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Изглежда, че този сайт има изскачащ прозорец за съгласие за бисквитки👇</string>
+    <string name="autoconsentDialogDescription">Искате ли да се справя с това вместо Вас? Мога да се опитам да намаля бисквитките до минимум, да увелича поверителността и да скрия подобни изскачащи прозорци.</string>
+    <string name="autoconsentPrimaryCta">Управление на изскачащите прозорци за бисквитки</string>
+    <string name="autoconsentSecondaryCta">Не, благодаря</string>
+
+    <string name="autoconsentSetting">Управление на изскачащите прозорци за бисквитки</string>
+    <string name="autoconsentAnimationText">Бисквитките са настроени</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Разрешения за сайтове</string>
+    <string name="sitePermissionsSettingsDescription">Сайтовете, които посещавате, може да поискат достъп до местоположението, камерата или микрофона на устройството. Те няма да имат достъп до тях, освен ако не им дадете изрично разрешение.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Разрешаване на всички сайтове да искат:</string>
+    <string name="sitePermissionsSettingsLocation">Местоположение</string>
+    <string name="sitePermissionsSettingsCamera">Камера</string>
+    <string name="sitePermissionsSettingsMicrophone">Микрофон</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Управление на сайтове</string>
+    <string name="sitePermissionsSettingsEmptyText">Все още няма сайтове</string>
+    <string name="permissionPerWebsiteText">Разрешения за \"%1$s\" </string>
+    <string name="permissionsPerWebsiteAskSetting">Питане</string>
+    <string name="permissionsPerWebsiteDenySetting">Отказвам</string>
+    <string name="permissionsPerWebsiteAllowSetting">Разрешавам</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s разрешение за %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Автоматично попълване</string>
+
 </resources>

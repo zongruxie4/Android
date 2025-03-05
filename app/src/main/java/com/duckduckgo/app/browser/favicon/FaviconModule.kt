@@ -18,39 +18,49 @@ package com.duckduckgo.app.browser.favicon
 
 import android.content.Context
 import com.duckduckgo.app.bookmarks.db.BookmarksDao
+import com.duckduckgo.app.bookmarks.model.FavoritesRepository
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteRepository
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.location.data.LocationPermissionsRepository
+import com.duckduckgo.autofill.store.AutofillStore
+import com.duckduckgo.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
 
 @Module
 class FaviconModule {
 
     @Provides
-    @Singleton
+    @SingleInstanceIn(AppScope::class)
     fun faviconManager(
         faviconPersister: FaviconPersister,
         bookmarksDao: BookmarksDao,
         fireproofWebsiteRepository: FireproofWebsiteRepository,
         locationPermissionsRepository: LocationPermissionsRepository,
+        favoritesRepository: FavoritesRepository,
         faviconDownloader: FaviconDownloader,
-        dispatcherProvider: DispatcherProvider
+        dispatcherProvider: DispatcherProvider,
+        autofillStore: AutofillStore
     ): FaviconManager {
         return DuckDuckGoFaviconManager(
             faviconPersister,
             bookmarksDao,
             fireproofWebsiteRepository,
             locationPermissionsRepository,
+            favoritesRepository,
             faviconDownloader,
-            dispatcherProvider
+            dispatcherProvider,
+            autofillStore
         )
     }
 
     @Provides
-    @Singleton
-    fun faviconDownloader(context: Context, dispatcherProvider: DispatcherProvider): FaviconDownloader {
+    @SingleInstanceIn(AppScope::class)
+    fun faviconDownloader(
+        context: Context,
+        dispatcherProvider: DispatcherProvider
+    ): FaviconDownloader {
         return GlideFaviconDownloader(context, dispatcherProvider)
     }
 }

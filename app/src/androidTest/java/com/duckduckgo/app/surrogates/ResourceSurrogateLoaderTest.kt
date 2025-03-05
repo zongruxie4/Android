@@ -18,7 +18,8 @@ package com.duckduckgo.app.surrogates
 
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.surrogates.store.ResourceSurrogateDataStore
-import org.junit.Assert
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -29,23 +30,24 @@ class ResourceSurrogateLoaderTest {
     private lateinit var dataStore: ResourceSurrogateDataStore
     private lateinit var resourceSurrogates: ResourceSurrogates
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
         resourceSurrogates = ResourceSurrogatesImpl()
         dataStore = ResourceSurrogateDataStore(InstrumentationRegistry.getInstrumentation().targetContext)
-        testee = ResourceSurrogateLoader(resourceSurrogates, dataStore)
+        testee = ResourceSurrogateLoader(TestScope(), resourceSurrogates, dataStore)
     }
 
     @Test
     fun whenLoading6SurrogatesThen6SurrogatesFound() {
         val surrogates = initialiseFile("surrogates_6")
-        Assert.assertEquals(6, surrogates.size)
+        assertEquals(6, surrogates.size)
     }
 
     @Test
     fun whenLoading1SurrogateThen1SurrogateFound() {
         val surrogates = initialiseFile("surrogates_1")
-        Assert.assertEquals(1, surrogates.size)
+        assertEquals(1, surrogates.size)
     }
 
     @Test
@@ -105,6 +107,17 @@ class ResourceSurrogateLoaderTest {
         assertEquals(6, surrogates.size)
     }
 
+    @Test
+    fun whenLoadingSurrogatesThenCorrectScriptIdStored() {
+        val surrogates = initialiseFile("surrogates_6")
+        assertEquals("ga.js", surrogates[0].scriptId)
+        assertEquals("analytics.js", surrogates[1].scriptId)
+        assertEquals("inpage_linkid.js", surrogates[2].scriptId)
+        assertEquals("api.js", surrogates[3].scriptId)
+        assertEquals("gpt.js", surrogates[4].scriptId)
+        assertEquals("gtm.js", surrogates[5].scriptId)
+    }
+
     private fun initialiseFile(filename: String): List<SurrogateResponse> {
         return testee.convertBytes(readFile(filename))
     }
@@ -112,5 +125,4 @@ class ResourceSurrogateLoaderTest {
     private fun readFile(filename: String): ByteArray {
         return javaClass.classLoader!!.getResource("binary/surrogates/$filename").readBytes()
     }
-
 }

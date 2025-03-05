@@ -23,12 +23,11 @@ import androidx.room.TypeConverter
 @Entity(tableName = "user_events")
 data class UserEventEntity(
     @PrimaryKey val id: UserEventKey,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val payload: String = ""
 )
 
 enum class UserEventKey {
-    USE_OUR_APP_SHORTCUT_ADDED,
-    USE_OUR_APP_FIREPROOF_DIALOG_SEEN,
     FIRE_BUTTON_HIGHLIGHTED,
     FIRE_BUTTON_EXECUTED,
     FIREPROOF_LOGIN_DIALOG_DISMISSED,

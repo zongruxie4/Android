@@ -17,16 +17,18 @@
 package com.duckduckgo.app.launch
 
 import android.os.Bundle
-import androidx.lifecycle.Observer
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.BrowserActivity
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.global.DuckDuckGoActivity
 import com.duckduckgo.app.onboarding.ui.OnboardingActivity
 import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.di.scopes.ActivityScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@InjectWith(ActivityScope::class)
 class LaunchBridgeActivity : DuckDuckGoActivity() {
 
     @Inject
@@ -44,15 +46,12 @@ class LaunchBridgeActivity : DuckDuckGoActivity() {
     }
 
     private fun configureObservers() {
-        viewModel.command.observe(
-            this,
-            Observer {
-                processCommand(it)
-            }
-        )
+        viewModel.command.observe(this) {
+            processCommand(it)
+        }
     }
 
-    private fun processCommand(it: LaunchViewModel.Command?) {
+    private fun processCommand(it: LaunchViewModel.Command) {
         when (it) {
             LaunchViewModel.Command.Onboarding -> {
                 showOnboarding()

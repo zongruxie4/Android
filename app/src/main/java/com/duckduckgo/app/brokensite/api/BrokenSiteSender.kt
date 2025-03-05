@@ -16,17 +16,20 @@
 
 package com.duckduckgo.app.brokensite.api
 
-import android.os.Build
+import android.net.Uri
 import com.duckduckgo.app.brokensite.model.BrokenSite
-import com.duckduckgo.app.browser.BuildConfig
-import com.duckduckgo.app.globalprivacycontrol.GlobalPrivacyControl
+import com.duckduckgo.app.global.DispatcherProvider
+import com.duckduckgo.app.global.absoluteString
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
 import com.duckduckgo.app.trackerdetection.db.TdsMetadataDao
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.feature.toggles.api.FeatureToggle
+import com.duckduckgo.privacy.config.api.Gpc
+import com.duckduckgo.privacy.config.api.PrivacyFeatureName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -38,25 +41,36 @@ class BrokenSiteSubmitter(
     private val statisticsStore: StatisticsDataStore,
     private val variantManager: VariantManager,
     private val tdsMetadataDao: TdsMetadataDao,
-    private val globalPrivacyControl: GlobalPrivacyControl,
+    private val gpc: Gpc,
+    private val featureToggle: FeatureToggle,
     private val pixel: Pixel,
+    private val appCoroutineScope: CoroutineScope,
+    private val appBuildConfig: AppBuildConfig,
+    private val dispatcherProvider: DispatcherProvider
 ) : BrokenSiteSender {
 
     override fun submitBrokenSiteFeedback(brokenSite: BrokenSite) {
-        GlobalScope.launch(Dispatchers.IO) {
+        val isGpcEnabled = (featureToggle.isFeatureEnabled(PrivacyFeatureName.GpcFeatureName.value) && gpc.isEnabled()).toString()
+        val absoluteUrl = Uri.parse(brokenSite.siteUrl).absoluteString
+
+        appCoroutineScope.launch(dispatcherProvider.io()) {
             val params = mapOf(
                 CATEGORY_KEY to brokenSite.category,
-                SITE_URL_KEY to brokenSite.siteUrl,
-                UPDGRADED_HTTPS_KEY to brokenSite.upgradeHttps.toString(),
+                SITE_URL_KEY to absoluteUrl,
+                UPGRADED_HTTPS_KEY to brokenSite.upgradeHttps.toString(),
                 TDS_ETAG_KEY to tdsMetadataDao.eTag().orEmpty(),
-                APP_VERSION_KEY to BuildConfig.VERSION_NAME,
+                APP_VERSION_KEY to appBuildConfig.versionName,
                 ATB_KEY to atbWithVariant(),
-                OS_KEY to Build.VERSION.SDK_INT.toString(),
-                MANUFACTURER_KEY to Build.MANUFACTURER,
-                MODEL_KEY to Build.MODEL,
+                OS_KEY to appBuildConfig.sdkInt.toString(),
+                MANUFACTURER_KEY to appBuildConfig.manufacturer,
+                MODEL_KEY to appBuildConfig.model,
                 WEBVIEW_VERSION_KEY to brokenSite.webViewVersion,
                 SITE_TYPE_KEY to brokenSite.siteType,
-                GPC to globalPrivacyControl.isGpcActive().toString()
+                GPC to isGpcEnabled,
+                URL_PARAMETERS_REMOVED to brokenSite.urlParametersRemoved.toBinaryString(),
+                CONSENT_MANAGED to brokenSite.consentManaged.toBinaryString(),
+                CONSENT_OPT_OUT_FAILED to brokenSite.consentOptOutFailed.toBinaryString(),
+                CONSENT_SELF_TEST_FAILED to brokenSite.consentSelfTestFailed.toBinaryString(),
             )
             val encodedParams = mapOf(
                 BLOCKED_TRACKERS_KEY to brokenSite.blockedTrackers,
@@ -77,7 +91,7 @@ class BrokenSiteSubmitter(
     companion object {
         private const val CATEGORY_KEY = "category"
         private const val SITE_URL_KEY = "siteUrl"
-        private const val UPDGRADED_HTTPS_KEY = "upgradedHttps"
+        private const val UPGRADED_HTTPS_KEY = "upgradedHttps"
         private const val TDS_ETAG_KEY = "tds"
         private const val BLOCKED_TRACKERS_KEY = "blockedTrackers"
         private const val SURROGATES_KEY = "surrogates"
@@ -89,5 +103,11 @@ class BrokenSiteSubmitter(
         private const val WEBVIEW_VERSION_KEY = "wvVersion"
         private const val SITE_TYPE_KEY = "siteType"
         private const val GPC = "gpc"
+        private const val URL_PARAMETERS_REMOVED = "urlParametersRemoved"
+        private const val CONSENT_MANAGED = "consentManaged"
+        private const val CONSENT_OPT_OUT_FAILED = "consentOptoutFailed"
+        private const val CONSENT_SELF_TEST_FAILED = "consentSelftestFailed"
     }
 }
+
+fun Boolean.toBinaryString(): String = if (this) "1" else "0"

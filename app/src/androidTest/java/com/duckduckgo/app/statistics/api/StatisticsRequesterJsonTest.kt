@@ -22,13 +22,14 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.FileUtilities.loadText
 import com.duckduckgo.app.InstantSchedulersRule
 import com.duckduckgo.app.global.AppUrl.ParamKey
+import com.duckduckgo.app.global.plugins.PluginPoint
 import com.duckduckgo.app.statistics.Variant
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.model.Atb
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
 import com.duckduckgo.app.statistics.store.StatisticsSharedPreferences
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -68,7 +69,12 @@ class StatisticsRequesterJsonTest {
         statisticsStore = StatisticsSharedPreferences(InstrumentationRegistry.getInstrumentation().targetContext)
         statisticsStore.clearAtb()
 
-        testee = StatisticsRequester(statisticsStore, statisticsService, mockVariantManager)
+        val plugins = object : PluginPoint<RefreshRetentionAtbPlugin> {
+            override fun getPlugins(): Collection<RefreshRetentionAtbPlugin> {
+                return listOf()
+            }
+        }
+        testee = StatisticsRequester(statisticsStore, statisticsService, mockVariantManager, plugins)
         whenever(mockVariantManager.getVariant()).thenReturn(Variant("ma", 100.0, filterBy = { true }))
     }
 
@@ -308,16 +314,22 @@ class StatisticsRequesterJsonTest {
         assertEquals("1", testParam)
     }
 
-    private fun queueResponseFromFile(filename: String, responseCode: Int = 200) {
+    private fun queueResponseFromFile(
+        filename: String,
+        responseCode: Int = 200
+    ) {
         val response = MockResponse()
-            .setBody(loadText("$JSON_DIR/$filename"))
+            .setBody(loadText(StatisticsRequesterJsonTest::class.java.classLoader!!, "$JSON_DIR/$filename"))
             .setResponseCode(responseCode)
 
         queueResponse(response)
     }
 
     @Suppress("SameParameterValue")
-    private fun queueResponseFromString(responseBody: String, responseCode: Int = 200) {
+    private fun queueResponseFromString(
+        responseBody: String,
+        responseCode: Int = 200
+    ) {
         val response = MockResponse()
             .setBody(responseBody)
             .setResponseCode(responseCode)

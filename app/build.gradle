@@ -6,24 +6,25 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.squareup.anvil'
 apply from: '../versioning.gradle'
 apply from: "$rootDir/spotless.gradle"
+apply plugin: 'com.duckduckgo.buildtime'
 
 ext {
     USE_ORCHESTRATOR = project.hasProperty('orchestrator') ? project.property('orchestrator') : false
+    CI_HOME_DIR="${System.getenv('HOME')}/jenkins_static/com.duckduckgo.mobile.android"
 }
 
 android {
-    compileSdkVersion compile_sdk
     ndkVersion '21.0.6113669'
     defaultConfig {
         applicationId "com.duckduckgo.mobile.android"
-        minSdkVersion min_sdk
-        targetSdkVersion target_sdk
+        minSdk min_sdk
+        targetSdk target_sdk
+        compileSdk compile_sdk
         versionCode buildVersionCode()
         versionName buildVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         archivesBaseName = "duckduckgo-$versionName"
         vectorDrawables.useSupportLibrary = true
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -31,15 +32,28 @@ android {
         }
         sourceSets {
             androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
-            androidTest.resources.srcDirs += files("$projectDir/../submodules/".toString())
+            main {
+                java {
+                    resources {
+                        srcDirs += files("$projectDir/../node_modules/@duckduckgo/autofill/dist/".toString())
+                        srcDirs += files("$projectDir/../submodules/".toString())
+                    }
+                }
+            }
         }
+
+        if (project.hasProperty('perf-test')) {
+            buildConfigField "boolean", "IS_PERFORMANCE_TEST", "true"
+        } else {
+            buildConfigField "boolean", "IS_PERFORMANCE_TEST", "false"
+        }
+    }
+    buildFeatures {
+        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
     signingConfigs {
         release
@@ -49,7 +63,7 @@ android {
             applicationIdSuffix ".debug"
             pseudoLocalesEnabled false
             manifestPlaceholders = [
-                    appIcon: "@mipmap/ic_launcher_blue",
+                    appIcon     : "@mipmap/ic_launcher_blue",
                     appIconRound: "@mipmap/ic_launcher_blue_round"
             ]
         }
@@ -58,24 +72,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
             manifestPlaceholders = [
-                    appIcon: "@mipmap/ic_launcher_red",
+                    appIcon     : "@mipmap/ic_launcher_red",
                     appIconRound: "@mipmap/ic_launcher_red_round"
             ]
         }
     }
     flavorDimensions "store"
     productFlavors {
-        fdroid{
+        internal {
             dimension "store"
         }
-        play{
+        fdroid {
+            dimension "store"
+        }
+        play {
             dimension "store"
         }
     }
     variantFilter { variant ->
         def names = variant.flavors*.name
         if (names.contains("fdroid") && variant.buildType.name == "debug") {
-            // We only need the F-Droid release version
+            // We don't need fdroidDebug build type
             setIgnore(true)
         }
     }
@@ -85,24 +102,22 @@ android {
             path "CMakeLists.txt"
         }
     }
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError true
+        ignoreTestSources true
+        baseline file("lint-baseline.xml")
     }
     testOptions {
         unitTests.returnDefaultValues = true
-
-        if (USE_ORCHESTRATOR) {
-            execution 'ANDROID_TEST_ORCHESTRATOR'
-        }
+        animationsDisabled = true
     }
 
-    def staticConfigPath = "${System.getenv('HOME')}/jenkins_static/com.duckduckgo.mobile.android"
-    def propertiesPath = "${staticConfigPath}/ddg_android_build.properties"
+    def propertiesPath = "${CI_HOME_DIR}/ddg_android_build.properties"
     def propertiesFile = new File(propertiesPath)
     if (propertiesFile.exists()) {
         def props = new Properties()
         props.load(new FileInputStream(propertiesFile))
-        android.signingConfigs.release.storeFile = file("${staticConfigPath}/${props['key.store']}")
+        android.signingConfigs.release.storeFile = file("${CI_HOME_DIR}/${props['key.store']}")
         android.signingConfigs.release.storePassword = props['key.store.password']
         android.signingConfigs.release.keyAlias = props['key.alias']
         android.signingConfigs.release.keyPassword = props['key.alias.password']
@@ -112,20 +127,121 @@ android {
     }
 }
 
-dependencies {
-    implementation project(path: ':statistics')
-    implementation project(path: ':common')
-    implementation project(path: ':di')
+fulladleModuleConfig {
+    variant.set("playDebug")
+}
 
-    implementation AndroidX.legacy.supportV4
+fladle {
+    configs {
+        privacyTests {
+            async.set(false)
+            variant.set("playDebug")
+            flankVersion.set("21.+")
+            useOrchestrator.set(true)
+            environmentVariables.set([
+                    "clearPackageData": "true"
+            ])
+            testTargets.set([
+                    "annotation com.duckduckgo.espresso.PrivacyTest"
+            ])
+            devices.set([
+                    ["model": "redfin", "version": "30"]
+            ])
+            localResultsDir.set("fladleResults")
+            flakyTestAttempts.set(2)
+            testShards.set(1)
+        }
+    }
+}
+
+dependencies {
+    implementation project(path: ':vpn-network-api')
+    implementation project(path: ':vpn-network-impl')
+
+    implementation project(':library-loader-api')
+
+    implementation project(':autofill-api')
+    implementation project(':autofill-impl')
+    implementation project(':autofill-store')
+
+    anvil project(':anvil-compiler')
+    implementation project(':anvil-annotations')
+
+    implementation project(':app-build-config-api')
+    implementation project(':browser-api')
+    implementation project(':statistics')
+    implementation project(':common')
+    implementation project(':app-store')
+    implementation project(':common-ui')
+    implementation project(':di')
+    implementation project(':vpn-impl')
+    implementation project(':vpn-api')
+    implementation project(':vpn-store')
+    internalImplementation project(':vpn-internal')
+
+    implementation project(':feature-toggles-api')
+    implementation project(':feature-toggles-impl')
+    implementation project(':privacy-config-api')
+    implementation project(':privacy-config-impl')
+    implementation project(':privacy-config-store')
+    implementation project(':anrs-api')
+    implementation project(':anrs-store')
+    implementation project(':anrs-impl')
+    implementation project(':macos-api')
+    implementation project(':macos-impl')
+
+    implementation project(':remote-messaging-api')
+    implementation project(':remote-messaging-impl')
+    implementation project(':remote-messaging-store')
+
+    implementation project(':voice-search-api')
+    implementation project(':voice-search-impl')
+    implementation project(':voice-search-store')
+
+    implementation project(':downloads-api')
+    implementation project(':downloads-impl')
+    implementation project(':downloads-store')
+
+    internalImplementation project(':traces-api')
+    internalImplementation project(':traces-impl')
+
+    implementation project(':site-permissions-api')
+    implementation project(':site-permissions-impl')
+
+    implementation project(':bandwidth-impl')
+    implementation project(':bandwidth-store')
+
+    implementation project(':secure-storage-api')
+    implementation project(':secure-storage-impl')
+    implementation project(':secure-storage-store')
+
+    implementation project(':device-auth-api')
+    implementation project(':device-auth-impl')
+
+    implementation project(':ad-click-api')
+    implementation project(':ad-click-impl')
+    implementation project(':ad-click-store')
+
+    implementation project(':autoconsent-api')
+    implementation project(':autoconsent-impl')
+    implementation project(':autoconsent-store')
+
+    implementation project(':cookies-api')
+    implementation project(':cookies-impl')
+    implementation project(':cookies-store')
+
+    implementation project(':content-scope-scripts-api')
+    implementation project(':content-scope-scripts-impl')
+
+    // Deprecated. TODO: Stop using this artifact.
+    implementation "androidx.legacy:legacy-support-v4:_"
     debugImplementation Square.leakCanary.android
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation Kotlin.stdlib.jdk7
     implementation KotlinX.coroutines.core
     implementation KotlinX.coroutines.android
-    androidTestImplementation (KotlinX.coroutines.test) {
+    androidTestImplementation(KotlinX.coroutines.test) {
         // https://github.com/Kotlin/kotlinx.coroutines/issues/2023
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
@@ -134,6 +250,7 @@ dependencies {
     implementation AndroidX.appCompat
     implementation Google.android.material
     implementation AndroidX.constraintLayout
+    implementation AndroidX.recyclerView
     implementation AndroidX.swipeRefreshLayout
     implementation AndroidX.webkit
     implementation Square.okHttp3.okHttp
@@ -142,29 +259,29 @@ dependencies {
     implementation Square.retrofit2.converter.moshi
     implementation Square.retrofit2.adapter.rxJava2
     implementation Square.retrofit2.converter.scalars
+    implementation "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:_"
     implementation "io.reactivex.rxjava2:rxjava:_"
     implementation "io.reactivex.rxjava2:rxandroid:_"
     implementation JakeWharton.timber
-    implementation Google.dagger.android
-    implementation Google.dagger.android.support
+
+    // ThreeTenABP
+    implementation "com.jakewharton.threetenabp:threetenabp:_"
+    testImplementation "org.threeten:threetenbp:_"
 
     // RxRelay
     implementation "com.jakewharton.rxrelay2:rxrelay:_"
 
-    // Anko
-    implementation "org.jetbrains.anko:anko-commons:_"
-    implementation "org.jetbrains.anko:anko-design:_"
-
     // Android KTX
     implementation AndroidX.core.ktx
-    implementation AndroidX.fragmentKtx
+    implementation AndroidX.fragment.ktx
 
     // ViewModel and LiveData
-    implementation AndroidX.lifecycle.extensions
+    implementation AndroidX.lifecycle.runtimeKtx
     implementation AndroidX.lifecycle.viewModelKtx
     implementation AndroidX.lifecycle.liveDataKtx
+    implementation AndroidX.lifecycle.process
 
-    implementation  AndroidX.lifecycle.commonJava8
+    implementation AndroidX.lifecycle.commonJava8
     testImplementation AndroidX.archCore.testing
     androidTestImplementation AndroidX.archCore.testing
 
@@ -178,11 +295,13 @@ dependencies {
 
     // WorkManager
     implementation AndroidX.work.runtimeKtx
+    implementation "androidx.work:work-multiprocess:_"
     androidTestImplementation AndroidX.work.testing
     implementation AndroidX.work.rxJava2
 
     // Dagger
     kapt Google.dagger.compiler
+    implementation Google.dagger
 
     // Glide
     implementation "com.github.bumptech.glide:glide:_"
@@ -192,21 +311,84 @@ dependencies {
     // Lottie
     implementation "com.airbnb.android:lottie:_"
 
+    // Security crypto
+    implementation AndroidX.security.crypto
+
     // Play Store referrer library
     playImplementation("com.android.installreferrer:installreferrer:_")
 
+    // HTML
+    implementation 'org.jsoup:jsoup:_'
+
+
+    // Flipper
+    internalImplementation "com.facebook.flipper:flipper:_"
+    internalImplementation "com.facebook.soloader:soloader:_"
+
     // Testing dependencies
+    androidTestUtil AndroidX.test.orchestrator
+    androidTestImplementation AndroidX.archCore.testing
     androidTestImplementation AndroidX.test.runner
     androidTestImplementation AndroidX.test.rules
-    androidTestUtil AndroidX.test.orchestrator
-    androidTestImplementation Testing.mockito.android
-    androidTestImplementation Testing.mockito.kotlin
+    androidTestImplementation "org.mockito:mockito-android:_"
+    androidTestImplementation "org.mockito.kotlin:mockito-kotlin:_"
     androidTestImplementation Square.okHttp3.mockWebServer
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:_"
+    androidTestImplementation CashApp.turbine
+    androidTestUtil AndroidX.test.orchestrator
+    androidTestImplementation AndroidX.test.ext.junit
+    androidTestImplementation "androidx.test.ext:junit-ktx:_"
+    androidTestImplementation "androidx.test.espresso:espresso-core:_"
+    androidTestImplementation "androidx.test.espresso:espresso-web:_"
+
+    testImplementation "org.mockito.kotlin:mockito-kotlin:_"
+    testImplementation Testing.junit4
+    testImplementation AndroidX.archCore.testing
+    testImplementation AndroidX.core
+    testImplementation AndroidX.test.ext.junit
+    testImplementation Testing.robolectric
+    testImplementation CashApp.turbine
+    testImplementation "androidx.test:runner:_"
+    testImplementation (KotlinX.coroutines.test) {
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2023
+        // conflicts with mockito due to direct inclusion of byte buddy
+        exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
+    }
+
+    androidTestImplementation project(':common-test')
+    testImplementation project(':common-test')
+    lintChecks project(":lint-rules")
 }
 
 tasks.register('fastlaneVersionCode') {
     doLast {
         print buildVersionCode()
     }
+}
+
+tasks.register('checks') {
+    dependsOn 'jvm_checks', 'android_checks'
+}
+
+tasks.register('android_checks') {
+    dependsOn 'connectedPlayDebugAndroidTest'
+}
+
+tasks.register('jvm_checks') {
+    dependsOn 'spotlessCheck', 'lint', 'testPlayDebugUnitTest'
+}
+
+tasks.register('spotless') {
+    dependsOn 'spotlessCheck'
+}
+
+tasks.register('lint_check') {
+    dependsOn 'lint'
+}
+
+tasks.register('jvm_tests') {
+    dependsOn 'testPlayDebugUnitTest'
+}
+
+tasks.register('androidTestsBuild') {
+    dependsOn 'assemblePlayDebug', 'assemblePlayDebugAndroidTest'
 }

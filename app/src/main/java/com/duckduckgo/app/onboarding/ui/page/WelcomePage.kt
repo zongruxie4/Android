@@ -17,10 +17,8 @@
 package com.duckduckgo.app.onboarding.ui.page
 
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -29,24 +27,29 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.ViewPropertyAnimatorCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.R
-import com.duckduckgo.app.global.view.html
-import dagger.android.support.AndroidSupportInjection
+import com.duckduckgo.mobile.android.R as CommonR
+import com.duckduckgo.app.global.extensions.html
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.FragmentScope
 import kotlinx.android.synthetic.main.content_onboarding_welcome.*
 import kotlinx.android.synthetic.main.include_dax_dialog_cta.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
+@InjectWith(FragmentScope::class)
 class WelcomePage : OnboardingPageFragment() {
 
     @Inject
     lateinit var viewModelFactory: WelcomePageViewModelFactory
+
+    @Inject
+    lateinit var appBuildConfig: AppBuildConfig
 
     private var ctaText: String = ""
     private var welcomeAnimation: ViewPropertyAnimatorCompat? = null
@@ -62,21 +65,15 @@ class WelcomePage : OnboardingPageFragment() {
 
     override fun layoutResource(): Int = R.layout.content_onboarding_welcome
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?
+    ) {
+        super.onViewCreated(view, savedInstanceState)
 
         configureDaxCta()
         scheduleWelcomeAnimation()
         setSkipAnimationListener()
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
-    }
-
-    override fun onStart() {
-        super.onStart()
 
         lifecycleScope.launch {
             events.asFlow()
@@ -112,13 +109,17 @@ class WelcomePage : OnboardingPageFragment() {
         applyFullScreenFlags()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
         welcomeAnimation?.cancel()
         typingAnimation?.cancel()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         if (requestCode == DEFAULT_BROWSER_ROLE_MANAGER_DIALOG) {
             if (resultCode == RESULT_OK) {
                 event(WelcomePageView.Event.OnDefaultBrowserSet)
@@ -134,11 +135,10 @@ class WelcomePage : OnboardingPageFragment() {
         activity?.window?.apply {
             clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
             addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
+            decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             decorView.systemUiVisibility += View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.BLACK
         }
         ViewCompat.requestApplyInsets(longDescriptionContainer)
     }
@@ -148,8 +148,8 @@ class WelcomePage : OnboardingPageFragment() {
             ctaText = it.getString(R.string.onboardingDaxText)
             hiddenTextCta.text = ctaText.html(it)
             dialogTextCta.textInDialog = ctaText.html(it)
-            dialogTextCta.setTextColor(ContextCompat.getColor(it, R.color.grayishBrown))
-            cardView.backgroundTintList = ContextCompat.getColorStateList(it, R.color.white)
+            dialogTextCta.setTextColor(ContextCompat.getColor(it, CommonR.color.grayishBrown))
+            cardView.backgroundTintList = ContextCompat.getColorStateList(it, CommonR.color.white)
         }
         triangle.setImageResource(R.drawable.ic_triangle_bubble_white)
     }

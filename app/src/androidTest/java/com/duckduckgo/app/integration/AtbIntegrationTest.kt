@@ -20,15 +20,17 @@ import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.InstantSchedulersRule
 import com.duckduckgo.app.getDaggerComponent
+import com.duckduckgo.app.global.plugins.PluginPoint
 import com.duckduckgo.app.statistics.Variant
 import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.app.statistics.api.RefreshRetentionAtbPlugin
 import com.duckduckgo.app.statistics.api.StatisticsRequester
 import com.duckduckgo.app.statistics.api.StatisticsService
 import com.duckduckgo.app.statistics.model.Atb
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
 import com.duckduckgo.app.statistics.store.StatisticsSharedPreferences
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -59,7 +61,13 @@ class AtbIntegrationTest {
 
         whenever(mockVariantManager.getVariant()).thenReturn(Variant("ma", 100.0, filterBy = { true }))
         service = getDaggerComponent().retrofit().create(StatisticsService::class.java)
-        testee = StatisticsRequester(statisticsStore, service, mockVariantManager)
+
+        val plugins = object : PluginPoint<RefreshRetentionAtbPlugin> {
+            override fun getPlugins(): Collection<RefreshRetentionAtbPlugin> {
+                return listOf()
+            }
+        }
+        testee = StatisticsRequester(statisticsStore, service, mockVariantManager, plugins)
     }
 
     @Test

@@ -19,11 +19,14 @@ package com.duckduckgo.app.browser.rating.ui
 import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.global.dialog.BackKeyListener
 import com.duckduckgo.app.global.rating.PromptCount
 import com.duckduckgo.app.pixels.AppPixelName.*
+import com.duckduckgo.di.scopes.FragmentScope
 
+@InjectWith(FragmentScope::class)
 class AppEnjoymentDialogFragment : EnjoymentDialog() {
 
     interface Listener {
@@ -37,7 +40,7 @@ class AppEnjoymentDialogFragment : EnjoymentDialog() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         firePixelWithPromptCount(APP_ENJOYMENT_DIALOG_SHOWN)
 
-        return AlertDialog.Builder(requireActivity(), R.style.AlertDialogTheme)
+        return AlertDialog.Builder(requireActivity())
             .setTitle(R.string.appEnjoymentDialogTitle)
             .setMessage(R.string.appEnjoymentDialogMessage)
             .setPositiveButton(R.string.appEnjoymentDialogPositiveButton) { _, _ ->
@@ -58,7 +61,10 @@ class AppEnjoymentDialogFragment : EnjoymentDialog() {
     }
 
     companion object {
-        fun create(promptCount: PromptCount, listener: Listener): AppEnjoymentDialogFragment {
+        fun create(
+            promptCount: PromptCount,
+            listener: Listener
+        ): AppEnjoymentDialogFragment {
             return AppEnjoymentDialogFragment().also { fragment ->
                 val bundle = Bundle()
                 bundle.putInt(PROMPT_COUNT_BUNDLE_KEY, promptCount.value)

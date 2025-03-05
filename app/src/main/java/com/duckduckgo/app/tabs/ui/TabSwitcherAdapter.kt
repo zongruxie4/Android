@@ -28,7 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.duckduckgo.app.browser.R
+import com.duckduckgo.app.browser.databinding.ItemTabBinding
 import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.browser.tabpreview.TabEntityDiffCallback
 import com.duckduckgo.app.browser.tabpreview.TabEntityDiffCallback.Companion.DIFF_KEY_PREVIEW
@@ -37,11 +37,9 @@ import com.duckduckgo.app.browser.tabpreview.TabEntityDiffCallback.Companion.DIF
 import com.duckduckgo.app.browser.tabpreview.WebViewPreviewPersister
 import com.duckduckgo.app.global.image.GlideApp
 import com.duckduckgo.app.global.image.GlideRequests
-import com.duckduckgo.app.global.view.show
+import com.duckduckgo.mobile.android.ui.view.show
 import com.duckduckgo.app.tabs.model.TabEntity
 import com.duckduckgo.app.tabs.ui.TabSwitcherAdapter.TabViewHolder
-import com.google.android.material.card.MaterialCardView
-import kotlinx.android.synthetic.main.item_tab.view.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -54,23 +52,29 @@ class TabSwitcherAdapter(
 ) :
     ListAdapter<TabEntity, TabViewHolder>(TabEntityDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): TabViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val root = inflater.inflate(R.layout.item_tab, parent, false) as MaterialCardView
+        val binding = ItemTabBinding.inflate(inflater, parent, false)
 
         return TabViewHolder(
-            root = root,
-            favicon = root.favicon,
-            tabPreview = root.tabPreview,
-            title = root.title,
-            close = root.close,
-            cardContentsContainer = root.cardContentsContainer,
-            tabUnread = root.tabUnread
+            binding = binding,
+            favicon = binding.favicon,
+            tabPreview = binding.tabPreview,
+            title = binding.title,
+            close = binding.close,
+            cardContentsContainer = binding.cardContentsContainer,
+            tabUnread = binding.tabUnread
         )
     }
 
-    override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
-        val context = holder.root.context
+    override fun onBindViewHolder(
+        holder: TabViewHolder,
+        position: Int
+    ) {
+        val context = holder.binding.root.context
         val tab = getItem(position)
         val glide = GlideApp.with(context)
 
@@ -83,17 +87,27 @@ class TabSwitcherAdapter(
         attachClickListeners(holder, tab)
     }
 
-    private fun extractTabTitle(tab: TabEntity, context: Context): String {
+    private fun extractTabTitle(
+        tab: TabEntity,
+        context: Context
+    ): String {
         var title = tab.displayTitle(context)
         title = title.removeSuffix(DUCKDUCKGO_TITLE_SUFFIX)
         return title
     }
 
-    private fun updateUnreadIndicator(holder: TabViewHolder, tab: TabEntity) {
+    private fun updateUnreadIndicator(
+        holder: TabViewHolder,
+        tab: TabEntity
+    ) {
         holder.tabUnread.visibility = if (tab.viewed) View.INVISIBLE else View.VISIBLE
     }
 
-    override fun onBindViewHolder(holder: TabViewHolder, position: Int, payloads: MutableList<Any>) {
+    override fun onBindViewHolder(
+        holder: TabViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
         if (payloads.isEmpty()) {
             onBindViewHolder(holder, position)
             return
@@ -109,7 +123,7 @@ class TabSwitcherAdapter(
             }
 
             bundle[DIFF_KEY_PREVIEW]?.let {
-                loadTabPreviewImage(tab, GlideApp.with(holder.root), holder)
+                loadTabPreviewImage(tab, GlideApp.with(holder.binding.root), holder)
             }
 
             bundle[DIFF_KEY_TITLE]?.let {
@@ -122,14 +136,21 @@ class TabSwitcherAdapter(
         }
     }
 
-    private fun loadFavicon(tab: TabEntity, view: ImageView) {
+    private fun loadFavicon(
+        tab: TabEntity,
+        view: ImageView
+    ) {
         val url = tab.url ?: return
         lifecycleOwner.lifecycleScope.launch {
-            faviconManager.loadToViewFromTemp(tab.tabId, url, view)
+            faviconManager.loadToViewFromLocalOrFallback(tab.tabId, url, view)
         }
     }
 
-    private fun loadTabPreviewImage(tab: TabEntity, glide: GlideRequests, holder: TabViewHolder) {
+    private fun loadTabPreviewImage(
+        tab: TabEntity,
+        glide: GlideRequests,
+        holder: TabViewHolder
+    ) {
         val previewFile = tab.tabPreviewFile
         if (previewFile == null) {
             glide.clear(holder.tabPreview)
@@ -148,8 +169,11 @@ class TabSwitcherAdapter(
             .into(holder.tabPreview)
     }
 
-    private fun attachClickListeners(holder: TabViewHolder, tab: TabEntity) {
-        holder.root.setOnClickListener {
+    private fun attachClickListeners(
+        holder: TabViewHolder,
+        tab: TabEntity
+    ) {
+        holder.binding.root.setOnClickListener {
             itemClickListener.onTabSelected(tab)
         }
         holder.close.setOnClickListener {
@@ -174,12 +198,12 @@ class TabSwitcherAdapter(
     }
 
     data class TabViewHolder(
-        val root: MaterialCardView,
+        val binding: ItemTabBinding,
         val favicon: ImageView,
         val tabPreview: ImageView,
         val title: TextView,
         val close: ImageView,
         val tabUnread: ImageView,
         val cardContentsContainer: ViewGroup
-    ) : ViewHolder(root)
+    ) : ViewHolder(binding.root)
 }

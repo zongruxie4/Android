@@ -26,10 +26,17 @@ data class BrokenSite(
     val blockedTrackers: String,
     val surrogates: String,
     val webViewVersion: String,
-    val siteType: String
+    val siteType: String,
+    val urlParametersRemoved: Boolean,
+    val consentManaged: Boolean,
+    val consentOptOutFailed: Boolean,
+    val consentSelfTestFailed: Boolean,
 )
 
-sealed class BrokenSiteCategory(@StringRes val category: Int, val key: String) {
+sealed class BrokenSiteCategory(
+    @StringRes val category: Int,
+    val key: String
+) {
     object ImagesCategory : BrokenSiteCategory(R.string.brokenSiteCategoryImages, IMAGES_CATEGORY_KEY)
     object PaywallCategory : BrokenSiteCategory(R.string.brokenSiteCategoryPaywall, PAYWALL_CATEGORY_KEY)
     object CommentsCategory : BrokenSiteCategory(R.string.brokenSiteCategoryComments, COMMENTS_CATEGORY_KEY)

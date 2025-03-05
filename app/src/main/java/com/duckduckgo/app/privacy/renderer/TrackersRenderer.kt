@@ -24,47 +24,94 @@ import java.util.*
 
 class TrackersRenderer {
 
-    fun trackersText(context: Context, trackerCount: Int, allTrackersBlocked: Boolean): String {
-        val resource = if (allTrackersBlocked) R.plurals.trackerBlocked else R.plurals.trackersFound
-        return context.resources.getQuantityString(resource, trackerCount, trackerCount)
+    fun trackersText(
+        context: Context,
+        trackersBlockedCount: Int,
+        specialDomainsLoadedCount: Int
+    ): String {
+
+        val resource = if (trackersBlockedCount > 0) {
+            R.string.trackersBlockedText
+        } else if (trackersBlockedCount == 0 && specialDomainsLoadedCount > 0) {
+            R.string.trackersNotBlockedText
+        } else {
+            R.string.trackersNoFoundText
+        }
+        return context.resources.getString(resource)
     }
 
-    fun majorNetworksText(context: Context, networkCount: Int, allTrackersBlocked: Boolean): String {
-        val resource = if (allTrackersBlocked) R.plurals.majorNetworksBlocked else R.plurals.majorNetworksFound
-        return context.resources.getQuantityString(resource, networkCount, networkCount)
+    fun domainsLoadedText(
+        context: Context,
+        domainsLoadedCount: Int,
+    ): String {
+
+        val resource = if (domainsLoadedCount > 0) {
+            R.string.domainsLoadedText
+        } else {
+            R.string.domainsNotLoadedText
+        }
+        return context.resources.getString(resource)
+    }
+
+    fun majorNetworksText(
+        context: Context,
+        majorNetworkCount: Int
+    ): String {
+        val resource = if (majorNetworkCount > 0) R.string.majorNetworksFound else R.string.majorNetworksNoFound
+        return context.resources.getString(resource)
     }
 
     @DrawableRes
-    fun networksBanner(allTrackersBlocked: Boolean): Int {
-        return if (allTrackersBlocked) R.drawable.networks_banner_good else R.drawable.networks_banner_bad
+    fun networksIcon(
+        trackersBlockedCount: Int,
+        specialDomainsLoadedCount: Int,
+        toggleEnabled: Boolean?,
+        largeIcon: Boolean = false
+    ): Int {
+        return when {
+            toggleEnabled == false && trackersBlockedCount + specialDomainsLoadedCount > 0 ->
+                if (largeIcon) R.drawable.networks_icon_bad_large else R.drawable.networks_icon_bad
+            toggleEnabled == true && specialDomainsLoadedCount > 0 && trackersBlockedCount == 0 ->
+                if (largeIcon) R.drawable.networks_icon_neutral_large else R.drawable.networks_icon_neutral
+            else ->
+                if (largeIcon) R.drawable.networks_icon_good_large else R.drawable.networks_icon_good
+        }
     }
 
     @DrawableRes
-    fun networksIcon(allTrackersBlocked: Boolean): Int {
-        return if (allTrackersBlocked) R.drawable.networks_icon_good else R.drawable.networks_icon_bad
-    }
-
-    @DrawableRes
-    fun networkPillIcon(context: Context, networkName: String): Int? {
+    fun networkPillIcon(
+        context: Context,
+        networkName: String
+    ): Int? {
         return networkIcon(context, networkName, "network_pill_")
     }
 
     @DrawableRes
-    fun networkLogoIcon(context: Context, networkName: String): Int? {
+    fun networkLogoIcon(
+        context: Context,
+        networkName: String
+    ): Int? {
         return networkIcon(context, networkName, "network_logo_")
     }
 
-    private fun networkIcon(context: Context, networkName: String, prefix: String): Int? {
+    private fun networkIcon(
+        context: Context,
+        networkName: String,
+        prefix: String
+    ): Int? {
         val drawable = "$prefix$networkName"
             .replace(" ", "_")
             .replace(".", "")
             .replace(",", "")
-            .toLowerCase(Locale.ROOT)
+            .lowercase(Locale.ROOT)
         val resource = context.resources.getIdentifier(drawable, "drawable", context.packageName)
         return if (resource != 0) resource else null
     }
 
-    fun networkPercentage(network: NetworkLeaderboardEntry, totalDomainsVisited: Int): String? {
+    fun networkPercentage(
+        network: NetworkLeaderboardEntry,
+        totalDomainsVisited: Int
+    ): String? {
         if (totalDomainsVisited == 0 || network.count == 0) return ""
         val to100 = ((network.count / totalDomainsVisited.toFloat()) * 100).toInt()
         return "$to100%"
@@ -75,5 +122,4 @@ class TrackersRenderer {
         0 -> R.drawable.icon_success
         else -> R.drawable.icon_fail
     }
-
 }

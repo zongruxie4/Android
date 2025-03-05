@@ -18,20 +18,12 @@ package com.duckduckgo.app.notification
 
 import android.content.Context
 import androidx.annotation.WorkerThread
-import androidx.core.app.NotificationManagerCompat
 import androidx.work.*
-import com.duckduckgo.app.global.plugins.worker.WorkerInjectorPlugin
-import com.duckduckgo.app.notification.db.NotificationDao
+import com.duckduckgo.anvil.annotations.ContributesWorker
 import com.duckduckgo.app.notification.model.ClearDataNotification
-import com.duckduckgo.app.notification.model.Notification
 import com.duckduckgo.app.notification.model.PrivacyProtectionNotification
 import com.duckduckgo.app.notification.model.SchedulableNotification
-import com.duckduckgo.app.notification.model.UseOurAppNotification
-import com.duckduckgo.app.statistics.pixels.Pixel
-import com.duckduckgo.app.pixels.AppPixelName.NOTIFICATION_SHOWN
-import com.duckduckgo.di.scopes.AppObjectGraph
-import com.squareup.anvil.annotations.ContributesMultibinding
-import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.di.scopes.AppScope
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -46,60 +38,44 @@ interface AndroidNotificationScheduler {
 class NotificationScheduler(
     private val workManager: WorkManager,
     private val clearDataNotification: SchedulableNotification,
-    private val privacyNotification: SchedulableNotification,
-    private val useOurAppNotification: SchedulableNotification,
-    private val variantManager: VariantManager
+    private val privacyNotification: SchedulableNotification
 ) : AndroidNotificationScheduler {
 
     override suspend fun scheduleNextNotification() {
-        scheduleUseOurAppNotification()
         scheduleInactiveUserNotifications()
-    }
-
-    private suspend fun scheduleUseOurAppNotification() {
-        if (variant().hasFeature(VariantManager.VariantFeature.InAppUsage) && useOurAppNotification.canShow()) {
-            val operation = scheduleUniqueNotification(
-                OneTimeWorkRequestBuilder<UseOurAppNotificationWorker>(),
-                3,
-                TimeUnit.DAYS,
-                USE_OUR_APP_WORK_REQUEST_TAG
-            )
-            try {
-                operation.await()
-            } catch (e: Exception) {
-                Timber.v("Notification could not be scheduled: $e")
-            }
-        }
     }
 
     private suspend fun scheduleInactiveUserNotifications() {
         workManager.cancelAllWorkByTag(UNUSED_APP_WORK_REQUEST_TAG)
 
         when {
-            (!variant().hasFeature(VariantManager.VariantFeature.RemoveDay1AndDay3Notifications) && privacyNotification.canShow()) -> {
-                scheduleNotification(OneTimeWorkRequestBuilder<PrivacyNotificationWorker>(), 1, TimeUnit.DAYS, UNUSED_APP_WORK_REQUEST_TAG)
+            privacyNotification.canShow() -> {
+                scheduleNotification(
+                    OneTimeWorkRequestBuilder<PrivacyNotificationWorker>(),
+                    PRIVACY_DELAY_DURATION_IN_DAYS,
+                    TimeUnit.DAYS,
+                    UNUSED_APP_WORK_REQUEST_TAG
+                )
             }
-            (!variant().hasFeature(VariantManager.VariantFeature.RemoveDay1AndDay3Notifications) && clearDataNotification.canShow()) -> {
-                scheduleNotification(OneTimeWorkRequestBuilder<ClearDataNotificationWorker>(), 3, TimeUnit.DAYS, UNUSED_APP_WORK_REQUEST_TAG)
+            clearDataNotification.canShow() -> {
+                scheduleNotification(
+                    OneTimeWorkRequestBuilder<ClearDataNotificationWorker>(),
+                    CLEAR_DATA_DELAY_DURATION_IN_DAYS,
+                    TimeUnit.DAYS,
+                    UNUSED_APP_WORK_REQUEST_TAG
+                )
             }
             else -> Timber.v("Notifications not enabled for this variant")
         }
     }
 
-    private fun variant() = variantManager.getVariant()
-
-    private fun scheduleUniqueNotification(builder: OneTimeWorkRequest.Builder, duration: Long, unit: TimeUnit, tag: String): Operation {
-        Timber.v("Scheduling unique notification")
-        val request = builder
-            .addTag(tag)
-            .setInitialDelay(duration, unit)
-            .build()
-
-        return workManager.enqueueUniqueWork(tag, ExistingWorkPolicy.KEEP, request)
-    }
-
-    private fun scheduleNotification(builder: OneTimeWorkRequest.Builder, duration: Long, unit: TimeUnit, tag: String) {
-        Timber.v("Scheduling notification")
+    private fun scheduleNotification(
+        builder: OneTimeWorkRequest.Builder,
+        duration: Long,
+        unit: TimeUnit,
+        tag: String
+    ) {
+        Timber.v("Scheduling notification for $duration")
         val request = builder
             .addTag(tag)
             .setInitialDelay(duration, unit)
@@ -108,108 +84,60 @@ class NotificationScheduler(
         workManager.enqueue(request)
     }
 
-    // Legacy code. Unused class required for users who already have this notification scheduled from previous version. We will
-    // delete this as part of https://app.asana.com/0/414730916066338/1119619712088571
-    class ShowClearDataNotification(context: Context, params: WorkerParameters) : ClearDataNotificationWorker(context, params)
-
-    open class ClearDataNotificationWorker(context: Context, params: WorkerParameters) : SchedulableNotificationWorker(context, params)
-    class PrivacyNotificationWorker(context: Context, params: WorkerParameters) : SchedulableNotificationWorker(context, params)
-    class UseOurAppNotificationWorker(context: Context, params: WorkerParameters) : SchedulableNotificationWorker(context, params)
-
-    open class SchedulableNotificationWorker(val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
-
-        lateinit var manager: NotificationManagerCompat
-        lateinit var factory: NotificationFactory
-        lateinit var notification: SchedulableNotification
-        lateinit var notificationDao: NotificationDao
-        lateinit var pixel: Pixel
-
-        override suspend fun doWork(): Result {
-
-            if (!notification.canShow()) {
-                Timber.v("Notification no longer showable")
-                return Result.success()
-            }
-
-            val specification = notification.buildSpecification()
-            val launchIntent = NotificationHandlerService.pendingNotificationHandlerIntent(context, notification.launchIntent, specification)
-            val cancelIntent = NotificationHandlerService.pendingNotificationHandlerIntent(context, notification.cancelIntent, specification)
-            val systemNotification = factory.createNotification(specification, launchIntent, cancelIntent)
-            notificationDao.insert(Notification(notification.id))
-            manager.notify(specification.systemId, systemNotification)
-
-            pixel.fire("${NOTIFICATION_SHOWN.pixelName}_${specification.pixelSuffix}")
-            return Result.success()
-        }
-    }
-
     companion object {
         const val UNUSED_APP_WORK_REQUEST_TAG = "com.duckduckgo.notification.schedule"
-        const val USE_OUR_APP_WORK_REQUEST_TAG = "com.duckduckgo.notification.useOurApp"
+        const val CLEAR_DATA_DELAY_DURATION_IN_DAYS = 3L
+        const val PRIVACY_DELAY_DURATION_IN_DAYS = 1L
     }
 }
 
-@ContributesMultibinding(AppObjectGraph::class)
-class ClearDataNotificationWorkerInjectorPlugin @Inject constructor(
-    private val notificationManagerCompat: NotificationManagerCompat,
-    private val notificationDao: NotificationDao,
-    private val notificationFactory: NotificationFactory,
-    private val pixel: Pixel,
-    private val clearDataNotification: ClearDataNotification
-) : WorkerInjectorPlugin {
+// Legacy code. Unused class required for users who already have this notification scheduled from previous version. We will
+// delete this as part of https://app.asana.com/0/414730916066338/1119619712088571
+@ContributesWorker(AppScope::class)
+class ShowClearDataNotification(
+    context: Context,
+    params: WorkerParameters
+) : SchedulableNotificationWorker<ClearDataNotification>(context, params) {
+    @Inject
+    override lateinit var notificationSender: NotificationSender
 
-    override fun inject(worker: ListenableWorker): Boolean {
-        if (worker is NotificationScheduler.ClearDataNotificationWorker) {
-            worker.manager = notificationManagerCompat
-            worker.notificationDao = notificationDao
-            worker.factory = notificationFactory
-            worker.pixel = pixel
-            worker.notification = clearDataNotification
-            return true
-        }
-        return false
-    }
+    @Inject
+    override lateinit var notification: ClearDataNotification
 }
 
-@ContributesMultibinding(AppObjectGraph::class)
-class PrivacyNotificationWorkerInjectorPlugin @Inject constructor(
-    private val notificationManagerCompat: NotificationManagerCompat,
-    private val notificationDao: NotificationDao,
-    private val notificationFactory: NotificationFactory,
-    private val pixel: Pixel,
-    private val privacyProtectionNotification: PrivacyProtectionNotification
-) : WorkerInjectorPlugin {
+@ContributesWorker(AppScope::class)
+open class ClearDataNotificationWorker(
+    context: Context,
+    params: WorkerParameters
+) : SchedulableNotificationWorker<ClearDataNotification>(context, params) {
+    @Inject
+    override lateinit var notificationSender: NotificationSender
 
-    override fun inject(worker: ListenableWorker): Boolean {
-        if (worker is NotificationScheduler.PrivacyNotificationWorker) {
-            worker.manager = notificationManagerCompat
-            worker.notificationDao = notificationDao
-            worker.factory = notificationFactory
-            worker.pixel = pixel
-            worker.notification = privacyProtectionNotification
-            return true
-        }
-        return false
-    }
+    @Inject
+    override lateinit var notification: ClearDataNotification
 }
-@ContributesMultibinding(AppObjectGraph::class)
-class UseOurAppNotificationWorkerInjectorPlugin @Inject constructor(
-    private val notificationManagerCompat: NotificationManagerCompat,
-    private val notificationDao: NotificationDao,
-    private val notificationFactory: NotificationFactory,
-    private val pixel: Pixel,
-    private val useOurAppNotification: UseOurAppNotification
-) : WorkerInjectorPlugin {
 
-    override fun inject(worker: ListenableWorker): Boolean {
-        if (worker is NotificationScheduler.UseOurAppNotificationWorker) {
-            worker.manager = notificationManagerCompat
-            worker.notificationDao = notificationDao
-            worker.factory = notificationFactory
-            worker.pixel = pixel
-            worker.notification = useOurAppNotification
-            return true
-        }
-        return false
+@ContributesWorker(AppScope::class)
+class PrivacyNotificationWorker(
+    context: Context,
+    params: WorkerParameters
+) : SchedulableNotificationWorker<PrivacyProtectionNotification>(context, params) {
+    @Inject
+    override lateinit var notificationSender: NotificationSender
+
+    @Inject
+    override lateinit var notification: PrivacyProtectionNotification
+}
+
+open class SchedulableNotificationWorker<T : SchedulableNotification>(
+    val context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
+    open lateinit var notificationSender: NotificationSender
+    open lateinit var notification: T
+
+    override suspend fun doWork(): Result {
+        notificationSender.sendNotification(notification)
+        return Result.success()
     }
 }

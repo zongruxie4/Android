@@ -40,7 +40,8 @@ enum class Action {
 class Rule(
     val rule: String,
     val action: Action?,
-    val exceptions: RuleExceptions?
+    val exceptions: RuleExceptions?,
+    val surrogate: String?
 )
 
 class RuleExceptions(
@@ -89,7 +90,7 @@ class CategoriesTypeConverter {
 
 class Adapters {
     companion object {
-        private val moshi = JsonModule().moshi()
+        private val moshi = JsonModule.moshi()
         private val ruleListType = Types.newParameterizedType(List::class.java, Rule::class.java)
         private val stringListType = Types.newParameterizedType(List::class.java, String::class.java)
         val ruleListAdapter: JsonAdapter<List<Rule>> = moshi.adapter(ruleListType)

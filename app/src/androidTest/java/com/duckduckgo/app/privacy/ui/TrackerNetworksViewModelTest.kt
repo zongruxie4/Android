@@ -18,97 +18,296 @@ package com.duckduckgo.app.privacy.ui
 
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
+import androidx.lifecycle.MutableLiveData
+import app.cash.turbine.test
+import com.duckduckgo.app.CoroutineTestRule
+import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.privacy.model.TestEntity
+import com.duckduckgo.app.privacy.ui.TrackerNetworksViewModel.ViewState.DomainsViewState
+import com.duckduckgo.app.privacy.ui.TrackerNetworksViewModel.ViewState.TrackersViewState
+import com.duckduckgo.app.tabs.model.TabRepository
+import com.duckduckgo.app.trackerdetection.model.TrackerStatus
+import com.duckduckgo.app.trackerdetection.model.TrackerType
 import com.duckduckgo.app.trackerdetection.model.TrackingEvent
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
-import org.junit.After
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import kotlin.time.ExperimentalTime
 
+@ExperimentalCoroutinesApi
+@ExperimentalTime
 class TrackerNetworksViewModelTest {
 
     @get:Rule
     @Suppress("unused")
     var instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private var viewStateObserver: Observer<TrackerNetworksViewModel.ViewState> = mock()
+    @get:Rule
+    val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 
-    private val testee: TrackerNetworksViewModel by lazy {
-        val model = TrackerNetworksViewModel()
-        model.viewState.observeForever(viewStateObserver)
-        model
-    }
+    private val tabRepository: TabRepository = mock()
 
-    @After
-    fun after() {
-        testee.viewState.removeObserver(viewStateObserver)
-    }
+    private lateinit var testee: TrackerNetworksViewModel
 
-    @Test
-    fun whenNoDataThenDefaultValuesAreUsed() {
-        val viewState = testee.viewState.value!!
-        assertEquals("", viewState.domain)
-        assertEquals(true, viewState.allTrackersBlocked)
-        assertTrue(viewState.trackingEventsByNetwork.isEmpty())
+    @Before
+    fun before() {
+        testee = TrackerNetworksViewModel(tabRepository)
     }
 
     @Test
-    fun whenUrlIsUpdatedThenViewModelDomainIsUpdated() {
-        testee.onSiteChanged(site(url = "http://example.com/path"))
-        assertEquals("example.com", testee.viewState.value!!.domain)
+    fun whenNoTrackersDataThenDefaultValuesAreUsed() = runTest {
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(MutableLiveData())
+
+        testee.trackers(tabId = "1", domainsLoaded = false).test {
+            val viewState = awaitItem() as TrackersViewState
+            assertEquals("", viewState.domain)
+            assertEquals(true, viewState.allTrackersBlocked)
+            assertTrue(viewState.eventsByNetwork.isEmpty())
+        }
     }
 
     @Test
-    fun whenTrackersUpdatedWithNoTrackersThenViewModelListIsEmpty() {
-        val input = listOf(TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, Entity.MINOR_ENTITY_A, true))
-        testee.onSiteChanged(site(trackingEvents = input))
-        assertTrue(testee.viewState.value!!.trackingEventsByNetwork.isNotEmpty())
+    fun whenNoDomainsLoadedDataThenDefaultValuesAreUsed() = runTest {
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(MutableLiveData())
 
-        testee.onSiteChanged(site(trackingEvents = emptyList()))
-        assertTrue(testee.viewState.value!!.trackingEventsByNetwork.isEmpty())
+        testee.trackers(tabId = "1", domainsLoaded = true).test {
+            val viewState = awaitItem() as DomainsViewState
+            assertEquals("", viewState.domain)
+            assertEquals(0, viewState.count)
+            assertTrue(viewState.eventsByNetwork.isEmpty())
+        }
     }
 
     @Test
-    fun whenTrackersUpdatedThenViewModelUpdatedWithDistinctEntitiesOrderedBy() {
+    fun whenUrlIsUpdatedThenViewModelDomainIsUpdated() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
 
+        siteData.postValue(site(url = "http://example.com/path"))
+
+        testee.trackers("1", false).test {
+            assertEquals("example.com", awaitItem().domain)
+        }
+    }
+
+    @Test
+    fun whenTrackersUpdatedWithNoTrackersThenViewModelListIsEmpty() = runTest {
+        val input = listOf(
+            TrackingEvent(
+                documentUrl = Url.DOCUMENT,
+                trackerUrl = Url.tracker(1),
+                categories = null,
+                entity = DummyEntity.MINOR_ENTITY_A,
+                surrogateId = null,
+                status = TrackerStatus.BLOCKED,
+                type = TrackerType.OTHER
+            )
+        )
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(trackingEvents = input))
+        testee.trackers("1", false).test {
+            assertTrue(awaitItem().eventsByNetwork.isNotEmpty())
+        }
+
+        siteData.postValue(site(trackingEvents = emptyList()))
+        testee.trackers("1", false).test {
+            assertTrue(awaitItem().eventsByNetwork.isEmpty())
+        }
+    }
+
+    @Test
+    fun whenTrackersUpdatedThenViewModelUpdatedWithDistinctEntitiesOrderedBy() = runTest {
         val input = listOf(
             // Minor entity with 3 distinct trackers
-            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, Entity.MINOR_ENTITY_A, true),
-            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, Entity.MINOR_ENTITY_A, true),
-            TrackingEvent(Url.DOCUMENT, Url.tracker(2), null, Entity.MINOR_ENTITY_A, true),
-            TrackingEvent(Url.DOCUMENT, Url.tracker(3), null, Entity.MINOR_ENTITY_A, true),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(2), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(3), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
 
             // Minor entity with 1 distinct tracker
-            TrackingEvent(Url.DOCUMENT, Url.tracker(4), null, Entity.MINOR_ENTITY_B, true),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(4), null, DummyEntity.MINOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
 
             // Major entity with 2 distinct tracker
-            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, Entity.MAJOR_ENTITY_B, true),
-            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, Entity.MAJOR_ENTITY_B, true),
-            TrackingEvent(Url.DOCUMENT, Url.tracker(7), null, Entity.MAJOR_ENTITY_B, true),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(7), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
 
             // Major entity with 1 distinct tracker
-            TrackingEvent(Url.DOCUMENT, Url.tracker(5), null, Entity.MAJOR_ENTITY_A, true)
+            TrackingEvent(Url.DOCUMENT, Url.tracker(5), null, DummyEntity.MAJOR_ENTITY_A, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+
+            // 2 Ads
+            TrackingEvent(Url.DOCUMENT, Url.tracker(8), null, DummyEntity.MAJOR_ENTITY_A, null, TrackerStatus.AD_ALLOWED, TrackerType.AD),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(9), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.AD_ALLOWED, TrackerType.AD),
+
+            // 1 Site breakage
+            TrackingEvent(
+                Url.DOCUMENT,
+                Url.tracker(10),
+                null,
+                DummyEntity.MAJOR_ENTITY_A,
+                null,
+                TrackerStatus.SITE_BREAKAGE_ALLOWED,
+                TrackerType.OTHER
+            )
         )
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
 
-        testee.onSiteChanged(site(trackingEvents = input))
+        siteData.postValue(site(trackingEvents = input))
+        testee.trackers("1", false).test {
+            val result = awaitItem().eventsByNetwork
 
-        val result = testee.viewState.value!!.trackingEventsByNetwork
-        assertEquals(0, result.keys.indexOf(Entity.MAJOR_ENTITY_A))
-        assertEquals(1, result.keys.indexOf(Entity.MAJOR_ENTITY_B))
-        assertEquals(2, result.keys.indexOf(Entity.MINOR_ENTITY_A))
-        assertEquals(3, result.keys.indexOf(Entity.MINOR_ENTITY_B))
-        assertEquals(1, result[Entity.MAJOR_ENTITY_A]?.count())
-        assertEquals(2, result[Entity.MAJOR_ENTITY_B]?.count())
-        assertEquals(3, result[Entity.MINOR_ENTITY_A]?.count())
-        assertEquals(1, result[Entity.MINOR_ENTITY_B]?.count())
+            val section = result.keys.toList()
+            assertEquals(1, section.size)
+
+            section[0].let {
+                assertNull(it.descriptionRes)
+                assertEquals(TrackerStatus.BLOCKED, it.trackerStatus)
+
+                val entitiesMap = result[it]
+                val expected = listOf(
+                    Pair(DummyEntity.MAJOR_ENTITY_A, 1),
+                    Pair(DummyEntity.MAJOR_ENTITY_B, 2),
+                    Pair(DummyEntity.MINOR_ENTITY_A, 3),
+                    Pair(DummyEntity.MINOR_ENTITY_B, 1)
+                )
+                entitiesMap?.keys?.forEachIndexed { index, entity ->
+                    assertEquals(expected[index].first, entity)
+                    assertEquals(expected[index].second, entitiesMap[entity]?.count())
+                }
+            }
+        }
     }
 
-    private fun site(url: String = "", trackingEvents: List<TrackingEvent> = emptyList()): Site {
+    @Test
+    fun whenDomainsLoadedUpdatedWithNoDomainsThenViewModelListIsEmpty() = runTest {
+        val input = listOf(
+            TrackingEvent(
+                documentUrl = Url.DOCUMENT,
+                trackerUrl = Url.tracker(1),
+                categories = null,
+                entity = DummyEntity.MINOR_ENTITY_A,
+                surrogateId = null,
+                status = TrackerStatus.ALLOWED,
+                type = TrackerType.OTHER
+            )
+        )
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(trackingEvents = input))
+        testee.trackers(tabId = "1", domainsLoaded = true).test {
+            assertTrue(awaitItem().eventsByNetwork.isNotEmpty())
+        }
+
+        siteData.postValue(site(trackingEvents = emptyList()))
+        testee.trackers(tabId = "1", domainsLoaded = true).test {
+            assertTrue(awaitItem().eventsByNetwork.isEmpty())
+        }
+    }
+
+    @Test
+    fun whenDomainsLoadedUpdatedThenViewModelUpdatedWithDistinctEntitiesOrderedBy() = runTest {
+        val input = listOf(
+            // 3 distinct domains loaded
+            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.ALLOWED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(1), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.ALLOWED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(2), null, DummyEntity.MINOR_ENTITY_B, null, TrackerStatus.ALLOWED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(3), null, DummyEntity.MINOR_ENTITY_A, null, TrackerStatus.ALLOWED, TrackerType.OTHER),
+
+            // 2 distinct trackers
+            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(6), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+            TrackingEvent(Url.DOCUMENT, Url.tracker(7), null, DummyEntity.MAJOR_ENTITY_B, null, TrackerStatus.BLOCKED, TrackerType.OTHER),
+
+            // 1 domain loaded (ad)
+            TrackingEvent(Url.DOCUMENT, Url.tracker(5), null, DummyEntity.MAJOR_ENTITY_A, null, TrackerStatus.AD_ALLOWED, TrackerType.AD),
+
+            // 1 Site breakage
+            TrackingEvent(
+                Url.DOCUMENT,
+                Url.tracker(10),
+                null,
+                DummyEntity.MAJOR_ENTITY_A,
+                null,
+                TrackerStatus.SITE_BREAKAGE_ALLOWED,
+                TrackerType.OTHER
+            )
+        )
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(trackingEvents = input))
+        testee.trackers(tabId = "1", domainsLoaded = true).test {
+            val result = awaitItem().eventsByNetwork
+
+            val section = result.keys.toList()
+            assertEquals(3, section.size)
+
+            section[0].let {
+                assertEquals(R.string.adLoadedSectionDescription, it.descriptionRes)
+                assertEquals(R.string.adLoadedSectionLinkText, it.linkTextRes)
+                assertEquals(R.string.adLoadedSectionUrl, it.linkUrlRes)
+                assertEquals(TrackerStatus.AD_ALLOWED, it.trackerStatus)
+                assertNotNull(it.domain)
+
+                val entitiesMap = result[it]
+                val expected = listOf(
+                    Pair(DummyEntity.MAJOR_ENTITY_A, 1)
+                )
+                entitiesMap?.keys?.forEachIndexed { index, entity ->
+                    assertEquals(expected[index].first, entity)
+                    assertEquals(expected[index].second, entitiesMap[entity]?.count())
+                }
+            }
+
+            section[1].let {
+                assertEquals(R.string.domainsLoadedBreakageSectionDescription, it.descriptionRes)
+                assertEquals(TrackerStatus.SITE_BREAKAGE_ALLOWED, it.trackerStatus)
+
+                val entitiesMap = result[it]
+                val expected = listOf(
+                    Pair(DummyEntity.MAJOR_ENTITY_A, 1)
+                )
+                entitiesMap?.keys?.forEachIndexed { index, entity ->
+                    assertEquals(expected[index].first, entity)
+                    assertEquals(expected[index].second, entitiesMap[entity]?.count())
+                }
+            }
+
+            section[2].let {
+                assertEquals(R.string.domainsLoadedSectionDescription, it.descriptionRes)
+                assertEquals(TrackerStatus.ALLOWED, it.trackerStatus)
+
+                val entitiesMap = result[it]
+                val expected = listOf(
+                    Pair(DummyEntity.MINOR_ENTITY_A, 2),
+                    Pair(DummyEntity.MINOR_ENTITY_B, 1)
+                )
+                entitiesMap?.keys?.forEachIndexed { index, entity ->
+                    assertEquals(expected[index].first, entity)
+                    assertEquals(expected[index].second, entitiesMap[entity]?.count())
+                }
+            }
+        }
+    }
+
+    private fun site(
+        url: String = "",
+        trackingEvents: List<TrackingEvent> = emptyList()
+    ): Site {
         val site: Site = mock()
         whenever(site.url).thenReturn(url)
         whenever(site.uri).thenReturn(Uri.parse(url))
@@ -116,7 +315,7 @@ class TrackerNetworksViewModelTest {
         return site
     }
 
-    object Entity {
+    object DummyEntity {
         val MINOR_ENTITY_A = TestEntity("Minor A", "Minor A", 0.0)
         val MINOR_ENTITY_B = TestEntity("Minor B", "Minor B", 0.0)
         val MAJOR_ENTITY_A = TestEntity("Major A", "Major A", 9.0)
@@ -124,10 +323,9 @@ class TrackerNetworksViewModelTest {
     }
 
     object Url {
-        val DOCUMENT = "http://document.com"
-        val TRACKER = "http://tracker%d.com"
+        const val DOCUMENT = "http://document.com"
+        const val TRACKER = "http://tracker%d.com"
 
         fun tracker(number: Int): String = String.format(TRACKER, number)
     }
-
 }

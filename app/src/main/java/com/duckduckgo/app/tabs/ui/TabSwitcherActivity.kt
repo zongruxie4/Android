@@ -23,40 +23,45 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.browser.tabpreview.WebViewPreviewPersister
 import com.duckduckgo.app.cta.ui.CtaViewModel
+import com.duckduckgo.app.di.AppCoroutineScope
+import com.duckduckgo.app.downloads.DownloadsActivity
 import com.duckduckgo.app.global.DuckDuckGoActivity
 import com.duckduckgo.app.global.events.db.UserEventsStore
 import com.duckduckgo.app.global.view.ClearDataAction
 import com.duckduckgo.app.global.view.FireDialog
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.settings.SettingsActivity
+import com.duckduckgo.app.settings.db.SettingsDataStore
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.tabs.model.TabEntity
 import com.duckduckgo.app.tabs.ui.TabSwitcherViewModel.Command
 import com.duckduckgo.app.tabs.ui.TabSwitcherViewModel.Command.Close
-import com.duckduckgo.app.tabs.ui.TabSwitcherViewModel.Command.DisplayMessage
+import com.duckduckgo.di.scopes.ActivityScope
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.contentView
-import org.jetbrains.anko.longToast
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
+@InjectWith(ActivityScope::class)
 class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, CoroutineScope {
 
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Main
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
 
     @Inject
     lateinit var clearPersonalDataAction: ClearDataAction
@@ -78,6 +83,10 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
 
     @Inject
     lateinit var userEventsStore: UserEventsStore
+
+    @Inject
+    @AppCoroutineScope
+    lateinit var appCoroutineScope: CoroutineScope
 
     private val viewModel: TabSwitcherViewModel by bindViewModel()
 
@@ -134,26 +143,17 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
     }
 
     private fun configureObservers() {
-        viewModel.tabs.observe(
-            this,
-            Observer<List<TabEntity>> {
-                render(it)
+        viewModel.tabs.observe(this) {
+            render(it)
+        }
+        viewModel.deletableTabs.observe(this) {
+            if (it.isNotEmpty()) {
+                onDeletableTab(it.last())
             }
-        )
-        viewModel.deletableTabs.observe(
-            this,
-            {
-                if (it.isNotEmpty()) {
-                    onDeletableTab(it.last())
-                }
-            }
-        )
-        viewModel.command.observe(
-            this,
-            Observer {
-                processCommand(it)
-            }
-        )
+        }
+        viewModel.command.observe(this) {
+            processCommand(it)
+        }
     }
 
     private fun render(tabs: List<TabEntity>) {
@@ -168,17 +168,16 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
 
     private fun scrollToShowCurrentTab() {
         val index = tabsAdapter.adapterPositionForTab(selectedTabId)
-        tabsRecycler.scrollToPosition(index)
+        tabsRecycler.post { tabsRecycler.scrollToPosition(index) }
     }
 
-    private fun processCommand(command: Command?) {
+    private fun processCommand(command: Command) {
         when (command) {
-            is DisplayMessage -> applicationContext?.longToast(command.messageId)
             is Close -> finishAfterTransition()
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_tab_switcher_activity, menu)
         return true
     }
@@ -188,6 +187,7 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
             R.id.fire -> onFire()
             R.id.newTab, R.id.newTabOverflow -> onNewTabRequested()
             R.id.closeAllTabs -> closeAllTabs()
+            R.id.downloads -> showDownloads()
             R.id.settings -> showSettings()
         }
         return super.onOptionsItemSelected(item)
@@ -201,9 +201,9 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
             ctaViewModel = ctaViewModel,
             pixel = pixel,
             settingsDataStore = settingsDataStore,
-            userEventsStore = userEventsStore
+            userEventsStore = userEventsStore,
+            appCoroutineScope = appCoroutineScope
         )
-        dialog.clearComplete = { viewModel.onClearComplete() }
         dialog.show()
     }
 
@@ -228,24 +228,24 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
     }
 
     private fun onDeletableTab(tab: TabEntity) {
-        Snackbar.make(
-            contentView!!,
-            getString(R.string.tabClosed),
-            Snackbar.LENGTH_LONG
-        )
+        Snackbar.make(toolbar, getString(R.string.tabClosed), Snackbar.LENGTH_LONG)
             .setDuration(3500) // 3.5 seconds
             .setAction(R.string.tabClosedUndo) {
                 // noop, handled in onDismissed callback
             }
             .addCallback(object : Snackbar.Callback() {
-                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                override fun onDismissed(
+                    transientBottomBar: Snackbar?,
+                    event: Int
+                ) {
                     when (event) {
                         // handle the UNDO action here as we only have one
                         BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_ACTION -> launch { viewModel.undoDeletableTab(tab) }
                         BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_SWIPE,
                         BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_TIMEOUT -> launch { viewModel.purgeDeletableTabs() }
                         BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_CONSECUTIVE,
-                        BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_MANUAL -> { /* noop */ }
+                        BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_MANUAL -> { /* noop */
+                        }
                     }
                 }
             })
@@ -259,6 +259,10 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
                 viewModel.onTabDeleted(it)
             }
         }
+    }
+
+    private fun showDownloads() {
+        startActivity(DownloadsActivity.intent(this))
     }
 
     private fun showSettings() {
@@ -286,7 +290,10 @@ class TabSwitcherActivity : DuckDuckGoActivity(), TabSwitcherListener, Coroutine
     }
 
     companion object {
-        fun intent(context: Context, selectedTabId: String? = null): Intent {
+        fun intent(
+            context: Context,
+            selectedTabId: String? = null
+        ): Intent {
             val intent = Intent(context, TabSwitcherActivity::class.java)
             intent.putExtra(EXTRA_KEY_SELECTED_TAB, selectedTabId)
             return intent

@@ -16,12 +16,17 @@
 
 package com.duckduckgo.app.httpsupgrade
 
+import android.content.Context
 import androidx.annotation.WorkerThread
 import com.duckduckgo.app.global.store.BinaryDataStore
 import com.duckduckgo.app.httpsupgrade.model.HttpsBloomFilterSpec.Companion.HTTPS_BINARY_FILE
 import com.duckduckgo.app.httpsupgrade.store.HttpsBloomFilterSpecDao
 import com.duckduckgo.app.httpsupgrade.store.HttpsEmbeddedDataPersister
 import com.duckduckgo.app.httpsupgrade.store.HttpsDataPersister
+import com.duckduckgo.app.pixels.AppPixelName
+import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesBinding
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -29,11 +34,14 @@ interface HttpsBloomFilterFactory {
     fun create(): BloomFilter?
 }
 
+@ContributesBinding(AppScope::class)
 class HttpsBloomFilterFactoryImpl @Inject constructor(
     private val dao: HttpsBloomFilterSpecDao,
     private val binaryDataStore: BinaryDataStore,
     private val httpsEmbeddedDataPersister: HttpsEmbeddedDataPersister,
-    private val httpsDataPersister: HttpsDataPersister
+    private val httpsDataPersister: HttpsDataPersister,
+    private val pixel: Pixel,
+    private val context: Context,
 ) : HttpsBloomFilterFactory {
 
     @WorkerThread
@@ -53,7 +61,13 @@ class HttpsBloomFilterFactoryImpl @Inject constructor(
 
         val initialTimestamp = System.currentTimeMillis()
         Timber.d("Found https data at $dataPath, building filter")
-        val bloomFilter = BloomFilter(dataPath, specification.bitCount, specification.totalEntries)
+        val bloomFilter = try {
+            BloomFilter(context, BloomFilter.Config.PathConfig(path = dataPath, bits = specification.bitCount, maxItems = specification.totalEntries))
+        } catch (t: Throwable) {
+            Timber.e(t, "Error creating the bloom filter")
+            pixel.fire(AppPixelName.CREATE_BLOOM_FILTER_ERROR)
+            null
+        }
         Timber.v("Loading took ${System.currentTimeMillis() - initialTimestamp}ms")
 
         return bloomFilter

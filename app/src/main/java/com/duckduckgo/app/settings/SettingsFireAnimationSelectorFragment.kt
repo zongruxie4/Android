@@ -41,12 +41,27 @@ class SettingsFireAnimationSelectorFragment : DialogFragment() {
 
         updateCurrentSelect(currentOption, rootView.findViewById(R.id.fireAnimationSelectorGroup))
 
+        val radioGroup = rootView.findViewById(R.id.fireAnimationSelectorGroup) as RadioGroup
+
+        radioGroup.setOnCheckedChangeListener { group, _ ->
+            val fireAnimation = when (group.checkedRadioButtonId) {
+                R.id.fireAnimationFire -> HeroFire
+                R.id.fireAnimationWater -> HeroWater
+                R.id.fireAnimationAbstract -> HeroAbstract
+                R.id.fireAnimationDisabled -> None
+                else -> HeroFire
+            }
+
+            if (fireAnimation != None) {
+                startActivity(FireAnimationActivity.intent(requireContext(), fireAnimation))
+            }
+        }
+
         val alertBuilder = AlertDialog.Builder(requireActivity())
             .setView(rootView)
             .setTitle(R.string.settingsSelectFireAnimationDialog)
             .setPositiveButton(R.string.settingsSelectFireAnimationDialogSave) { _, _ ->
                 dialog?.let {
-                    val radioGroup = it.findViewById(R.id.fireAnimationSelectorGroup) as RadioGroup
                     val selectedOption = when (radioGroup.checkedRadioButtonId) {
                         R.id.fireAnimationFire -> HeroFire
                         R.id.fireAnimationWater -> HeroWater
@@ -63,7 +78,10 @@ class SettingsFireAnimationSelectorFragment : DialogFragment() {
         return alertBuilder.create()
     }
 
-    private fun updateCurrentSelect(currentOption: FireAnimation, radioGroup: RadioGroup) {
+    private fun updateCurrentSelect(
+        currentOption: FireAnimation,
+        radioGroup: RadioGroup
+    ) {
         val selectedId = currentOption.radioButtonId()
         radioGroup.check(selectedId)
     }
@@ -91,5 +109,4 @@ class SettingsFireAnimationSelectorFragment : DialogFragment() {
             return fragment
         }
     }
-
 }

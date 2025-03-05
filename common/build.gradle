@@ -18,29 +18,56 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'com.squareup.anvil'
 }
 
 apply from: "$rootProject.projectDir/gradle/android-library.gradle"
 
+android {
+    lintOptions {
+        baseline file("lint-baseline.xml")
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
 dependencies {
+    anvil project(path: ':anvil-compiler')
+    implementation project(path: ':anvil-annotations')
+    implementation project(path: ':di')
+
     implementation Kotlin.stdlib.jdk7
     implementation KotlinX.coroutines.core
     implementation KotlinX.coroutines.android
 
     implementation AndroidX.work.runtimeKtx
+    implementation AndroidX.lifecycle.viewModelKtx
+
+    // Android KTX
+    implementation AndroidX.core.ktx
 
     implementation Google.dagger
 
     implementation JakeWharton.timber
 
+    implementation Square.okHttp3.okHttp
+
     // Room
     implementation AndroidX.room.runtime
     implementation AndroidX.room.rxJava2
     kapt AndroidX.room.compiler
-    testImplementation AndroidX.room.testing
-    androidTestImplementation AndroidX.room.testing
 
+    // ThreeTenABP
+    implementation "com.jakewharton.threetenabp:threetenabp:_"
+    testImplementation "org.threeten:threetenbp:_"
+
+    // Testing dependencies
     testImplementation Testing.junit4
-    androidTestImplementation AndroidX.test.runner
-    androidTestImplementation AndroidX.test.rules
+    testImplementation AndroidX.test.ext.junit
+    testImplementation "androidx.test:runner:_"
+    testImplementation Testing.robolectric
+    testImplementation project(path: ':common-test')
 }

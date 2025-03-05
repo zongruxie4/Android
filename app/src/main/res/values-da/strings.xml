@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022 DuckDuckGo
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="appName" translatable="false">DuckDuckGo</string>
@@ -33,19 +48,30 @@
     <string name="clearButtonContentDescription">Ryd søgeinput</string>
     <string name="no_compatible_third_party_app_installed">Ingen kompatibel app installeret</string>
     <string name="addBookmarkMenuTitle">Tilføj bogmærke</string>
+    <string name="editBookmarkMenuTitle">Rediger bogmærke</string>
+    <string name="addFavoriteMenuTitle">Tilføj til favorit</string>
+    <string name="removeFavoriteMenuTitle">Fjern favorit</string>
+    <string name="favoriteAddedMessage">Favorit tilføjet</string>
+    <string name="bookmarkAddedMessage">Bogmærke tilføjet</string>
     <string name="requestDesktopSiteMenuTitle">Stationær computer</string>
+    <string name="fireproofWebsiteMenuTitleRemove">Fjern brandsikring</string>
+    <string name="requestMobileSiteMenuTitle">Mobilwebsted</string>
+    <string name="downloadsMenuTitle">Downloads</string>
+    <string name="printMenuTitle">Udskriv side</string>
+    <string name="favoriteDeleteConfirmationMessage">Favorit fjernet</string>
+    <string name="fireproofDeleteConfirmationMessage">Brandsikring fjernet</string>
+    <string name="privacyProtectionEnabledConfirmationMessage">Beskyttelse af privatlivet aktiveret for %1$s</string>
+    <string name="privacyProtectionDisabledConfirmationMessage">Beskyttelse af privatlivet deaktiveret for %1$s</string>
+    <string name="undoSnackbarAction">Fortryd</string>
 
     <!-- Downloading files -->
     <string name="downloadImage">Download billede</string>
     <string name="permissionRequiredToDownload">Download kræver lagringstilladelse</string>
-    <string name="downloadComplete">Download fuldført</string>
-    <string name="downloadFailed">Det var ikke muligt at downloade</string>
-    <string name="downloadInProgress">Downloader</string>
 
     <!-- Sharing options -->
     <string name="options">Valgmuligheder</string>
     <string name="shareLink">Del link</string>
-    <string name="shareMenuTitle">Del …</string>
+    <string name="shareMenuTitle">Del</string>
     <string name="copyUrl">Kopiér linkadresse</string>
 
     <!-- Find in page -->
@@ -80,6 +106,7 @@
     <string name="closeTab">Luk fane</string>
     <string name="tabClosed">Fanen er lukket</string>
     <string name="tabClosedUndo">Fortryd</string>
+    <string name="downloadsMenuItemTitle">Downloads</string>
 
     <!-- Privacy Dashboard Activities -->
     <string name="privacyProtectionToggle">Webstedets beskyttelse af personlige oplysninger</string>
@@ -88,34 +115,11 @@
     <string name="privacyDashboardActivityTitle">Privatlivspanel</string>
     <string name="privacyProtectionUpgraded" tools:ignore="TypographyQuotes">FORSTÆRKET FRA &lt;img src=\"%1$d\" /&gt; TIL &lt;img src=\"%2$d\" /&gt;</string>
     <string name="privacyGradeContentDescription">Grad af privatliv</string>
+    <string name="privacyProtectionTemporarilyDisabled">Vi har midlertidigt deaktiveret beskyttelse af privatlivets fred, da det ser ud til at ødelægge dette websted.</string>
 
     <string name="httpsGood">Krypteret forbindelse</string>
     <string name="httpsMixed">Blandet krypteringsforbindelse</string>
     <string name="httpsBad">Ukrypteret forbindelse</string>
-
-    <string name="networksActivityTitle">Tracker-netværk</string>
-    <string name="networksContentDescription">Tracker-netværk</string>
-    <string name="networksOverview">Tracker-netværk samler din webhistorik i en dataprofil om dig. Større tracker-netværk er mere skadelige, fordi de kan spore og målrette sig dig over en større del af internettet.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">%1$s tracker fundet</item>
-        <item quantity="other">%1$s trackere fundet</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">%1$s tracker blokeret</item>
-        <item quantity="other">%1$s trackere blokeret</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">%1$s større tracker-netværk fundet</item>
-        <item quantity="other">%1$s større tracker-netværk fundet</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">%1$s større tracker-netværk blokeret</item>
-        <item quantity="other">%1$s større tracker-netværk blokeret</item>
-    </plurals>
 
     <string name="scorecardActivityTitle">Grad af privatliv</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">Websted er et stort tracker-netværk</string>
@@ -135,6 +139,45 @@
     <string name="networkTrackerSummaryHeader">DE STØRSTE LOVOVERTRÆDERE FRA TRACKER-NETVÆRK</string>
     <string name="networkTrackerSummaryNotReady">Vi indsamler stadig data for at vise, hvor mange trackere vi har blokeret.</string>
 
+    <string name="trackersActivityTitle">Sporingsanmodninger blokeret</string>
+    <string name="trackersContentDescription">Sporingsanmodninger blokeret</string>
+    <string name="trackersOverview">Følgende anmodninger fra tredjepartsdomæner blev blokeret fra at blive indlæst, fordi de blev identificeret som sporingsanmodninger. Hvis en virksomheds anmodninger er indlæst, kan det give dem mulighed for at profilere dig.</string>
+    <string name="trackersOverviewProtectionsOff">Ingen sporingsanmodninger blev blokeret fra at blive indlæst, fordi beskyttelse er slået fra på dette websted. Hvis en virksomheds anmodninger indlæses, kan det give dem mulighed for at profilere dig.</string>
+
+    <string name="domainsLoadedActivityTitle">Anmodninger fra tredjeparter indlæst</string>
+    <string name="domainsLoadedContentDescription">Anmodninger fra tredjeparter indlæst</string>
+    <string name="domainsLoadedOverview">Følgende anmodninger fra tredjepartsdomæner blev indlæst. Hvis en virksomheds anmodninger er indlæst, kan det give dem mulighed for at profilere dig, selv om vores andre beskyttelser mod websporing stadig gælder.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">Ingen anmodninger fra tredjeparter blev blokeret fra at blive indlæst, fordi beskyttelse er slået fra på dette websted. Hvis en virksomheds anmodninger indlæses, kan det give dem mulighed for at profilere dig.</string>
+    <string name="domainsLoadedOverviewEmpty">Vi har ikke registreret anmodninger fra tredjepartsdomæner.</string>
+    <string name="domainsLoadedHeadingText">Ingen tredjepartsdomæner indlæst</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">Om vores beskyttelse mod sporing på nettet</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">Følgende domæners anmodninger blev indlæst.</string>
+
+    <string name="adLoadedSectionDescription">Følgende domænes anmodninger blev indlæst, fordi der for nylig blev klikket på en %1$s-annonce på DuckDuckGo Disse anmodninger hjælper med at evaluere annoncernes effektivitet. Alle annoncer på DuckDuckGo er ikke-profilerende.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">Sådan påvirker vores søgningsannoncer vores beskyttelse</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">Følgende domænes anmodninger blev også indlæst.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">Følgende domæners sporingsanmodninger blev indlæst.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">Vi har ikke registreret anmodninger fra tredjepartsdomæner.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">Følgende domænes anmodninger blev indlæst for at forhindre brud på webstedet.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">Følgende domænes anmodninger blev indlæst, fordi de er tilknyttet %1$s.</string>
+
+    <string name="trackersBlockedText">Anmodninger blokeret fra indlæsning</string>
+    <string name="trackersNotBlockedText">Ingen sporingsanmodninger blokeret</string>
+    <string name="trackersNoFoundText">Ingen sporingsanmodninger fundet</string>
+    <string name="trackersFoundText">Sporingsanmodninger fundet</string>
+
+    <string name="domainsLoadedText">Anmodninger fra tredjeparter indlæst</string>
+    <string name="domainsNotLoadedText">Ingen tredjepartsanmodninger er indlæst</string>
+
+    <string name="majorNetworksNoFound">Ingen større tracker-netværk fundet</string>
+    <string name="majorNetworksFound">Større tracker-netværk fundet</string>
+
     <!-- Fire -->
     <string name="fireMenu">Ryd data</string>
     <string name="fireClearAll">Ryd alle faner og data</string>
@@ -144,13 +187,26 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Indstillinger</string>
     <string name="settingsMenuItemTitle">Indstillinger</string>
-    <string name="settingsHeadingGeneral">Generelt</string>
-    <string name="settingsHeadingOther">Andet</string>
     <string name="settingsHeadingPrivacy">Privatliv</string>
-    <string name="settingsLightTheme">Lystema</string>
     <string name="settingsAboutDuckduckgo">Om DuckDuckGo</string>
     <string name="settingsVersion">Version</string>
     <string name="leaveFeedback">Del feedback</string>
+    <string name="settingsEmailProtectionTitle">E-mailbeskyttelse</string>
+    <string name="settingsEmailProtectionSubtitle">Bloker e-mailtrackere, og skjul din adresse</string>
+    <string name="settingsHeadingMore">Mere fra DuckDuckGo</string>
+    <string name="settingsLightTheme">Let</string>
+    <string name="settingsTheme">Tema</string>
+    <string name="settingsDarkTheme">Mørk</string>
+    <string name="settingsSystemTheme">System standard</string>
+    <string name="settingsThemeDialogSave">Indstil tema</string>
+    <string name="settingsTitleAppLinks">Åbn links i apps</string>
+    <string name="settingsTitleAppLinksDialog">Åbn links i apps</string>
+    <string name="settingsAppLinksAskEveryTime">Spørg hver gang</string>
+    <string name="settingsAppLinksAlways">Altid</string>
+    <string name="settingsAppLinksNever">Aldrig</string>
+    <string name="settingsHeadingAppearance">udseende</string>
+    <string name="settingsHeadingCustomize">Tilpas</string>
+    <string name="settingsHeadingAbout">Omkring</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Gem</string>
@@ -199,31 +255,59 @@
     <!-- Bookmarks Activity -->
     <string name="bookmarksMenuTitle">Bogmærker</string>
     <string name="bookmarksActivityTitle">Bogmærker</string>
-    <string name="bookmarkDeleteConfirmMessage">Er du sikker på, at du vil slette bogmærket &lt;b&gt;%1$s&lt;/b&gt;?</string>
-    <string name="bookmarkAddedFeedback">Bogmærke tilføjet</string>
-    <string name="bookmarkTitleHint">Titel på bogmærke</string>
-    <string name="bookmarkUrlHint">Bogmærkets URL</string>
-    <string name="bookmarkTitleEdit">Rediger bogmærke</string>
     <string name="noBookmarks">Ingen bogmærker tilføjet endnu</string>
     <string name="bookmarkOverflowContentDescription">Flere muligheder for bogmærke %1$s</string>
-    <string name="bookmarkEdited">Bogmærke tilføjet</string>
     <string name="bookmarkDeleteConfirmationMessage">Slettet &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="exportBookmarksMenu">Eksportér</string>
+    <string name="exportBookmarksEmpty">Du har ingen bogmærker, intet eksporteres</string>
+    <string name="exportBookmarksError">Kunne ikke eksportere nogen bogmærker, noget gik galt</string>
+    <string name="exportBookmarksSuccess">Alle bogmærker blev eksporteret</string>
+    <string name="importBookmarksMenu">Importér</string>
+    <string name="importBookmarksFileTitle">Vælg en bogmærkefil, der skal importeres</string>
+    <string name="importBookmarksError">Kunne ikke importere nogen bogmærker, noget gik galt</string>
+    <string name="importBookmarksEmpty">Filen har ingen bogmærker at importere</string>
+    <string name="importBookmarksSuccess">Importerede %1$d bogmærker</string>
+    <string name="savedSiteDialogTitleHint">Titel</string>
+    <string name="savedSiteDialogUrlHint">URL</string>
+    <string name="savedSiteDialogTitleEdit">Rediger</string>
+    <string name="bookmarksSectionTitle">Bogmærker</string>
+    <string name="favoritesSectionTitle">Favoritter</string>
+    <string name="bookmarksEmptyHint">Ingen bogmærker tilføjet endnu</string>
+    <string name="favoritesEmptyHint">Ingen favoritter tilføjet endnu</string>
 
     <!-- Dialogs -->
     <string name="dialogConfirmTitle">Bekræft</string>
     <string name="dialogSave">Gem</string>
     <string name="delete">Slet</string>
     <string name="edit">Rediger</string>
+    <string name="remove">Fjern</string>
+    <string name="removeAll">Fjern alt</string>
 
     <!-- Widget -->
     <string name="searchWidgetTextHint">Søg på DuckDuckGo</string>
 
+    <!-- Favorites widget -->
+    <string name="addFavoriteMenuTitleHighlighted">👋 Tilføj favorit</string>
+    <string name="widgetConfigurationTitleText">Vælg tema</string>
+    <string name="widgetConfigurationSystemThemeOption">System standard</string>
+    <string name="widgetConfigurationLightThemeOption">Let</string>
+    <string name="widgetConfigurationDarkThemeOption">Mørk</string>
+    <string name="widgetConfigurationAddWidgetOption">Tilføj widget</string>
+    <string name="searchWidgetEmtpyFavoritesHint">Ingen favoritter tilføjet endnu</string>
+    <string name="searchWidgetEmtpyFavoritesCta">Tilføj til favorit</string>
+    <string name="daxFavoritesOnboardingCtaText"><![CDATA[Besøg dine foretrukne websteder på et splitsekund!\n\nGå til et websted, du elsker. Tryk derefter på ikonet \" ⠇\", og vælg Føj til favoritter.]]></string>
+    <string name="daxFavoritesOnboardingCtaContentDescription">Besøg dine foretrukne websteder på et splitsekund! Gå til et websted, du elsker. Tryk derefter på ikonet i browsermenuen, og vælg Tilføj favorit.</string>
+    <string name="widgetConfigurationActivityTitle">Widget-konfiguration</string>
+    <string name="favoritesWidgetLabel">Favoritter</string>
+    <string name="searchWidgetLabel">Søg</string>
+
     <!-- Home Screen Shortcuts -->
-    <string name="addToHome">Føj til startsiden</string>
+    <string name="addToHome">Tilføj til startskærm</string>
+    <string name="shortcutAddedText">Det lykkedes! %1$s er blevet føjet til din startskærm.</string>
 
     <!-- User Survey -->
     <string name="surveyCtaTitle">Hjælp os med at forbedre appen!</string>
-    <string name="surveyCtaDescription">Deltag i vores korte, anonyme undersøgelse, og del din feedback.</string>
+    <string name="surveyCtaDescription">Deltag i vores korte undersøgelse, og del din feedback.</string>
     <string name="surveyCtaLaunchButton">Deltag i undersøgelsen</string>
     <string name="surveyCtaDismissButton">Nej tak.</string>
     <string name="surveyActivityTitle">Brugerundersøgelse</string>
@@ -267,8 +351,6 @@
     <string name="noThanks">Nej tak.</string>
 
     <!-- Notification Channel Names -->
-    <string name="notificationChannelFileDownloading">Fil downloader</string>
-    <string name="notificationChannelFileDownloaded">Fil downloadet</string>
     <string name="notificationChannelTutorials">Vejledninger</string>
 
     <!-- Clear Notification -->
@@ -400,7 +482,7 @@
     <string name="onboardingLetsDoItButton">Lad os gøre det!</string>
     <string name="daxIntroCtaText"><![CDATA[Prøv derefter at besøge et af dine foretrukne websteder! <br/><br/> Den blokerer trackere, så de ikke kan spionere dig. Den opgraderer også din forbindelsessikkerhed, hvis det er muligt. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[Du har den!<br/><br/>Husk: hver gang du browser med mig, mister en uhyggelig annonce sine vinger. 👍]]></string>
-    <string name="daxSerpCtaText">Dine DuckDuckGo-søgninger er anonyme, og jeg gemmer aldrig din søgehistorik. Nogensinde. 🙌</string>
+    <string name="daxSerpCtaText">Dine DuckDuckGo-søgninger er anonyme. Altid. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[ og <b>%1$d anden</b> forsøgte at spore dig her. <br/><br/>Jeg blokerede dem!<br/><br/> ☝️Du kan kontrollere adresselinjen for at se, hvem der prøver at spore dig, når du besøger et nyt websted.️]]></item>
         <item quantity="other"><![CDATA[ og <b>%1$d andre</b> forsøgte at spore dig her. <br/><br/>Jeg blokerede dem!<br/><br/> ☝️Du kan kontrollere adresselinjen for at se, hvem der prøver at spore dig, når du besøger et nyt websted.️]]></item>
@@ -414,7 +496,7 @@
     <string name="daxMainNetworkOwnedCtaText">Bemærk! Da %1$s ejer %2$s, kan jeg ikke forhindre dem i at se din aktivitet her. &lt;br/&gt;&lt;br/&gt;Men gennemsøg sammen med mig, så kan jeg reducere det, som %3$s kender til dig samlet set ved at blokere deres trackere på mange andre sider.</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Forsæt</string>
+    <string name="downloadConfirmationContinue">Gem i downloads</string>
     <string name="downloadConfirmationSaveFileTitle">Gem %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Behold begge</string>
     <string name="downloadConfirmationReplaceOldFileText">Erstat</string>
@@ -440,7 +522,7 @@
     <string name="dialogSaveAction">Gem</string>
 
     <!-- Whitelist -->
-    <string name="whitelisetActivityTitle">Ubeskyttede websteder</string>
+    <string name="whitelistActivityTitle">Ubeskyttede websteder</string>
     <string name="enablePrivacyProtection">Aktiver Beskyttelse af privatlivet</string>
     <string name="disablePrivacyProtection">Deaktiver Beskyttelse af privatlivet</string>
     <string name="whitelistEntryOverflowContentDescription">Flere indstillinger for ubeskyttet websted %1$s</string>
@@ -456,24 +538,34 @@
     <!-- Fireproof websites -->
     <string name="fireproofWebsitesActivityTitle">Brandsikre websteder</string>
     <string name="settingsFireproofWebsites">Brandsikre websteder</string>
-    <string name="fireproofWebsiteMenuTitleAdd">Brandsikkert websted</string>
-    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; er nu brandsikkert! Besøg Indstillinger for at administrere.</string>
+    <string name="fireproofWebsiteMenuTitleAdd">Gør dette websted brandsikkert</string>
+    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; er nu brandsikker</string>
     <string name="fireproofWebsiteSnackbarAction">Fortryd</string>
     <string name="fireproofWebsiteDeleteConfirmMessage">Er du sikker på, at du vil slette &lt;b&gt;%1$s&lt;/b&gt;?</string>
-    <string name="fireproofWebsiteEmptyListHint">Ingen brandsikre websteder</string>
     <string name="fireproofWebsiteFeatureDescription">Websider er afhængige af cookies for at bevare dig logget ind. Når du Brandsikrer et websted, slettes cookies ikke, og du forbliver logget ind, selv efter, at du har brugt Brand-knappen. Vi blokerer stadig tredjeparts-trackere, der findes på Brandsikre-websteder.</string>
     <string name="fireproofWebsiteOverflowContentDescription">Flere muligheder for at brandsikre websted %1$s</string>
     <string name="fireproofWebsiteLoginDialogTitle">Ønsker du Brandsikre %1$s?</string>
     <string name="fireproofWebsiteLoginDialogDescription">Brandsikring af dette websted holder dig logget ind efter brug af Brand-knappen.</string>
     <string name="fireproofWebsiteLoginDialogPositive">Brandsikker</string>
     <string name="fireproofWebsiteLoginDialogNegative">Ikke nu</string>
-    <string name="fireproofWebsiteItemsSectionTitle">Websider</string>
-    <string name="fireproofWebsiteToogleText">Spørg, når der logges ind</string>
+    <string name="fireproofWebsiteItemsSectionTitle">Brandsikre websteder</string>
+    <string name="fireproofWebsiteEmptyListHint">Ingen brandsikre websteder endnu</string>
+    <string name="fireproofWebsiteSettingSelectionTitle">Brandsikre websteder ved login</string>
+    <string name="fireproofWebsiteRemoveAllConfirmation">Brandsikring fjernet for alle websteder</string>
+    <string name="fireproofWebsiteRemovalConfirmation">Brandsikring fjernet for &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogAskEveryTime">Spørg hver gang</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogAlways">Altid</string>
+    <string name="fireproofWebsiteSettingsSelectionDialogNever">Aldrig</string>
     <string name="disableLoginDetectionDialogTitle">Vil du deaktivere brandsikker-påmindelse, når du logger ind på websteder?</string>
     <string name="disableLoginDetectionDialogDescription">Du kan ændre denne præference til enhver tid i Indstillinger.</string>
     <string name="disableLoginDetectionDialogPositive">Deaktiver</string>
     <string name="disableLoginDetectionDialogNegative">Afbestil</string>
-    <string name="fireproofWebsiteRemovalConfirmation">Brandsikring fjernet for &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="automaticFireproofWebsiteLoginDialogTitle">Automatisk brandsikring af websteder ved login?</string>
+    <string name="automaticFireproofWebsiteLoginDialogDescription">Brandsikring af dette websted holder dig logget ind efter brug af Brand-knappen. Du kan altid ændre dette senere i Indstillinger. </string>
+    <string name="automaticFireproofWebsiteLoginDialogFirstOption">Altid brandsikring af websteder</string>
+    <string name="automaticFireproofWebsiteLoginDialogSecondOption">Gør dette websted brandsikkert</string>
+    <string name="automaticFireproofWebsiteLoginDialogThirdOption">Ikke nu</string>
+
 
     <!-- Fire Animation settings -->
     <string name="settingsFireAnimation">Ildknap-animation</string>
@@ -487,11 +579,6 @@
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Forbindelse blev afbrudt. Dette websted kan være skadeligt for din enhed.</string>
 
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">Download Manager er deaktiveret</string>
-    <string name="downloadManagerIncompatible">Download Manager er ikke tilgængelig på denne enhed</string>
-    <string name="enable">Aktiver</string>
-
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">Vil du aktivere enhedsplacering for DuckDuckGo-databeskyttelsesbrowser?</string>
     <string name="preciseLocationSystemDialogSubtitle">%1$s anmoder om din enhedsplacering. Du skal først give tilladelse til, at appen kan sende din enhedsplacering, hvorefter %2$s kan bede om tilladelse.</string>
@@ -499,12 +586,12 @@
     <string name="preciseLocationSystemDialogDeny">Måske senere</string>
     <string name="preciseLocationSystemDialogNeverAllow">Spørg ikke igen for dette websted</string>
     <string name="preciseLocationSiteDialogTitle">Vil du give %1$s tilladelse til at få adgang til placering?</string>
+    <string name="preciseLocationDDGDialogSubtitle">Vi bruger kun din anonyme placering til at levere bedre resultater tættere på dig. Du kan altid skifte mening senere.</string>
     <string name="preciseLocationSiteDialogSubtitle">Du kan administrere de tilladelser til placeringsadgang, du har givet til individuelle websteder under Indstillinger.</string>
     <string name="preciseLocationSiteDialogAllowAlways">Altid</string>
     <string name="preciseLocationSiteDialogAllowOnce">Kun for denne session</string>
     <string name="preciseLocationSiteDialogDenyAlways">Afvis altid</string>
     <string name="preciseLocationSiteDialogDenyOnce">Afvis for denne session</string>
-    <string name="settingsPreciseLocation">Placering</string>
     <string name="preciseLocationFeatureDescription">Websteder, du besøger, kan bede om at få kendskab til din enhedsplacering. De kan ikke få adgang til den, før du udtrykkeligt giver tilladelse. DuckDuckGo bruger kun din placering anonymt til at levere lokale søgeresultater.</string>
     <string name="preciseLocationToggleText">Websteder kan bede om min placering</string>
     <string name="preciseLocationEmptyListHint">Ingen websteder har tilladelse til at få adgang til placering</string>
@@ -522,12 +609,132 @@
     <!--  Global Privacy Control-->
     <string name="globalPrivacyControlActivityTitle">Global Privacy Control (GPC)</string>
     <string name="globalPrivacyControlDescription">
-        Dine data burde ikke være til salg. Det er vi enige i hos DuckDuckGo. Aktivér indstillingen \"Global Privacy Control\" (GPC), så signalerer vi til websteder, at du foretrækker: &lt;br/&gt;&lt;br/&gt;• Ikke at sælge dine persondata.&lt;br/&gt;• Begræns deling af dine persondata til andre virksomheder.
+        <![CDATA[DuckDuckGo blokerer automatisk mange trackere. Med Global Privacy Control (GPC) kan du også bede deltagende websteder om at begrænse salg eller deling af dine personoplysninger med andre virksomheder. <u><a href=\"\">Få mere at vide</a><u/>]]>
     </string>
     <string name="globalPrivacyControlSetting">Global Privacy Control (GPC)</string>
     <string name="globalPrivacyControlToggle">Global Privacy Control (GPC)</string>
-    <string name="globalPrivacyControlDescriptionLegal"><b>Da Global Privacy Control (GPC) er en ny standard, genkender de fleste websteder den endnu ikke, men vi arbejder hårdt på at sikre, at den bliver accepteret over hele verden.</b> Websteder er dog kun forpligtede til at reagere på signalet i det omfang, de er forpligtede til at gøre det ved gældende lov.</string>
-    <string name="globalPrivacyControlLearnMore"><u>Få mere at vide</u></string>
     <string name="disabled">Deaktiveret</string>
     <string name="enabled">Aktiveret</string>
+
+    <!-- Opening app links -->
+    <string name="settingTitleOpenLinksInAssociatedApps">Åbn links i tilknyttede apps</string>
+    <string name="settingSubtitleOpenLinksInAssociatedApps">Deaktiver for at forhindre, at links automatisk åbnes i andre installerede apps.</string>
+    <string name="appLinkDialogTitle">Åbn i en anden app?</string>
+    <string name="appLinkSnackBarAction">Åbn i app</string>
+    <string name="appLinkMultipleSnackBarAction">Vælg app</string>
+    <string name="appLinkSnackBarMessage">Du kan åbne dette link i %1$s.</string>
+    <string name="appLinkMultipleSnackBarMessage">Du kan åbne dette link i andre apps.</string>
+    <string name="appLinkIntentChooserTitle">Åben med</string>
+    <string name="appLinkMenuItemTitle">Åbn i app</string>
+
+    <!-- Email Autofill -->
+    <string name="aliasToClipboardMessage">Ny adresse kopieret til din udklipsholder</string>
+    <string name="autofillTooltipUseYourAlias">Brug %1$s</string>
+    <string name="autofillTooltipUseYourAliasDescription">Blokerer e-mailtrackere</string>
+    <string name="autofillTooltipGenerateAddress">Generér en privatadresse</string>
+    <string name="autofillTooltipGenerateAddressDescription">Blokerer e-mailtrackere og skjuler din adresse</string>
+    <string name="newEmailAliasMenuTitle">Opret Duck-adresse</string>
+
+    <!-- Waitlist Notification -->
+    <string name="waitlistNotificationDialogDescription">Vil du have os til at sende dig en meddelelse, når det er din tur?</string>
+    <string name="waitlistNotificationDialogNoThanks">Nej tak.</string>
+    <string name="waitlistNotificationDialogNotifyMe">UNDERRET MIG</string>
+
+    <!-- Email Protection -->
+    <string name="emailProtectionActivityTitle">E-mailbeskyttelse (Beta)</string>
+    <string name="emailNotSupported">Enheden understøttes ikke</string>
+    <string name="emailNotSupportedExplanation">E-mailbeskyttelse giver dig mulighed for at oprette private e-mailadresser, der fjerner e-mailtrackere. Vi skal kryptere og gemme disse adresser, som du opretter lokalt på din enhed. Fordi din enhed ikke understøtter krypteret lagring, er e-mailbeskyttelse ikke tilgængelig.</string>
+
+    <!-- Bookmark folders -->
+    <string name="bookmarkDialogTitleEdit">Rediger bogmærke</string>
+    <string name="favoriteDialogTitleEdit">Rediger favorit</string>
+    <string name="locationLabel">Placering</string>
+    <string name="folderLocationTitle">Vælg placering</string>
+    <string name="addFolder">Tilføj mappe</string>
+    <string name="editFolder">Rediger mappe</string>
+    <string name="bookmarkFolderDeleteDialogMessage">"Er du sikker på, at du vil slette "</string>
+    <string name="bookmarkFolderEmpty">Tom</string>
+
+    <plurals name="bookmarkFolderDeleteDialogMessage">
+        <item quantity="one">%1$s%2$s og %3$d element?</item>
+        <item quantity="other">%1$s%2$s og %3$d elementer?</item>
+    </plurals>
+
+    <plurals name="bookmarkFolderItems">
+        <item quantity="one">%1$d element</item>
+        <item quantity="other">%1$d elementer</item>
+    </plurals>
+
+    <!-- Accessibility-->
+    <string name="settingsAccessibility">Tilgængelighed</string>
+    <string name="accessibilityActivityTitle">Tilgængelighed</string>
+    <string name="accessibilityFontSizeTitle">Tekststørrelse</string>
+    <string name="accessibilityFontSizeHint">Træk skyderen, indtil du nemt kan læse dette. Websteder, som du ser i DuckDuckGo, tilpasser sig dette.</string>
+    <string name="accessibilityForceZoomTitle">Håndhæv manuel sidezoom</string>
+    <string name="accessibilityForceZoomSubtitle">Knib og zoom på ethvert websted, også dem, der ellers ville forhindre det</string>
+    <string name="accessibilityTextSizeOverrideTitle">Administrer tekststørrelse</string>
+    <string name="accessibilityTextSizeOverrideSubtitle">Tekst på websteder, du ser i DuckDuckGo, justeres, så den matcher indstillingen nedenfor</string>
+
+    <!-- Privacy Policy -->
+    <string name="settingsPrivacyPolicyDuckduckgo">Privatlivspolitik</string>
+
+    <!-- Home Screen Widget -->
+    <string name="homeScreenWidgetAdded">%1$s widget tilføjet til startskærmen</string>
+    <string name="settingsAddHomeScreenWidget">Startskærmswidget</string>
+
+    <!-- MacOs Settings -->
+    <string name="macos_settings_description">Browse privat med vores app til Mac</string>
+    <string name="macos_settings_title">DuckDuckGo skrivebordsapp</string>
+
+    <!-- Downloads -->
+    <string name="downloadsMenuItem">Downloads</string>
+    <string name="downloadsActivityTitle">Downloads</string>
+    <string name="downloadsActivityNoItemsDescription">Der er ikke downloadet nogen filer endnu</string>
+    <string name="downloadsShareTitle">Del med ...</string>
+    <string name="downloadsDownloadFinishedActionName">Åben</string>
+    <string name="downloadsCannotOpenFileErrorMessage">Kan ikke åbne filen. Kontrollér, om der er en kompatibel app.</string>
+    <string name="downloadsFileNotFoundErrorMessage">Filen findes ikke længere</string>
+    <string name="downloadsItemMenuShare">Del</string>
+    <string name="downloadsItemMenuDelete">Slet</string>
+    <string name="downloadsItemMenuCancel">Afbestil</string>
+    <string name="downloadsActivityMenuDeleteAll">Slet alle</string>
+    <string name="downloadsFileDeletedMessage">Slettet &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="downloadsAllFilesDeletedMessage">Alle filer er slettet</string>
+    <string name="downloadsMoreOptionsContentDescription">Flere muligheder for %1$s</string>
+    <string name="downloadsUndoActionName">Fortryd</string>
+    <string name="downloadsStateInProgress">I gang ...</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">App-sporingsbeskyttelse</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Bloker app-trackere på din enhed</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Aktiveret</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Deaktiveret</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Det ser ud til, at dette websted har et pop op-vindue med samtykke til brug af cookies👇</string>
+    <string name="autoconsentDialogDescription">Skal jeg tage mig af dem for dig? Jeg kan forsøge at minimere cookies, maksimere privatlivets fred og skjule pop op-vinduer som disse.</string>
+    <string name="autoconsentPrimaryCta">Administrer cookie pop op-vinduer</string>
+    <string name="autoconsentSecondaryCta">Nej tak.</string>
+
+    <string name="autoconsentSetting">Administrer cookie pop op-vinduer</string>
+    <string name="autoconsentAnimationText">Administrerede cookies</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Tilladelser til webstedet</string>
+    <string name="sitePermissionsSettingsDescription">De websteder, du besøger, kan bede om adgang til din enheds placering, kamera eller mikrofon. De vil ikke kunne få adgang til disse, medmindre du udtrykkeligt giver dem tilladelse.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Tillad, at alle websteder beder om:</string>
+    <string name="sitePermissionsSettingsLocation">Placering</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Administrer websteder</string>
+    <string name="sitePermissionsSettingsEmptyText">Ingen websteder endnu</string>
+    <string name="permissionPerWebsiteText">Tilladelser til \"%1$s\" </string>
+    <string name="permissionsPerWebsiteAskSetting">Spørg</string>
+    <string name="permissionsPerWebsiteDenySetting">Afvis</string>
+    <string name="permissionsPerWebsiteAllowSetting">Tillad</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s tilladelse til %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automatisk udfyldning</string>
+
 </resources>

@@ -17,8 +17,10 @@
 package com.duckduckgo.app.privacy.ui
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
+import androidx.lifecycle.MutableLiveData
+import app.cash.turbine.test
 import com.duckduckgo.app.CoroutineTestRule
+import kotlinx.coroutines.test.runTest
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.privacy.db.UserWhitelistDao
 import com.duckduckgo.app.privacy.model.HttpsStatus
@@ -27,17 +29,20 @@ import com.duckduckgo.app.privacy.model.PrivacyPractices
 import com.duckduckgo.app.privacy.model.PrivacyPractices.Practices
 import com.duckduckgo.app.privacy.model.PrivacyPractices.Summary.GOOD
 import com.duckduckgo.app.privacy.model.TestEntity
+import com.duckduckgo.app.tabs.model.TabRepository
 import com.duckduckgo.app.trackerdetection.model.Entity
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import com.duckduckgo.privacy.config.api.ContentBlocking
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 @ExperimentalCoroutinesApi
 class ScorecardViewModelTest {
 
@@ -49,118 +54,242 @@ class ScorecardViewModelTest {
     @get:Rule
     var coroutineRule = CoroutineTestRule()
 
-    private var viewStateObserver: Observer<ScorecardViewModel.ViewState> = mock()
+    private val tabRepository: TabRepository = mock()
     private var userWhitelistDao: UserWhitelistDao = mock()
+    private var contentBlocking: ContentBlocking = mock()
 
-    private val testee: ScorecardViewModel by lazy {
-        val model = ScorecardViewModel(userWhitelistDao, coroutineRule.testDispatcherProvider)
-        model.viewState.observeForever(viewStateObserver)
-        model
-    }
+    private lateinit var testee: ScorecardViewModel
+
+    @get:Rule
+    val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 
     @Before
     fun before() {
+        testee = ScorecardViewModel(tabRepository, userWhitelistDao, contentBlocking, coroutineRule.testDispatcherProvider)
+
         whenever(userWhitelistDao.contains(any())).thenReturn(true)
     }
 
-    @After
-    fun after() {
-        testee.viewState.removeObserver(viewStateObserver)
+    @Test
+    fun whenNoDataThenDefaultValuesAreUsed() = runTest {
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(MutableLiveData())
+
+        testee.scoreCard("1").test {
+            val viewState = awaitItem()
+            assertEquals("", viewState.domain)
+            assertEquals(PrivacyGrade.UNKNOWN, viewState.beforeGrade)
+            assertEquals(PrivacyGrade.UNKNOWN, viewState.afterGrade)
+            assertEquals(HttpsStatus.SECURE, viewState.httpsStatus)
+            assertEquals(0, viewState.trackerCount)
+            assertEquals(0, viewState.majorNetworkCount)
+            assertTrue(viewState.allTrackersBlocked)
+            assertFalse(viewState.showIsMemberOfMajorNetwork)
+            assertFalse(viewState.showEnhancedGrade)
+            assertEquals(PrivacyPractices.Summary.UNKNOWN, viewState.practices)
+            assertFalse(viewState.isSiteInTempAllowedList)
+        }
     }
 
     @Test
-    fun whenNoDataThenDefaultValuesAreUsed() {
-        val viewState = testee.viewState.value!!
-        assertEquals("", viewState.domain)
-        assertEquals(PrivacyGrade.UNKNOWN, viewState.beforeGrade)
-        assertEquals(PrivacyGrade.UNKNOWN, viewState.afterGrade)
-        assertEquals(HttpsStatus.SECURE, viewState.httpsStatus)
-        assertEquals(0, viewState.trackerCount)
-        assertEquals(0, viewState.majorNetworkCount)
-        assertTrue(viewState.allTrackersBlocked)
-        assertFalse(viewState.showIsMemberOfMajorNetwork)
-        assertFalse(viewState.showEnhancedGrade)
-        assertEquals(PrivacyPractices.Summary.UNKNOWN, testee.viewState.value!!.practices)
+    fun whenSiteGradesAreUpdatedThenViewModelGradesAreUpdated() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B))
+
+        testee.scoreCard("1").test {
+            val viewState = awaitItem()
+            assertEquals(PrivacyGrade.D, viewState.beforeGrade)
+            assertEquals(PrivacyGrade.B, viewState.afterGrade)
+        }
     }
 
     @Test
-    fun whenSiteGradesAreUpdatedThenViewModelGradesAreUpdated() {
-        val site = site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B)
-        testee.onSiteChanged(site)
-        assertEquals(PrivacyGrade.D, testee.viewState.value?.beforeGrade)
-        assertEquals(PrivacyGrade.B, testee.viewState.value?.afterGrade)
+    fun whenSiteHttpsStatusIsUpdatedThenViewModelIsUpdated() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(https = HttpsStatus.MIXED))
+
+        testee.scoreCard("1").test {
+            assertEquals(HttpsStatus.MIXED, awaitItem().httpsStatus)
+        }
     }
 
     @Test
-    fun whenSiteHttpsStatusIsUpdatedThenViewModelIsUpdated() {
-        testee.onSiteChanged(site(https = HttpsStatus.MIXED))
-        assertEquals(HttpsStatus.MIXED, testee.viewState.value?.httpsStatus)
+    fun whenTrackerCountIsUpdatedThenCountIsUpdatedInViewModel() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(trackerCount = 10))
+
+        testee.scoreCard("1").test {
+            assertEquals(10, awaitItem().trackerCount)
+        }
     }
 
     @Test
-    fun whenTrackerCountIsUpdatedThenCountIsUpdatedInViewModel() {
-        testee.onSiteChanged(site(trackerCount = 10))
-        assertEquals(10, testee.viewState.value!!.trackerCount)
+    fun whenMajorNetworkCountIsUpdatedThenCountIsUpdatedInViewModel() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(majorNetworkCount = 10))
+
+        testee.scoreCard("1").test {
+            assertEquals(10, awaitItem().majorNetworkCount)
+        }
     }
 
     @Test
-    fun whenMajorNetworkCountIsUpdatedThenCountIsUpdatedInViewModel() {
-        testee.onSiteChanged(site(majorNetworkCount = 10))
-        assertEquals(10, testee.viewState.value!!.majorNetworkCount)
+    fun whenAllBlockedUpdatedToFalseThenViewModelIsUpdated() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(allTrackersBlocked = false))
+
+        testee.scoreCard("1").test {
+            assertEquals(false, awaitItem().allTrackersBlocked)
+        }
     }
 
     @Test
-    fun whenAllBlockedUpdatedToFalseThenViewModelIsUpdated() {
-        testee.onSiteChanged(site(allTrackersBlocked = false))
-        assertEquals(false, testee.viewState.value!!.allTrackersBlocked)
+    fun whenAllBlockedUpdatedToTrueThenViewModelIsUpdated() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(allTrackersBlocked = true))
+
+        testee.scoreCard("1").test {
+            assertEquals(true, awaitItem().allTrackersBlocked)
+        }
     }
 
     @Test
-    fun whenAllBlockedUpdatedToTrueThenViewModelIsUpdated() {
-        testee.onSiteChanged(site(allTrackersBlocked = true))
-        assertEquals(true, testee.viewState.value!!.allTrackersBlocked)
-    }
+    fun whenTermsAreUpdatedThenPracticesAreUpdatedInViewModel() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
 
-    @Test
-    fun whenTermsAreUpdatedThenPracticesAreUpdatedInViewModel() {
         val privacyPractices = Practices(0, GOOD, listOf("good"), listOf())
-        testee.onSiteChanged(site(privacyPractices = privacyPractices))
-        assertEquals(GOOD, testee.viewState.value!!.practices)
+        siteData.postValue(site(privacyPractices = privacyPractices))
+
+        testee.scoreCard("1").test {
+            assertEquals(GOOD, awaitItem().practices)
+        }
     }
 
     @Test
-    fun whenIsMemberOfMajorNetworkThenShowIsMemberOfMajorNetworkIsTrue() {
-        val site = site(entity = TestEntity("", "", 10.0))
-        testee.onSiteChanged(site)
-        assertTrue(testee.viewState.value!!.showIsMemberOfMajorNetwork)
+    fun whenIsMemberOfMajorNetworkThenShowIsMemberOfMajorNetworkIsTrue() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(entity = TestEntity(name = "", displayName = "", prevalence = 10.0)))
+
+        testee.scoreCard("1").test {
+            assertTrue(awaitItem().showIsMemberOfMajorNetwork)
+        }
     }
 
     @Test
-    fun whenIsNotMemberOfMajorNetworkThenShowIsMemberOfMajorNetworkIsFalse() {
-        val site = site(entity = TestEntity("", "", 0.0))
-        testee.onSiteChanged(site)
-        assertFalse(testee.viewState.value!!.showIsMemberOfMajorNetwork)
+    fun whenIsNotMemberOfMajorNetworkThenShowIsMemberOfMajorNetworkIsFalse() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(entity = TestEntity(name = "", displayName = "", prevalence = 0.0)))
+
+        testee.scoreCard("1").test {
+            assertFalse(awaitItem().showIsMemberOfMajorNetwork)
+        }
     }
 
     @Test
-    fun whenIsNotMemberOfAnyNetworkThenShowIsMemberOfMajorNetworkIsFalse() {
-        val site = site(entity = null)
-        testee.onSiteChanged(site)
-        assertFalse(testee.viewState.value!!.showIsMemberOfMajorNetwork)
+    fun whenIsNotMemberOfAnyNetworkThenShowIsMemberOfMajorNetworkIsFalse() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(entity = null))
+
+        testee.scoreCard("1").test {
+            assertFalse(awaitItem().showIsMemberOfMajorNetwork)
+        }
     }
 
     @Test
-    fun whenSiteHasDifferentBeforeAndImprovedGradeThenShowEnhancedGradeIsTrue() {
-        val site = site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.A)
-        testee.onSiteChanged(site)
-        assertTrue(testee.viewState.value!!.showEnhancedGrade)
+    fun whenSiteHasDifferentBeforeAndImprovedGradeThenShowEnhancedGradeIsTrue() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.A))
+
+        testee.scoreCard("1").test {
+            assertTrue(awaitItem().showEnhancedGrade)
+        }
     }
 
     @Test
-    fun whenSiteHasSameBeforeAndImprovedGradeThenShowEnhancedGradeIsFalse() {
-        val site = site(allTrackersBlocked = true, trackerCount = 0)
-        testee.onSiteChanged(site)
-        assertFalse(testee.viewState.value!!.showEnhancedGrade)
+    fun whenSiteHasSameBeforeAndImprovedGradeThenShowEnhancedGradeIsFalse() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+
+        siteData.postValue(site(allTrackersBlocked = true, trackerCount = 0))
+
+        testee.scoreCard("1").test {
+            assertFalse(awaitItem().showEnhancedGrade)
+        }
+    }
+
+    @Test
+    fun whenOnSiteChangedAndSiteIsInContentBlockingExceptionListThenReturnTrue() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+        whenever(contentBlocking.isAnException(any())).thenReturn(true)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B))
+
+        testee.scoreCard("1").test {
+            assertTrue(awaitItem().isSiteInTempAllowedList)
+        }
+    }
+
+    @Test
+    fun whenOnSiteChangedAndSiteIsInContentBlockingExceptionListThenPrivacyOnIsFalse() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+        whenever(userWhitelistDao.contains(any())).thenReturn(true)
+        whenever(contentBlocking.isAnException(any())).thenReturn(false)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B))
+
+        testee.scoreCard("1").test {
+            assertFalse(awaitItem().privacyOn)
+        }
+    }
+
+    @Test
+    fun whenOnSiteChangedAndSiteIsNotInContentBlockingExceptionListThenPrivacyOnIsFalse() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+        whenever(userWhitelistDao.contains(any())).thenReturn(false)
+        whenever(contentBlocking.isAnException(any())).thenReturn(true)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B))
+
+        testee.scoreCard("1").test {
+            assertFalse(awaitItem().privacyOn)
+        }
+    }
+
+    @Test
+    fun whenOnSiteChangedAndSiteIsNotInUserAllowListAndNotInContentBlockingExceptionListThenPrivacyOnIsTrue() = runTest {
+        val siteData = MutableLiveData<Site>()
+        whenever(tabRepository.retrieveSiteData(any())).thenReturn(siteData)
+        whenever(userWhitelistDao.contains(any())).thenReturn(false)
+        whenever(contentBlocking.isAnException(any())).thenReturn(false)
+
+        siteData.postValue(site(grade = PrivacyGrade.D, improvedGrade = PrivacyGrade.B))
+
+        testee.scoreCard("1").test {
+            assertTrue(awaitItem().privacyOn)
+        }
     }
 
     private fun site(

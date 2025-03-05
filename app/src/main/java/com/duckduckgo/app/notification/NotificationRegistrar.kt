@@ -21,65 +21,90 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_NONE
 import android.content.Context
-import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
-import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.duckduckgo.app.browser.R
+import com.duckduckgo.app.di.AppCoroutineScope
+import com.duckduckgo.app.global.plugins.PluginPoint
+import com.duckduckgo.app.notification.model.Channel
+import com.duckduckgo.app.notification.model.NotificationPlugin
+import com.duckduckgo.app.notification.model.SchedulableNotificationPlugin
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.settings.db.SettingsDataStore
 import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesMultibinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import com.duckduckgo.mobile.android.vpn.R as VpnR
 
+@ContributesMultibinding(
+    scope = AppScope::class,
+    boundType = LifecycleObserver::class
+)
 class NotificationRegistrar @Inject constructor(
+    @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
     private val context: Context,
     private val manager: NotificationManager,
     private val compatManager: NotificationManagerCompat,
     private val settingsDataStore: SettingsDataStore,
-    private val pixel: Pixel
-) {
-
-    data class Channel(
-        val id: String,
-        @StringRes val name: Int,
-        val priority: Int
-    )
+    private val pixel: Pixel,
+    private val schedulableNotificationPluginPoint: PluginPoint<SchedulableNotificationPlugin>,
+    private val notificationPluginPoint: PluginPoint<NotificationPlugin>,
+    private val appBuildConfig: AppBuildConfig,
+) : DefaultLifecycleObserver {
 
     object NotificationId {
         const val ClearData = 100
         const val PrivacyProtection = 101
         const val Article = 103 // 102 was used for the search notification hence using 103 moving forward
         const val AppFeature = 104
-        const val UseOurApp = 105
+        const val EmailWaitlist = 106 // 105 was used for the UOA notification
     }
 
     object ChannelType {
-        val FILE_DOWNLOADING = Channel(
-            "com.duckduckgo.downloading",
-            R.string.notificationChannelFileDownloading,
-            NotificationManagerCompat.IMPORTANCE_LOW
-        )
-        val FILE_DOWNLOADED = Channel(
-            "com.duckduckgo.downloaded",
-            R.string.notificationChannelFileDownloaded,
-            NotificationManagerCompat.IMPORTANCE_LOW
-        )
         val TUTORIALS = Channel(
             "com.duckduckgo.tutorials",
             R.string.notificationChannelTutorials,
             NotificationManagerCompat.IMPORTANCE_DEFAULT
         )
+        val APP_TP_WAITLIST = Channel(
+            "com.duckduckgo.apptp",
+            VpnR.string.atp_WaitlistActivityWaitlistTitle,
+            NotificationManagerCompat.IMPORTANCE_HIGH
+        )
+        // Do not add new channels here, instead follow https://app.asana.com/0/1125189844152671/1201842645469204
+    }
+
+    override fun onCreate(owner: LifecycleOwner) {
+        appCoroutineScope.launch { registerApp() }
+    }
+
+    @Suppress("NewApi") // we use appBuildConfig
+    override fun onResume(owner: LifecycleOwner) {
+        val systemEnabled = compatManager.areNotificationsEnabled()
+        val allChannelsEnabled = when {
+            appBuildConfig.sdkInt >= O -> manager.notificationChannels.all { it.importance != IMPORTANCE_NONE }
+            else -> true
+        }
+
+        updateStatus(systemEnabled && allChannelsEnabled)
     }
 
     private val channels = listOf(
-        ChannelType.FILE_DOWNLOADING,
-        ChannelType.FILE_DOWNLOADED,
-        ChannelType.TUTORIALS
+        ChannelType.TUTORIALS,
+        ChannelType.APP_TP_WAITLIST
     )
 
-    fun registerApp() {
-        if (SDK_INT < O) {
+    private fun registerApp() {
+        if (appBuildConfig.sdkInt < O) {
             Timber.d("No need to register for notification channels on this SDK version")
             return
         }
@@ -91,19 +116,21 @@ class NotificationRegistrar @Inject constructor(
         val notificationChannels = channels.map {
             NotificationChannel(it.id, context.getString(it.name), it.priority)
         }
-        manager.createNotificationChannels(notificationChannels)
-    }
-
-    fun updateStatus() {
-        val systemEnabled = compatManager.areNotificationsEnabled()
-        val allChannelsEnabled = when {
-            SDK_INT >= O -> manager.notificationChannels.all { it.importance != IMPORTANCE_NONE }
-            else -> true
+        val pluginChannels = schedulableNotificationPluginPoint.getPlugins().map {
+            val channel = it.getSpecification().channel
+            NotificationChannel(channel.id, context.getString(channel.name), channel.priority)
+        } + notificationPluginPoint.getPlugins().map { it.getChannels() }.flatMap {
+            val list = mutableListOf<NotificationChannel>().apply {
+                for (channel in it) {
+                    add(NotificationChannel(channel.id, context.getString(channel.name), channel.priority))
+                }
+            }
+            list.toList()
         }
-
-        updateStatus(systemEnabled && allChannelsEnabled)
+        manager.createNotificationChannels(notificationChannels + pluginChannels)
     }
 
+    @VisibleForTesting
     fun updateStatus(enabled: Boolean) {
         if (settingsDataStore.appNotificationsEnabled != enabled) {
             pixel.fire(if (enabled) AppPixelName.NOTIFICATIONS_ENABLED else AppPixelName.NOTIFICATIONS_DISABLED)

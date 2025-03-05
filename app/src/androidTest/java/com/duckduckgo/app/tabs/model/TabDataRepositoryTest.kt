@@ -19,8 +19,8 @@
 package com.duckduckgo.app.tabs.model
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.room.Room
-import androidx.test.annotation.UiThreadTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.CoroutineTestRule
 import com.duckduckgo.app.InstantSchedulersRule
@@ -28,27 +28,23 @@ import com.duckduckgo.app.blockingObserve
 import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.browser.tabpreview.WebViewPreviewPersister
 import com.duckduckgo.app.global.db.AppDatabase
-import com.duckduckgo.app.global.events.db.UserEventsStore
 import com.duckduckgo.app.global.model.SiteFactory
-import com.duckduckgo.app.global.useourapp.UseOurAppDetector
-import com.duckduckgo.app.global.useourapp.UseOurAppDetector.Companion.USE_OUR_APP_DOMAIN
 import com.duckduckgo.app.privacy.model.PrivacyPractices
 import com.duckduckgo.app.tabs.db.TabsDao
 import com.duckduckgo.app.trackerdetection.EntityLookup
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@ExperimentalCoroutinesApi
 class TabDataRepositoryTest {
 
     @get:Rule
@@ -65,33 +61,7 @@ class TabDataRepositoryTest {
 
     private val mockDao: TabsDao = mock()
 
-    private val mockPrivacyPractices: PrivacyPractices = mock()
-
-    private val mockEntityLookup: EntityLookup = mock()
-
-    private val mockWebViewPreviewPersister: WebViewPreviewPersister = mock()
-
-    private val mockUserEventsStore: UserEventsStore = mock()
-
-    private val useOurAppDetector = UseOurAppDetector(mockUserEventsStore)
-
-    private lateinit var testee: TabDataRepository
-
-    private val mockFaviconManager: FaviconManager = mock()
-
     private val daoDeletableTabs = Channel<List<TabEntity>>()
-
-    @ExperimentalCoroutinesApi
-    @UiThreadTest
-    @Before
-    fun before() {
-        runBlocking {
-            whenever(mockDao.flowDeletableTabs())
-                .thenReturn(daoDeletableTabs.consumeAsFlow())
-            whenever(mockPrivacyPractices.privacyPracticesFor(any())).thenReturn(PrivacyPractices.UNKNOWN)
-            testee = tabDataRepository(mockDao)
-        }
-    }
 
     @After
     fun after() {
@@ -99,7 +69,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAddNewTabAfterExistingTabWithUrlWithNoHostThenUsesUrlAsTitle() = runBlocking<Unit> {
+    fun whenAddNewTabAfterExistingTabWithUrlWithNoHostThenUsesUrlAsTitle() = runTest {
+        val testee = tabDataRepository()
         val badUrl = "//bad/url"
         testee.addNewTabAfterExistingTab(badUrl, "tabid")
         val captor = argumentCaptor<TabEntity>()
@@ -108,7 +79,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenTabAddDirectlyThenViewedIsTrue() = runBlocking<Unit> {
+    fun whenTabAddDirectlyThenViewedIsTrue() = runTest {
+        val testee = tabDataRepository()
         testee.add("http://www.example.com")
 
         val captor = argumentCaptor<TabEntity>()
@@ -117,7 +89,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenTabUpdatedAfterOpenInBackgroundThenViewedIsTrue() = runBlocking<Unit> {
+    fun whenTabUpdatedAfterOpenInBackgroundThenViewedIsTrue() = runTest {
+        val testee = tabDataRepository()
         testee.addNewTabAfterExistingTab("http://www.example.com", "tabid")
         testee.update("tabid", null)
 
@@ -127,7 +100,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenNewTabAddedAfterNonExistingTabThenTitleUrlPositionOfNewTabAreCorrectAndTabIsNotViewed() = runBlocking<Unit> {
+    fun whenNewTabAddedAfterNonExistingTabThenTitleUrlPositionOfNewTabAreCorrectAndTabIsNotViewed() = runTest {
+        val testee = tabDataRepository()
         testee.addNewTabAfterExistingTab("http://www.example.com", "tabid")
 
         val captor = argumentCaptor<TabEntity>()
@@ -138,7 +112,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenNewTabAddedAfterExistingTabThenTitleUrlPositionOfNewTabAreCorrect() = runBlocking<Unit> {
+    fun whenNewTabAddedAfterExistingTabThenTitleUrlPositionOfNewTabAreCorrect() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity("tabid", position = 3)
         whenever(mockDao.tab(any())).thenReturn(tab)
 
@@ -153,14 +128,16 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAddCalledThenTabAddedAndSelectedAndBlankSiteDataCreated() = runBlocking<Unit> {
+    fun whenAddCalledThenTabAddedAndSelectedAndBlankSiteDataCreated() = runTest {
+        val testee = tabDataRepository()
         val createdId = testee.add()
         verify(mockDao).addAndSelectTab(any())
         assertNotNull(testee.retrieveSiteData(createdId))
     }
 
     @Test
-    fun whenAddCalledWithUrlThenTabAddedAndSelectedAndUrlSiteDataCreated() = runBlocking<Unit> {
+    fun whenAddCalledWithUrlThenTabAddedAndSelectedAndUrlSiteDataCreated() = runTest {
+        val testee = tabDataRepository()
         val url = "http://example.com"
         val createdId = testee.add(url)
         verify(mockDao).addAndSelectTab(any())
@@ -170,11 +147,13 @@ class TabDataRepositoryTest {
 
     @Test
     fun whenDataDoesNotExistForTabThenRetrieveCreatesIt() {
+        val testee = tabDataRepository()
         assertNotNull(testee.retrieveSiteData(TAB_ID))
     }
 
     @Test
-    fun whenTabDeletedThenTabAndDataCleared() = runBlocking<Unit> {
+    fun whenTabDeletedThenTabAndDataCleared() = runTest {
+        val testee = tabDataRepository()
         val addedTabId = testee.add()
         val siteData = testee.retrieveSiteData(addedTabId)
 
@@ -185,7 +164,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAllDeletedThenTabAndDataCleared() = runBlocking<Unit> {
+    fun whenAllDeletedThenTabAndDataCleared() = runTest {
+        val testee = tabDataRepository()
         val addedTabId = testee.add()
         val siteData = testee.retrieveSiteData(addedTabId)
 
@@ -196,13 +176,15 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenIdSelectedThenCurrentUpdated() = runBlocking<Unit> {
+    fun whenIdSelectedThenCurrentUpdated() = runTest {
+        val testee = tabDataRepository()
         testee.select(TAB_ID)
         verify(mockDao).insertTabSelection(eq(TabSelectionEntity(tabId = TAB_ID)))
     }
 
     @Test
-    fun whenAddingFirstTabPositionIsAlwaysZero() = runBlocking<Unit> {
+    fun whenAddingFirstTabPositionIsAlwaysZero() = runTest {
+        val testee = tabDataRepository()
         whenever(mockDao.tabs()).thenReturn(emptyList())
 
         testee.add("http://www.example.com")
@@ -213,7 +195,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAddingTabToExistingTabsPositionIsAlwaysIncreased() = runBlocking<Unit> {
+    fun whenAddingTabToExistingTabsPositionIsAlwaysIncreased() = runTest {
+        val testee = tabDataRepository()
         val tab0 = TabEntity("tabid", position = 0)
         val existingTabs = listOf(tab0)
 
@@ -227,10 +210,10 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAddDefaultTabToExistingListOfTabsThenTabIsNotCreated() = runBlocking<Unit> {
+    fun whenAddDefaultTabToExistingListOfTabsThenTabIsNotCreated() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         testee.add("example.com")
 
@@ -240,10 +223,10 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenAddDefaultTabToEmptyTabsThenTabIsCreated() = runBlocking<Unit> {
+    fun whenAddDefaultTabToEmptyTabsThenTabIsCreated() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         testee.addDefaultTab()
 
@@ -251,11 +234,11 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenSelectByUrlOrNewTabIfUrlAlreadyExistedInATabThenSelectTheTab() = runBlocking<Unit> {
+    fun whenSelectByUrlOrNewTabIfUrlAlreadyExistedInATabThenSelectTheTab() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
         dao.insertTab(TabEntity(tabId = "id", url = "http://www.example.com", skipHome = false, viewed = true, position = 0))
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         testee.selectByUrlOrNewTab("http://www.example.com")
 
@@ -265,10 +248,10 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenSelectByUrlOrNewTabIfUrlNotExistedInATabThenAddNewTab() = runBlocking<Unit> {
+    fun whenSelectByUrlOrNewTabIfUrlNotExistedInATabThenAddNewTab() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         testee.selectByUrlOrNewTab("http://www.example.com")
 
@@ -278,39 +261,12 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenSelectByUrlOrNewTabIfUrlAlreadyExistedInATabAndMatchesTheUseOurAppDomainThenSelectTheTab() = runBlocking<Unit> {
-        val db = createDatabase()
-        val dao = db.tabsDao()
-        dao.insertTab(TabEntity(tabId = "id", url = "http://www.$USE_OUR_APP_DOMAIN/test", skipHome = false, viewed = true, position = 0))
-        testee = tabDataRepository(dao)
-
-        testee.selectByUrlOrNewTab("http://m.$USE_OUR_APP_DOMAIN")
-
-        val value = testee.liveSelectedTab.blockingObserve()?.tabId
-        assertEquals("id", value)
-        db.close()
-    }
-
-    @Test
-    fun whenSelectByUrlOrNewTabIfUrlNotExistedInATabAndUrlMatchesUseOurAppDomainThenAddNewTabWithCorrectUrl() = runBlocking<Unit> {
-        val db = createDatabase()
-        val dao = db.tabsDao()
-        testee = tabDataRepository(dao)
-
-        testee.selectByUrlOrNewTab("http://m.$USE_OUR_APP_DOMAIN")
-
-        val value = testee.liveSelectedTab.blockingObserve()?.url
-        assertEquals("http://m.$USE_OUR_APP_DOMAIN", value)
-        db.close()
-    }
-
-    @Test
-    fun whenAddFromSourceTabEnsureTabEntryContainsExpectedSourceId() = runBlocking<Unit> {
+    fun whenAddFromSourceTabEnsureTabEntryContainsExpectedSourceId() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
         val sourceTab = TabEntity(tabId = "sourceId", url = "http://www.example.com", position = 0)
         dao.addAndSelectTab(sourceTab)
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         val addedTabId = testee.addFromSourceTab("http://www.example.com", skipHome = false, sourceTabId = "sourceId")
 
@@ -320,14 +276,14 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenDeleteTabAndSelectSourceLiveSelectedTabReturnsToSourceTab() = runBlocking<Unit> {
+    fun whenDeleteTabAndSelectSourceLiveSelectedTabReturnsToSourceTab() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
         val sourceTab = TabEntity(tabId = "sourceId", url = "http://www.example.com", position = 0)
         val tabToDelete = TabEntity(tabId = "tabToDeleteId", url = "http://www.example.com", position = 1, sourceTabId = "sourceId")
         dao.addAndSelectTab(sourceTab)
         dao.addAndSelectTab(tabToDelete)
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
         var currentSelectedTabId = testee.liveSelectedTab.blockingObserve()?.tabId
         assertEquals(currentSelectedTabId, tabToDelete.tabId)
 
@@ -338,7 +294,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenMarkDeletableTrueThenMarksTabAsDeletable() = runBlocking {
+    fun whenMarkDeletableTrueThenMarksTabAsDeletable() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity(
             tabId = "tabid",
             position = 0,
@@ -351,7 +308,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenMarkDeletableFalseThenMarksTabAsNonDeletable() = runBlocking {
+    fun whenMarkDeletableFalseThenMarksTabAsNonDeletable() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity(
             tabId = "tabid",
             position = 0,
@@ -364,7 +322,8 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenPurgeDeletableTabsThenPurgeDeletableTabsAndUpdateSelection() = runBlocking {
+    fun whenPurgeDeletableTabsThenPurgeDeletableTabsAndUpdateSelection() = runTest {
+        val testee = tabDataRepository()
         testee.purgeDeletableTabs()
 
         verify(mockDao).purgeDeletableTabsAndUpdateSelection()
@@ -372,7 +331,8 @@ class TabDataRepositoryTest {
 
     @Test
     @ExperimentalCoroutinesApi
-    fun whenDaoFLowDeletableTabsEmitsThenDropFirstEmission() = runBlocking {
+    fun whenDaoFLowDeletableTabsEmitsThenDropFirstEmission() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity("ID", position = 0)
 
         val job = launch {
@@ -387,7 +347,8 @@ class TabDataRepositoryTest {
 
     @Test
     @ExperimentalCoroutinesApi
-    fun whenDaoFLowDeletableTabsEmitsThenEmit() = runBlocking {
+    fun whenDaoFLowDeletableTabsEmitsThenEmit() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity("ID1", position = 0)
         val expectedTab = TabEntity("ID2", position = 0)
 
@@ -404,7 +365,8 @@ class TabDataRepositoryTest {
 
     @Test
     @ExperimentalCoroutinesApi
-    fun whenDaoFLowDeletableTabsDoubleEmitsThenDistinctUntilChanged() = runBlocking {
+    fun whenDaoFLowDeletableTabsDoubleEmitsThenDistinctUntilChanged() = runTest {
+        val testee = tabDataRepository()
         val tab = TabEntity("ID1", position = 0)
 
         var count = 0
@@ -424,14 +386,14 @@ class TabDataRepositoryTest {
     }
 
     @Test
-    fun whenDeleteTabAndSelectSourceIfTabHadAParentThenEmitParentTabId() = runBlocking {
+    fun whenDeleteTabAndSelectSourceIfTabHadAParentThenEmitParentTabId() = runTest {
         val db = createDatabase()
         val dao = db.tabsDao()
         val sourceTab = TabEntity(tabId = "sourceId", url = "http://www.example.com", position = 0)
         val tabToDelete = TabEntity(tabId = "tabToDeleteId", url = "http://www.example.com", position = 1, sourceTabId = "sourceId")
         dao.addAndSelectTab(sourceTab)
         dao.addAndSelectTab(tabToDelete)
-        testee = tabDataRepository(dao)
+        val testee = tabDataRepository(dao)
 
         testee.deleteTabAndSelectSource("tabToDeleteId")
 
@@ -444,14 +406,19 @@ class TabDataRepositoryTest {
         job.cancel()
     }
 
-    private fun tabDataRepository(dao: TabsDao): TabDataRepository {
+    private fun tabDataRepository(
+        dao: TabsDao = mockDatabase(),
+        privacyPractices: PrivacyPractices = mock(),
+        entityLookup: EntityLookup = mock(),
+        webViewPreviewPersister: WebViewPreviewPersister = mock(),
+        faviconManager: FaviconManager = mock()
+    ): TabDataRepository {
         return TabDataRepository(
             dao,
-            SiteFactory(mockPrivacyPractices, mockEntityLookup),
-            mockWebViewPreviewPersister,
-            mockFaviconManager,
-            useOurAppDetector,
-            GlobalScope
+            SiteFactory(privacyPractices, entityLookup),
+            webViewPreviewPersister,
+            faviconManager,
+            TestScope()
         )
     }
 
@@ -459,6 +426,15 @@ class TabDataRepositoryTest {
         return Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
+    }
+
+    private fun mockDatabase(): TabsDao {
+        whenever(mockDao.flowDeletableTabs())
+            .thenReturn(daoDeletableTabs.consumeAsFlow())
+        whenever(mockDao.liveTabs())
+            .thenReturn(MutableLiveData())
+
+        return mockDao
     }
 
     companion object {

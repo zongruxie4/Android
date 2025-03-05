@@ -19,24 +19,35 @@ package com.duckduckgo.app.brokensite
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.Observer
-import androidx.webkit.WebViewCompat
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.brokensite.BrokenSiteViewModel.Command
-import com.duckduckgo.app.brokensite.BrokenSiteViewModel.Companion.WEBVIEW_UNKNOWN_VERSION
 import com.duckduckgo.app.brokensite.BrokenSiteViewModel.ViewState
 import com.duckduckgo.app.browser.R
+import com.duckduckgo.app.browser.WebViewVersionProvider
+import com.duckduckgo.app.browser.databinding.ActivityBrokenSiteBinding
 import com.duckduckgo.app.global.DuckDuckGoActivity
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.android.synthetic.main.content_broken_sites.*
-import kotlinx.android.synthetic.main.include_toolbar.*
-import org.jetbrains.anko.longToast
+import com.duckduckgo.di.scopes.ActivityScope
+import com.duckduckgo.mobile.android.ui.viewbinding.viewBinding
+import javax.inject.Inject
 
+@InjectWith(ActivityScope::class)
 class BrokenSiteActivity : DuckDuckGoActivity() {
+
+    private val binding: ActivityBrokenSiteBinding by viewBinding()
     private val viewModel: BrokenSiteViewModel by bindViewModel()
+    @Inject lateinit var webViewVersionProvider: WebViewVersionProvider
+
+    private val toolbar
+        get() = binding.includeToolbar.toolbar
+
+    private val brokenSites
+        get() = binding.contentBrokenSites
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_broken_site)
+        setContentView(binding.root)
         configureListeners()
         configureObservers()
         setupToolbar(toolbar)
@@ -46,18 +57,31 @@ class BrokenSiteActivity : DuckDuckGoActivity() {
     }
 
     private fun consumeIntentExtra() {
-        val url = intent.getStringExtra(URL_EXTRA)
-        val blockedTrackers = intent.getStringExtra(BLOCKED_TRACKERS_EXTRA)
+        val url = intent.getStringExtra(URL_EXTRA).orEmpty()
+        val blockedTrackers = intent.getStringExtra(BLOCKED_TRACKERS_EXTRA).orEmpty()
         val upgradedHttps = intent.getBooleanExtra(UPGRADED_TO_HTTPS_EXTRA, false)
-        val surrogates = intent.getStringExtra(SURROGATES_EXTRA)
-        viewModel.setInitialBrokenSite(url, blockedTrackers, surrogates, upgradedHttps)
+        val surrogates = intent.getStringExtra(SURROGATES_EXTRA).orEmpty()
+        val urlParametersRemoved = intent.getBooleanExtra(URL_PARAMETERS_REMOVED_EXTRA, false)
+        val consentManaged = intent.getBooleanExtra(CONSENT_MANAGED_EXTRA, false)
+        val consentOptOutFailed = intent.getBooleanExtra(CONSENT_OPT_OUT_FAILED_EXTRA, false)
+        val consentSelfTestFailed = intent.getBooleanExtra(CONSENT_SELF_TEST_FAILED_EXTRA, false)
+        viewModel.setInitialBrokenSite(
+            url = url,
+            blockedTrackers = blockedTrackers,
+            surrogates = surrogates,
+            upgradedHttps = upgradedHttps,
+            urlParametersRemoved = urlParametersRemoved,
+            consentManaged = consentManaged,
+            consentOptOutFailed = consentOptOutFailed,
+            consentSelfTestFailed = consentSelfTestFailed,
+        )
     }
 
     private fun configureListeners() {
         val categories = viewModel.categories.map { getString(it.category) }.toTypedArray()
 
-        categoriesSelection.setOnClickListener {
-            MaterialAlertDialogBuilder(this)
+        brokenSites.categoriesSelection.setOnClickListener {
+            AlertDialog.Builder(this)
                 .setTitle(getString(R.string.brokenSitesCategoriesTitle))
                 .setSingleChoiceItems(categories, viewModel.indexSelected) { _, newIndex ->
                     viewModel.onCategoryIndexChanged(newIndex)
@@ -73,25 +97,19 @@ class BrokenSiteActivity : DuckDuckGoActivity() {
                 .show()
         }
 
-        submitButton.setOnClickListener {
-            val webViewVersion = WebViewCompat.getCurrentWebViewPackage(applicationContext)?.versionName ?: WEBVIEW_UNKNOWN_VERSION
+        brokenSites.submitButton.setOnClickListener {
+            val webViewVersion = webViewVersionProvider.getFullVersion()
             viewModel.onSubmitPressed(webViewVersion)
         }
     }
 
     private fun configureObservers() {
-        viewModel.command.observe(
-            this,
-            Observer {
-                it?.let { processCommand(it) }
-            }
-        )
-        viewModel.viewState.observe(
-            this,
-            Observer {
-                it?.let { render(it) }
-            }
-        )
+        viewModel.command.observe(this) {
+            it?.let { processCommand(it) }
+        }
+        viewModel.viewState.observe(this) {
+            it?.let { render(it) }
+        }
     }
 
     private fun processCommand(command: Command) {
@@ -101,7 +119,7 @@ class BrokenSiteActivity : DuckDuckGoActivity() {
     }
 
     private fun confirmAndFinish() {
-        longToast(R.string.brokenSiteSubmitted)
+        Toast.makeText(this, R.string.brokenSiteSubmitted, Toast.LENGTH_LONG).show()
         finishAfterTransition()
     }
 
@@ -109,8 +127,8 @@ class BrokenSiteActivity : DuckDuckGoActivity() {
         val category = viewState.categorySelected?.let {
             getString(viewState.categorySelected.category)
         }.orEmpty()
-        categoriesSelection.setText(category)
-        submitButton.isEnabled = viewState.submitAllowed
+        brokenSites.categoriesSelection.setText(category)
+        brokenSites.submitButton.isEnabled = viewState.submitAllowed
     }
 
     companion object {
@@ -119,13 +137,24 @@ class BrokenSiteActivity : DuckDuckGoActivity() {
         private const val BLOCKED_TRACKERS_EXTRA = "BLOCKED_TRACKERS_EXTRA"
         private const val UPGRADED_TO_HTTPS_EXTRA = "UPGRADED_TO_HTTPS_EXTRA"
         private const val SURROGATES_EXTRA = "SURROGATES_EXTRA"
+        private const val URL_PARAMETERS_REMOVED_EXTRA = "URL_PARAMETERS_REMOVED_EXTRA"
+        private const val CONSENT_MANAGED_EXTRA = "CONSENT_MANAGED_EXTRA"
+        private const val CONSENT_OPT_OUT_FAILED_EXTRA = "CONSENT_OPT_OUT_FAILED_EXTRA"
+        private const val CONSENT_SELF_TEST_FAILED_EXTRA = "CONSENT_SELF_TEST_FAILED_EXTRA"
 
-        fun intent(context: Context, data: BrokenSiteData): Intent {
+        fun intent(
+            context: Context,
+            data: BrokenSiteData
+        ): Intent {
             val intent = Intent(context, BrokenSiteActivity::class.java)
             intent.putExtra(URL_EXTRA, data.url)
             intent.putExtra(BLOCKED_TRACKERS_EXTRA, data.blockedTrackers)
             intent.putExtra(SURROGATES_EXTRA, data.surrogates)
             intent.putExtra(UPGRADED_TO_HTTPS_EXTRA, data.upgradedToHttps)
+            intent.putExtra(URL_PARAMETERS_REMOVED_EXTRA, data.urlParametersRemoved)
+            intent.putExtra(CONSENT_MANAGED_EXTRA, data.consentManaged)
+            intent.putExtra(CONSENT_OPT_OUT_FAILED_EXTRA, data.consentOptOutFailed)
+            intent.putExtra(CONSENT_SELF_TEST_FAILED_EXTRA, data.consentSelfTestFailed)
             return intent
         }
     }

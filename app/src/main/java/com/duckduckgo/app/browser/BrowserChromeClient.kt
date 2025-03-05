@@ -20,25 +20,38 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Message
 import android.view.View
-import android.webkit.GeolocationPermissions
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
-import android.webkit.WebView
+import android.webkit.*
 import com.duckduckgo.app.browser.navigation.safeCopyBackForwardList
+import com.duckduckgo.app.di.AppCoroutineScope
+import com.duckduckgo.app.global.DefaultDispatcherProvider
+import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.exception.UncaughtExceptionRepository
 import com.duckduckgo.app.global.exception.UncaughtExceptionSource.*
-import kotlinx.coroutines.GlobalScope
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.privacy.config.api.Drm
+import com.duckduckgo.site.permissions.api.SitePermissionsManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
-class BrowserChromeClient @Inject constructor(private val uncaughtExceptionRepository: UncaughtExceptionRepository) : WebChromeClient() {
+class BrowserChromeClient @Inject constructor(
+    private val uncaughtExceptionRepository: UncaughtExceptionRepository,
+    private val drm: Drm,
+    private val appBuildConfig: AppBuildConfig,
+    @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
+    private val coroutineDispatcher: DispatcherProvider = DefaultDispatcherProvider(),
+    private val sitePermissionsManager: SitePermissionsManager
+) : WebChromeClient() {
 
     var webViewClientListener: WebViewClientListener? = null
 
     private var customView: View? = null
 
-    override fun onShowCustomView(view: View, callback: CustomViewCallback?) {
+    override fun onShowCustomView(
+        view: View,
+        callback: CustomViewCallback?
+    ) {
         try {
             Timber.d("on show custom view")
             if (customView != null) {
@@ -48,9 +61,8 @@ class BrowserChromeClient @Inject constructor(private val uncaughtExceptionRepos
 
             customView = view
             webViewClientListener?.goFullScreen(view)
-
         } catch (e: Throwable) {
-            GlobalScope.launch {
+            appCoroutineScope.launch(coroutineDispatcher.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, SHOW_CUSTOM_VIEW)
                 throw e
             }
@@ -63,72 +75,122 @@ class BrowserChromeClient @Inject constructor(private val uncaughtExceptionRepos
             webViewClientListener?.exitFullScreen()
             customView = null
         } catch (e: Throwable) {
-            GlobalScope.launch {
+            appCoroutineScope.launch(coroutineDispatcher.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, HIDE_CUSTOM_VIEW)
                 throw e
             }
         }
     }
 
-    override fun onProgressChanged(webView: WebView, newProgress: Int) {
+    override fun onProgressChanged(
+        webView: WebView,
+        newProgress: Int
+    ) {
         try {
             Timber.d("onProgressChanged ${webView.url}, $newProgress")
             val navigationList = webView.safeCopyBackForwardList() ?: return
             webViewClientListener?.navigationStateChanged(WebViewNavigationState(navigationList, newProgress))
             webViewClientListener?.progressChanged(newProgress)
         } catch (e: Throwable) {
-            GlobalScope.launch {
+            appCoroutineScope.launch(coroutineDispatcher.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, ON_PROGRESS_CHANGED)
                 throw e
             }
         }
     }
 
-    override fun onReceivedIcon(webView: WebView, icon: Bitmap) {
-        webViewClientListener?.iconReceived(icon)
+    override fun onReceivedIcon(
+        webView: WebView,
+        icon: Bitmap
+    ) {
+        webView.url?.let {
+            Timber.i("Favicon bitmap received: ${webView.url}")
+            webViewClientListener?.iconReceived(it, icon)
+        }
     }
 
-    override fun onReceivedTitle(view: WebView, title: String) {
+    override fun onReceivedTouchIconUrl(
+        view: WebView?,
+        url: String?,
+        precomposed: Boolean
+    ) {
+        Timber.i("Favicon touch received: ${view?.url}, $url")
+        val visitedUrl = view?.url ?: return
+        val iconUrl = url ?: return
+        webViewClientListener?.iconReceived(visitedUrl, iconUrl)
+        super.onReceivedTouchIconUrl(view, url, precomposed)
+    }
+
+    override fun onReceivedTitle(
+        view: WebView,
+        title: String
+    ) {
         try {
             webViewClientListener?.titleReceived(title)
         } catch (e: Throwable) {
-            GlobalScope.launch {
+            appCoroutineScope.launch(coroutineDispatcher.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, RECEIVED_PAGE_TITLE)
                 throw e
             }
         }
     }
 
-    override fun onShowFileChooser(webView: WebView, filePathCallback: ValueCallback<Array<Uri>>, fileChooserParams: FileChooserParams): Boolean {
+    override fun onShowFileChooser(
+        webView: WebView,
+        filePathCallback: ValueCallback<Array<Uri>>,
+        fileChooserParams: FileChooserParams
+    ): Boolean {
         return try {
             webViewClientListener?.showFileChooser(filePathCallback, fileChooserParams)
             true
         } catch (e: Throwable) {
-            GlobalScope.launch {
+            // cancel the request using the documented way
+            filePathCallback.onReceiveValue(null)
+
+            appCoroutineScope.launch(coroutineDispatcher.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, SHOW_FILE_CHOOSER)
                 throw e
             }
 
-            // cancel the request using the documented way
-            filePathCallback.onReceiveValue(null)
             true
         }
     }
 
-    override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
-        if (isUserGesture && resultMsg?.obj is WebView.WebViewTransport) {
+    override fun onCreateWindow(
+        view: WebView?,
+        isDialog: Boolean,
+        isUserGesture: Boolean,
+        resultMsg: Message?
+    ): Boolean {
+        val isGesture = if (appBuildConfig.isTest) true else isUserGesture
+        if (isGesture && resultMsg?.obj is WebView.WebViewTransport) {
             webViewClientListener?.openMessageInNewTab(resultMsg)
             return true
         }
         return false
     }
 
+    override fun onPermissionRequest(request: PermissionRequest) {
+        val drmPermissions = drm.getDrmPermissionsForRequest(request.origin.toString(), request.resources)
+        if (drmPermissions.isNotEmpty()) {
+            request.grant(drmPermissions)
+        }
+        appCoroutineScope.launch(coroutineDispatcher.io()) {
+            val permissionsAllowedToAsk = sitePermissionsManager.getSitePermissionsAllowedToAsk(request.origin.toString(), request.resources)
+            if (permissionsAllowedToAsk.isNotEmpty()) {
+                webViewClientListener?.onSitePermissionRequested(request, permissionsAllowedToAsk)
+            }
+        }
+    }
+
     override fun onCloseWindow(window: WebView?) {
         webViewClientListener?.closeCurrentTab()
     }
 
-    override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+    override fun onGeolocationPermissionsShowPrompt(
+        origin: String,
+        callback: GeolocationPermissions.Callback
+    ) {
         webViewClientListener?.onSiteLocationPermissionRequested(origin, callback)
     }
-
 }

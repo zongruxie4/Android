@@ -18,10 +18,11 @@ package com.duckduckgo.app.browser.downloader
 
 import android.webkit.WebView
 import androidx.test.annotation.UiThreadTest
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.browser.R
-import com.nhaarman.mockitokotlin2.spy
-import com.nhaarman.mockitokotlin2.verify
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.junit.Before
 import org.junit.Test
 
@@ -37,6 +38,7 @@ class BlobConverterInjectorJsTest {
 
     @UiThreadTest
     @Test
+    @SdkSuppress(minSdkVersion = 24)
     fun whenConvertBlobIntoDataUriAndDownloadThenInjectJsCode() {
         val jsToEvaluate = getJsToEvaluate().replace("%blobUrl%", blobUrl).replace("%contentType%", contentType)
         val webView = spy(WebView(InstrumentationRegistry.getInstrumentation().targetContext))

@@ -28,9 +28,8 @@ import androidx.fragment.app.DialogFragment
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.browser.model.BasicAuthenticationCredentials
 import com.duckduckgo.app.browser.model.BasicAuthenticationRequest
-import com.duckduckgo.app.global.view.hideKeyboard
-import com.duckduckgo.app.global.view.showKeyboard
-import org.jetbrains.anko.find
+import com.duckduckgo.mobile.android.ui.view.hideKeyboard
+import com.duckduckgo.mobile.android.ui.view.showKeyboard
 
 class HttpAuthenticationDialogFragment : DialogFragment() {
 
@@ -39,15 +38,19 @@ class HttpAuthenticationDialogFragment : DialogFragment() {
     var listener: HttpAuthenticationListener? = null
 
     interface HttpAuthenticationListener {
-        fun handleAuthentication(request: BasicAuthenticationRequest, credentials: BasicAuthenticationCredentials)
+        fun handleAuthentication(
+            request: BasicAuthenticationRequest,
+            credentials: BasicAuthenticationCredentials
+        )
+
         fun cancelAuthentication(request: BasicAuthenticationRequest)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val rootView = View.inflate(activity, R.layout.http_authentication, null)
-        val usernameInput = rootView.find<EditText>(R.id.usernameInput)
-        val passwordInput = rootView.find<EditText>(R.id.passwordInput)
-        val informationText = rootView.find<TextView>(R.id.httpAuthInformationText)
+        val usernameInput = rootView.findViewById<EditText>(R.id.usernameInput)
+        val passwordInput = rootView.findViewById<EditText>(R.id.passwordInput)
+        val informationText = rootView.findViewById<TextView>(R.id.httpAuthInformationText)
 
         validateBundleArguments()
 
@@ -90,7 +93,10 @@ class HttpAuthenticationDialogFragment : DialogFragment() {
         }
     }
 
-    private fun showKeyboard(editText: EditText, alert: androidx.appcompat.app.AlertDialog) {
+    private fun showKeyboard(
+        editText: EditText,
+        alert: AlertDialog
+    ) {
         editText.showKeyboard()
         alert.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
     }

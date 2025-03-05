@@ -20,6 +20,7 @@ import androidx.annotation.WorkerThread
 import com.duckduckgo.app.statistics.VariantManager.Companion.DEFAULT_VARIANT
 import com.duckduckgo.app.statistics.VariantManager.Companion.referrerVariant
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import timber.log.Timber
 import java.util.*
 
@@ -27,11 +28,7 @@ import java.util.*
 interface VariantManager {
 
     // variant-dependant features listed here
-    sealed class VariantFeature {
-        object InAppUsage : VariantFeature()
-        object KillOnboarding : VariantFeature()
-        object RemoveDay1AndDay3Notifications : VariantFeature()
-    }
+    sealed class VariantFeature
 
     companion object {
 
@@ -43,13 +40,8 @@ interface VariantManager {
         val ACTIVE_VARIANTS = listOf(
             // SERP variants. "sc" may also be used as a shared control for mobile experiments in
             // the future if we can filter by app version
-            Variant(key = "sc", weight = 1.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
-            Variant(key = "se", weight = 1.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
-
-            // InAppUsage Experiments
-            Variant(key = "ma", weight = 1.0, features = emptyList(), filterBy = { isEnglishLocale() }),
-            Variant(key = "mb", weight = 1.0, features = listOf(VariantFeature.KillOnboarding, VariantFeature.RemoveDay1AndDay3Notifications), filterBy = { isEnglishLocale() }),
-            Variant(key = "mc", weight = 1.0, features = listOf(VariantFeature.KillOnboarding, VariantFeature.InAppUsage, VariantFeature.RemoveDay1AndDay3Notifications), filterBy = { isEnglishLocale() })
+            Variant(key = "sc", weight = 0.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
+            Variant(key = "se", weight = 0.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
         )
 
         val REFERRER_VARIANTS = listOf(
@@ -97,7 +89,8 @@ interface VariantManager {
 
 class ExperimentationVariantManager(
     private val store: StatisticsDataStore,
-    private val indexRandomizer: IndexRandomizer
+    private val indexRandomizer: IndexRandomizer,
+    private val appBuildConfig: AppBuildConfig,
 ) : VariantManager {
 
     @Synchronized
@@ -129,7 +122,7 @@ class ExperimentationVariantManager(
 
     private fun allocateNewVariant(activeVariants: List<Variant>): Variant {
         var newVariant = generateVariant(activeVariants)
-        val compliesWithFilters = newVariant.filterBy()
+        val compliesWithFilters = newVariant.filterBy(appBuildConfig)
 
         if (!compliesWithFilters) {
             newVariant = DEFAULT_VARIANT
@@ -145,7 +138,10 @@ class ExperimentationVariantManager(
         store.referrerVariant = variant
     }
 
-    private fun lookupVariant(key: String?, activeVariants: List<Variant>): Variant? {
+    private fun lookupVariant(
+        key: String?,
+        activeVariants: List<Variant>
+    ): Variant? {
         val variant = activeVariants.firstOrNull { it.key == key }
 
         if (variant != null) return variant
@@ -185,7 +181,7 @@ data class Variant(
     val key: String,
     override val weight: Double = 0.0,
     val features: List<VariantManager.VariantFeature> = emptyList(),
-    val filterBy: () -> Boolean
+    val filterBy: (config: AppBuildConfig) -> Boolean
 ) : Probabilistic {
 
     fun hasFeature(feature: VariantManager.VariantFeature) = features.contains(feature)

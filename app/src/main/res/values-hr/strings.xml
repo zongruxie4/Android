@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Postavke</string>
     <string name="settingsMenuItemTitle">Postavke</string>
-    <string name="settingsHeadingGeneral">Općenito</string>
-    <string name="settingsHeadingOther">Ostalo</string>
     <string name="settingsHeadingPrivacy">Zaštita privatnosti</string>
     <string name="settingsAboutDuckduckgo">O DuckDuckGo</string>
     <string name="settingsVersion">Inačica</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Pitaj svaki puta</string>
     <string name="settingsAppLinksAlways">Uvijek</string>
     <string name="settingsAppLinksNever">Nikada</string>
+    <string name="settingsHeadingAppearance">Izgled</string>
+    <string name="settingsHeadingCustomize">Prilagodba</string>
+    <string name="settingsHeadingAbout">O</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Spremi</string>
@@ -595,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Samo za ovu sesiju</string>
     <string name="preciseLocationSiteDialogDenyAlways">Uvijek odbij</string>
     <string name="preciseLocationSiteDialogDenyOnce">Odbij za ovu sesiju</string>
-    <string name="settingsPreciseLocation">Lokacija</string>
     <string name="preciseLocationFeatureDescription">Mrežna mjesta koja posjetite mogu zatražiti da vide lokaciju vašeg uređaja. Neće mu moći pristupiti dok izričito ne odobrite dopuštenje. DuckDuckGo anonimno upotrebljava vašu lokaciju samo za pružanje lokalnih rezultata pretraživanja.</string>
     <string name="preciseLocationToggleText">Web-mjesta mogu tražiti moju lokaciju</string>
     <string name="preciseLocationEmptyListHint">Niti jednom mrežnom mjestu nije odobren pristup lokaciji</string>
@@ -639,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokira programe za praćenje e-pošte i skriva vašu adresu</string>
     <string name="newEmailAliasMenuTitle">Izradite Duck adresu</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Ukloniti zaštitu e-pošte?</string>
-    <string name="emailSignOutDialogText">Napomena: uklanjanjem zaštite e-pošte s ovog uređaja neće se izbrisati vaša Duck adresa.</string>
-    <string name="emailSignOutDialogCancel">Otkaži</string>
-    <string name="emailSignOutDialogDisable">Ukloni</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Lista čekanja e-pošte</string>
-    <string name="waitlistNotificationTitle">Zaštita e-pošte je spremna!</string>
-    <string name="waitlistNotificationDescription">Otvori svoju pozivnicu</string>
-
     <string name="waitlistNotificationDialogDescription">Želite li da vam pošaljemo obavijest kad dođete na red?</string>
     <string name="waitlistNotificationDialogNoThanks">Ne, hvala</string>
     <string name="waitlistNotificationDialogNotifyMe">OBAVIJESTI ME</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Zaštita e-pošte (Beta)</string>
     <string name="emailProtectionActivityTitle">Zaštita e-pošte (Beta)</string>
-    <string name="emailProtectionFooterDescription">Nećeš morati podijeliti nikakve osobne podatke za pridruživanje listi čekanja. Svoje ćeš mjesto osigurati u skladu s vremenskom oznakom koja postoji samo na tvom uređaju kako bismo te mogli obavijestiti kada na tebe dođe red.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Došlo je do pogreške prilikom pridruživanja listi čekanja; pokušajte ponovo kasnije</string>
-    <string name="emailProtectionDuckAddressCta">Već imam Duck adresu</string>
-    <string name="emailProtectionInviteCodeCta">Imam pozivnu šifru</string>
-    <string name="emailProtectionWaitlistCta">Pridružite se privatnoj listi čekanja</string>
-    <string name="emailProtectionGetStartedCta">Započnite</string>
     <string name="emailNotSupported">Uređaj nije podržan</string>
     <string name="emailNotSupportedExplanation">Zaštita e-pošte omogućuje ti stvaranje privatnih adresa e-pošte koje uklanjaju praćenje e-pošte. Adrese koje kreiraš moramo šifrirati i pohraniti lokalno na tvom uređaju. Budući da tvoj uređaj ne podržava šifriranu pohranu, zaštita e-pošte nije dostupna.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Zaštita privatnosti e-pošte, na jednostavan način.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Blokiraj programe za praćenje e-pošte i sakrij svoju adresu bez promjene pružatelja usluga e-pošte. <br/><a href=\"\"><b>Saznaj više</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Na popisu ste!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Poslat ćemo vam obavijest kada<br/>zaštita e-pošte bude spremna za vas. <a href=\"\"><b>Saznajte više</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Vaša pozivnica pojavit će se ovdje kad budemo spremni za vas. Želite li <a href=\"\"><b>dobiti obavijest</b></a> kad stigne?<br/><a href=\"\"><b>Saznajte više</b></a> o zaštiti e-pošte.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Pozvani ste!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Blokiraj programe za praćenje e-pošte i sakrij svoju adresu <br/>bez promjene pružatelja usluga e-pošte.<br/> <a href=\"\"><b>Saznaj više</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Osobna Duck adresa</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Uklanjanjem zaštite e-pošte s ovog uređaja uklanja se mogućnost da se polja za e-poštu dok pregledavate web popune vašom osobnom Duck adresom ili novogeneriranom privatnom Duck adresom.<br/><br/>Da biste u potpunosti izbrisali svoje Duck adrese ili za bilo kakva druga pitanja ili povratne informacije, obratite nam se na <a href=\"mailto:support@duck.com\">support@duck.com</a> .]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Ukloni s uređaja</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Uredi knjižnu oznaku</string>
@@ -729,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Pretražujte privatno s našom aplikacijom za Mac</string>
-    <string name="macos_settings_description_list">Na popisu ste!</string>
-    <string name="macos_settings_description_ready">Dostupno za preuzimanje na Macu</string>
     <string name="macos_settings_title">DuckDuckGo aplikacija za osobno računalo</string>
 
     <!-- Downloads -->
@@ -756,5 +717,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Blokiraj aplikacija za praćenje na tvom uređaju</string>
     <string name="atp_SettingsDeviceShieldEnabled">Omogućeno</string>
     <string name="atp_SettingsDeviceShieldDisabled">Onemogućeno</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Čini se da ova stranica ima skočni prozor za pristanak na kolačiće👇</string>
+    <string name="autoconsentDialogDescription">Da se ja pobrinem za to umjesto tebe? Mogu pokušati minimizirati kolačiće, maksimalno povećati privatnost i sakriti skočne prozore poput ovih.</string>
+    <string name="autoconsentPrimaryCta">Upravljanje skočnim prozorima kolačića</string>
+    <string name="autoconsentSecondaryCta">Ne, hvala</string>
+
+    <string name="autoconsentSetting">Upravljanje skočnim prozorima kolačića</string>
+    <string name="autoconsentAnimationText">Upravlja se kolačićima</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Dozvole web lokacija</string>
+    <string name="sitePermissionsSettingsDescription">Web-lokacije koje posjećujete mogu tražiti pristup lokaciji vašeg uređaja, kamere ili mikrofona. Neće im moći pristupiti osim ako im za to izričito ne date dopuštenje.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Dopusti svim web-lokacijama da zatraže:</string>
+    <string name="sitePermissionsSettingsLocation">Lokacija</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Upravljanje web-lokacijama</string>
+    <string name="sitePermissionsSettingsEmptyText">Još nema ni jedne web-lokacije</string>
+    <string name="permissionPerWebsiteText">Dopuštenja za „%1$s“ </string>
+    <string name="permissionsPerWebsiteAskSetting">Zatraži</string>
+    <string name="permissionsPerWebsiteDenySetting">Odbij</string>
+    <string name="permissionsPerWebsiteAllowSetting">Dopusti</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s dopuštenje za %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automatsko popunjavanje</string>
 
 </resources>

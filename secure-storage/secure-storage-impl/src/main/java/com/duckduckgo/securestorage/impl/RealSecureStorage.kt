@@ -19,8 +19,8 @@ package com.duckduckgo.securestorage.impl
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.di.scopes.AppScope
 import com.duckduckgo.securestorage.api.SecureStorage
-import com.duckduckgo.securestorage.api.WebsiteLoginDetailsWithCredentials
 import com.duckduckgo.securestorage.api.WebsiteLoginDetails
+import com.duckduckgo.securestorage.api.WebsiteLoginDetailsWithCredentials
 import com.duckduckgo.securestorage.impl.encryption.EncryptionHelper.EncryptedString
 import com.duckduckgo.securestorage.store.SecureStorageRepository
 import com.duckduckgo.securestorage.store.db.WebsiteLoginCredentialsEntity
@@ -46,9 +46,12 @@ class RealSecureStorage @Inject constructor(
 
     override fun canAccessSecureStorage(): Boolean = l2DataTransformer.canProcessData() && secureStorageRepository != null
 
-    override suspend fun addWebsiteLoginDetailsWithCredentials(websiteLoginDetailsWithCredentials: WebsiteLoginDetailsWithCredentials): Long? {
+    override suspend fun addWebsiteLoginDetailsWithCredentials(
+        websiteLoginDetailsWithCredentials: WebsiteLoginDetailsWithCredentials
+    ): WebsiteLoginDetailsWithCredentials? {
         return withContext(dispatchers.io()) {
-            return@withContext secureStorageRepository?.addWebsiteLoginCredential(websiteLoginDetailsWithCredentials.toDataEntity())
+            val savedCredential = secureStorageRepository?.addWebsiteLoginCredential(websiteLoginDetailsWithCredentials.toDataEntity())
+            return@withContext savedCredential?.toCredentials()
         }
     }
 
@@ -102,9 +105,11 @@ class RealSecureStorage @Inject constructor(
             }
         } else emptyFlow()
 
-    override suspend fun updateWebsiteLoginDetailsWithCredentials(websiteLoginDetailsWithCredentials: WebsiteLoginDetailsWithCredentials): Unit =
+    override suspend fun updateWebsiteLoginDetailsWithCredentials(
+        websiteLoginDetailsWithCredentials: WebsiteLoginDetailsWithCredentials
+    ): WebsiteLoginDetailsWithCredentials? =
         withContext(dispatchers.io()) {
-            secureStorageRepository?.updateWebsiteLoginCredentials(websiteLoginDetailsWithCredentials.toDataEntity())
+            secureStorageRepository?.updateWebsiteLoginCredentials(websiteLoginDetailsWithCredentials.toDataEntity())?.toCredentials()
         }
 
     override suspend fun deleteWebsiteLoginDetailsWithCredentials(id: Long): Unit =
@@ -113,14 +118,16 @@ class RealSecureStorage @Inject constructor(
         }
 
     private fun WebsiteLoginDetailsWithCredentials.toDataEntity(): WebsiteLoginCredentialsEntity {
-        val encryptedData = encryptData(password)
+        val encryptedPassword = encryptData(password)
+        val encryptedNotes = encryptData(notes)
         return WebsiteLoginCredentialsEntity(
             id = details.id ?: 0,
             domain = details.domain,
             username = details.username,
-            password = encryptedData?.data,
-            iv = encryptedData?.iv,
-            notes = details.notes,
+            password = encryptedPassword?.data,
+            passwordIv = encryptedPassword?.iv,
+            notes = encryptedNotes?.data,
+            notesIv = encryptedNotes?.iv,
             domainTitle = details.domainTitle,
             lastUpdatedInMillis = details.lastUpdatedMillis
         )
@@ -129,7 +136,8 @@ class RealSecureStorage @Inject constructor(
     private fun WebsiteLoginCredentialsEntity.toCredentials(): WebsiteLoginDetailsWithCredentials =
         WebsiteLoginDetailsWithCredentials(
             details = toDetails(),
-            password = decryptData(password, iv)
+            password = decryptData(password, passwordIv),
+            notes = decryptData(notes, notesIv)
         )
 
     private fun WebsiteLoginCredentialsEntity.toDetails(): WebsiteLoginDetails =
@@ -138,7 +146,6 @@ class RealSecureStorage @Inject constructor(
             username = username,
             id = id,
             domainTitle = domainTitle,
-            notes = notes,
             lastUpdatedMillis = lastUpdatedInMillis
         )
 

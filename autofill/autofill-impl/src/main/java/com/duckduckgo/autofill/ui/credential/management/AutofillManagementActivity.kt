@@ -25,20 +25,25 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.duckduckgo.anvil.annotations.InjectWith
 import com.duckduckgo.app.global.DuckDuckGoActivity
+import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.autofill.domain.app.LoginCredentials
 import com.duckduckgo.autofill.impl.R
 import com.duckduckgo.autofill.impl.databinding.ActivityAutofillSettingsBinding
+import com.duckduckgo.autofill.pixel.AutofillPixelNames.AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_CANCELLED
+import com.duckduckgo.autofill.pixel.AutofillPixelNames.AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_FAILURE
+import com.duckduckgo.autofill.pixel.AutofillPixelNames.AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_SHOWN
+import com.duckduckgo.autofill.pixel.AutofillPixelNames.AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_SUCCESSFUL
 import com.duckduckgo.autofill.ui.AutofillSettingsActivityLauncher
 import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel.Command.*
-import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel.CredentialMode.Editing
-import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel.CredentialMode.NotInCredentialMode
-import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel.CredentialMode.Viewing
-import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementDisabledMode
+import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel.CredentialMode.*
 import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementCredentialsMode
-import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementLockedMode
+import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementDisabledMode
 import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementListMode
+import com.duckduckgo.autofill.ui.credential.management.viewing.AutofillManagementLockedMode
 import com.duckduckgo.deviceauth.api.DeviceAuthenticator
-import com.duckduckgo.deviceauth.api.DeviceAuthenticator.AuthResult
+import com.duckduckgo.deviceauth.api.DeviceAuthenticator.AuthResult.Error
+import com.duckduckgo.deviceauth.api.DeviceAuthenticator.AuthResult.Success
+import com.duckduckgo.deviceauth.api.DeviceAuthenticator.AuthResult.UserCancelled
 import com.duckduckgo.deviceauth.api.DeviceAuthenticator.Features.AUTOFILL
 import com.duckduckgo.di.scopes.ActivityScope
 import com.duckduckgo.di.scopes.AppScope
@@ -59,6 +64,9 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
 
     @Inject
     lateinit var deviceAuthenticator: DeviceAuthenticator
+
+    @Inject
+    lateinit var pixel: Pixel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,16 +100,34 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
     private fun launchDeviceAuth() {
         if (deviceAuthenticator.hasValidDeviceAuthentication()) {
             viewModel.lock()
+
+            pixel.fire(AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_SHOWN)
             deviceAuthenticator.authenticate(AUTOFILL, this) {
-                if (it == AuthResult.Success) {
-                    viewModel.unlock()
-                } else {
-                    finish()
+                when (it) {
+                    Success -> onAuthenticationSuccessful()
+                    UserCancelled -> onAuthenticationCancelled()
+                    is Error -> onAuthenticationError()
                 }
+                viewModel.onAuthenticationEnded()
             }
         } else {
             viewModel.disabled()
         }
+    }
+
+    private fun onAuthenticationSuccessful() {
+        pixel.fire(AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_SUCCESSFUL)
+        viewModel.unlock()
+    }
+
+    private fun onAuthenticationCancelled() {
+        pixel.fire(AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_CANCELLED)
+        finish()
+    }
+
+    private fun onAuthenticationError() {
+        pixel.fire(AUTOFILL_AUTHENTICATION_TO_CREDENTIAL_MANAGEMENT_FAILURE)
+        finish()
     }
 
     private fun observeViewModel() {
@@ -123,7 +149,7 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
     }
 
     private fun processState(state: AutofillSettingsViewModel.ViewState) {
-        if (state.credentialMode is NotInCredentialMode) {
+        if (state.credentialMode is NotInCredentialMode && !state.isLocked) {
             showListMode()
         }
     }
@@ -131,7 +157,7 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
     private fun processCommand(command: AutofillSettingsViewModel.Command) {
         var processed = true
         when (command) {
-            is ShowCredentialMode -> showCredentialMode(command.credentials, command.isStartingMode)
+            is ShowCredentialMode -> showCredentialMode(command.credentials, command.isLaunchedDirectly)
             is ShowUserUsernameCopied -> showCopiedToClipboardSnackbar("Username")
             is ShowUserPasswordCopied -> showCopiedToClipboardSnackbar("Password")
             is ShowDisabledMode -> showDisabledMode()
@@ -139,6 +165,8 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
             is LaunchDeviceAuth -> launchDeviceAuth()
             is ExitCredentialMode -> supportFragmentManager.forceExitFragment(TAG_CREDENTIAL)
             is ExitLockedMode -> supportFragmentManager.forceExitFragment(TAG_LOCKED)
+            is ExitDisabledMode -> supportFragmentManager.forceExitFragment(TAG_DISABLED)
+            is ExitListMode -> supportFragmentManager.forceExitFragment(TAG_ALL_CREDENTIALS)
             else -> processed = false
         }
         if (processed) {
@@ -158,7 +186,7 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
 
     private fun showCredentialMode(
         credentials: LoginCredentials?,
-        isStartingMode: Boolean
+        isLaunchedDirectly: Boolean
     ) {
         if (credentials != null) {
             binding.includeToolbar.toolbar.apply {
@@ -167,7 +195,11 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
             }
             title = credentials.domainTitle ?: credentials.domain
 
-            supportFragmentManager.showFragment(AutofillManagementCredentialsMode.instance(), TAG_CREDENTIAL, !isStartingMode)
+            supportFragmentManager.showFragment(
+                fragment = AutofillManagementCredentialsMode.instance(),
+                tag = TAG_CREDENTIAL,
+                shouldAddToBackStack = !isLaunchedDirectly
+            )
         }
     }
 
@@ -195,6 +227,7 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
             } else {
                 super.onBackPressed()
             }
+
             else -> super.onBackPressed()
         }
     }
@@ -206,6 +239,11 @@ class AutofillManagementActivity : DuckDuckGoActivity() {
         private const val TAG_CREDENTIAL = "tag_fragment_credential"
         private const val TAG_ALL_CREDENTIALS = "tag_fragment_all_credentials"
 
+        /**
+         * Launch the Autofill management activity.
+         * Optionally, can provide LoginCredentials to jump directly into viewing mode.
+         * If no LoginCredentials provided, will show the list mode.
+         */
         fun intent(
             context: Context,
             loginCredentials: LoginCredentials? = null
@@ -226,8 +264,11 @@ class AutofillSettingsModule {
     @Provides
     fun activityLauncher(): AutofillSettingsActivityLauncher {
         return object : AutofillSettingsActivityLauncher {
-            override fun intent(context: Context): Intent {
-                return AutofillManagementActivity.intent(context)
+            override fun intent(
+                context: Context,
+                loginCredentials: LoginCredentials?
+            ): Intent {
+                return AutofillManagementActivity.intent(context, loginCredentials)
             }
         }
     }

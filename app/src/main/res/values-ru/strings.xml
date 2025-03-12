@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Настройки</string>
     <string name="settingsMenuItemTitle">Настройки</string>
-    <string name="settingsHeadingGeneral">Общие настройки</string>
-    <string name="settingsHeadingOther">Дополнительные настройки</string>
     <string name="settingsHeadingPrivacy">Конфиденциальность</string>
     <string name="settingsAboutDuckduckgo">Сведения о DuckDuckGo</string>
     <string name="settingsVersion">Версия</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Спрашивать каждый раз</string>
     <string name="settingsAppLinksAlways">Всегда</string>
     <string name="settingsAppLinksNever">Никогда</string>
+    <string name="settingsHeadingAppearance">Внешний вид</string>
+    <string name="settingsHeadingCustomize">Собственная настройка</string>
+    <string name="settingsHeadingAbout">О нас</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Сохранить</string>
@@ -595,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Только для этой сессии</string>
     <string name="preciseLocationSiteDialogDenyAlways">Всегда отказывать</string>
     <string name="preciseLocationSiteDialogDenyOnce">Отказать для этой сессии</string>
-    <string name="settingsPreciseLocation">Местоположение</string>
     <string name="preciseLocationFeatureDescription">Сайты, которые вы посещаете, могут запрашивать информацию о местоположении вашего устройства. Они не смогут получить к нему доступ, пока вы не предоставите разрешение. DuckDuckGo использует ваше местоположение только анонимно для предоставления результатов местного поиска.</string>
     <string name="preciseLocationToggleText">Сайты могут запрашивать моё местоположение</string>
     <string name="preciseLocationEmptyListHint">Ни одному сайту не предоставлено разрешение на доступ к местоположению</string>
@@ -639,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Блокирует почтовые трекеры и скрывает ваш адрес</string>
     <string name="newEmailAliasMenuTitle">Создать адрес на Duck</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Удалить защиту почты?</string>
-    <string name="emailSignOutDialogText">Внимание: снятие почтовой защиты на этом устройстве не ведет к удалению вашего адреса на Duck.</string>
-    <string name="emailSignOutDialogCancel">Отменить</string>
-    <string name="emailSignOutDialogDisable">Удалить</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Очередь на защиту почты</string>
-    <string name="waitlistNotificationTitle">Защита почты включена!</string>
-    <string name="waitlistNotificationDescription">Откройте приглашение</string>
-
     <string name="waitlistNotificationDialogDescription">Хотите получить уведомление, когда настанет ваша очередь?</string>
     <string name="waitlistNotificationDialogNoThanks">Нет, спасибо</string>
     <string name="waitlistNotificationDialogNotifyMe">ОПОВЕСТИТЬ</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Защита почты (бета)</string>
     <string name="emailProtectionActivityTitle">Защита почты (бета)</string>
-    <string name="emailProtectionFooterDescription">Чтобы записаться в список ожидания, не нужно делиться личной информацией. Временная метка, хранящаяся только на вашем устройстве, позволит нам определить, когда подойдет ваша очередь, о чем мы сообщим вам дополнительно.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">При постановке в очередь произошла ошибка. Пожалуйста, повторите попытку позже.</string>
-    <string name="emailProtectionDuckAddressCta">У меня уже есть адрес на Duck</string>
-    <string name="emailProtectionInviteCodeCta">У меня есть пригласительный код</string>
-    <string name="emailProtectionWaitlistCta">Приглашаем встать в очередь</string>
-    <string name="emailProtectionGetStartedCta">Приступим!</string>
     <string name="emailNotSupported">Устройство не поддерживается</string>
     <string name="emailNotSupportedExplanation">Функция защиты почты позволяет создавать закрытые адреса электронной почты, где удаляются трекеры в письмах. Нам необходимо шифровать такие адреса и хранить их локально на вашем устройстве. Поскольку данное устройство не поддерживает хранение зашифрованной информации, вы не сможете воспользоваться защитой почты.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Надежная защита почты и ничего лишнего.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Чтобы блокировать трекеры и скрывать свой адрес, вовсе не нужно менять почтовый сервис.<br/><a href=\"\"><b>Подробнее</b></a>...]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Теперь вы в списке!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Мы отправим вам уведомление, когда<br/> защита почты будет доступна и вам. <a href=\"\"><b>Подробнее</b></a>...]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Когда настанет время, ваше приглашение появится здесь. Хотите также <a href=\"\"><b>получить уведомление</b></a>?<br/><a href=\"\"><b>Подробнее</b></a> о защите почты...]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Приглашение</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Чтобы блокировать трекеры <br/>и скрывать свой адрес, вовсе не нужно менять почтовый сервис.<br/><a href=\"\"><b>Подробнее</b></a>...]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Личный адрес на Duck</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Снятие почтовой защиты на данном устройстве лишит вас возможности вносить свой личный адрес на Duck или свежесгенерированный приватный Duck-адрес в поле для электронной почты при посещении сайтов.<br/><br/>Если вы хотите полностью удалить свои Duck-адреса, задать нам вопрос или отправить отзывы и предложения, пишите нам: <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Удалить с этого устройства</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Редактировать закладку</string>
@@ -729,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Полная конфиденциальность в Интернете, благодаря нашему приложению для Mac</string>
-    <string name="macos_settings_description_list">Теперь вы в списке!</string>
-    <string name="macos_settings_description_ready">Доступна версия для Mac</string>
     <string name="macos_settings_title">Настольное приложение DuckDuckGo</string>
 
     <!-- Downloads -->
@@ -756,5 +717,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Блокируйте трекеры приложений на своем устройстве</string>
     <string name="atp_SettingsDeviceShieldEnabled">Включено</string>
     <string name="atp_SettingsDeviceShieldDisabled">Отключено</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Похоже, на этом сайте есть всплывающее окно выбора куки-файлов 👇</string>
+    <string name="autoconsentDialogDescription">Хотите, чтобы такие окна закрывались автоматически? Мы можем попытаться минимизировать выбор куки-файлов для большей безопасности ваших данных и автоматически закрывать такие окна.</string>
+    <string name="autoconsentPrimaryCta">Управление окнами выбора куки-файлов</string>
+    <string name="autoconsentSecondaryCta">Нет, спасибо</string>
+
+    <string name="autoconsentSetting">Управление окнами выбора куки-файлов</string>
+    <string name="autoconsentAnimationText">Kуки-файлы выбраны</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Разрешения для сайтов</string>
+    <string name="sitePermissionsSettingsDescription">Сайты, которые вы посещаете, могут запрашивать доступ к геопозиции, камере или микрофону вашего устройства. Доступ предоставляется только с вашего разрешения.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Разрешить всем сайтам запрашивать:</string>
+    <string name="sitePermissionsSettingsLocation">Геопозиция</string>
+    <string name="sitePermissionsSettingsCamera">Камера</string>
+    <string name="sitePermissionsSettingsMicrophone">Микрофон</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Управление сайтами</string>
+    <string name="sitePermissionsSettingsEmptyText">Пока нет сайтов</string>
+    <string name="permissionPerWebsiteText">Разрешения для «%1$s» </string>
+    <string name="permissionsPerWebsiteAskSetting">Запрашивать</string>
+    <string name="permissionsPerWebsiteDenySetting">Отказать</string>
+    <string name="permissionsPerWebsiteAllowSetting">Разрешить</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">Разрешение на доступ %2$s к %1$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Автозаполнение</string>
 
 </resources>

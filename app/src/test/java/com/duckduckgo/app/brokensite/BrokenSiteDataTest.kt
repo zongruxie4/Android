@@ -91,7 +91,7 @@ class BrokenSiteDataTest {
             categories = emptyList(),
             entity = null,
             surrogateId = null,
-            status = TrackerStatus.ALLOWED,
+            status = TrackerStatus.BLOCKED,
             type = TrackerType.OTHER
         )
         val anotherEvent = TrackingEvent(
@@ -105,7 +105,7 @@ class BrokenSiteDataTest {
         )
         site.trackerDetected(event)
         site.trackerDetected(anotherEvent)
-        assertEquals("www.tracker.com,www.anothertracker.com", BrokenSiteData.fromSite(site).blockedTrackers)
+        assertEquals("tracker.com", BrokenSiteData.fromSite(site).blockedTrackers)
     }
 
     @Test
@@ -117,7 +117,7 @@ class BrokenSiteDataTest {
             categories = emptyList(),
             entity = null,
             surrogateId = null,
-            status = TrackerStatus.ALLOWED,
+            status = TrackerStatus.BLOCKED,
             type = TrackerType.OTHER
         )
         val anotherEvent = TrackingEvent(
@@ -126,12 +126,28 @@ class BrokenSiteDataTest {
             categories = emptyList(),
             entity = null,
             surrogateId = null,
-            status = TrackerStatus.ALLOWED,
+            status = TrackerStatus.BLOCKED,
             type = TrackerType.OTHER
         )
         site.trackerDetected(event)
         site.trackerDetected(anotherEvent)
-        assertEquals("www.tracker.com", BrokenSiteData.fromSite(site).blockedTrackers)
+        assertEquals("tracker.com", BrokenSiteData.fromSite(site).blockedTrackers)
+    }
+
+    @Test
+    fun whenSiteHasBlockedCnamedTrackersThenBlockedTrackersExist() {
+        val site = buildSite(SITE_URL)
+        val event = TrackingEvent(
+            documentUrl = "http://www.example.com",
+            trackerUrl = ".tracker.com/tracker.js",
+            categories = emptyList(),
+            entity = null,
+            surrogateId = null,
+            status = TrackerStatus.BLOCKED,
+            type = TrackerType.OTHER
+        )
+        site.trackerDetected(event)
+        assertEquals(".tracker.com", BrokenSiteData.fromSite(site).blockedTrackers)
     }
 
     @Test

@@ -87,23 +87,39 @@ class DuckDuckGoFaviconManager constructor(
         }
     }
 
+    override suspend fun saveFaviconForUrl(url: String) {
+        val domain = url.extractDomain() ?: return
+
+        val cachedFavicon = faviconPersister.faviconFile(FAVICON_PERSISTED_DIR, NO_SUBFOLDER, domain)
+        if (cachedFavicon != null) {
+            return
+        }
+
+        val favicon = downloadFaviconFor(domain)
+        if (favicon != null) {
+            saveFavicon("", favicon, domain)
+        }
+    }
+
     override suspend fun loadFromDisk(
         tabId: String?,
         url: String
     ): Bitmap? {
         val domain = url.extractDomain() ?: return null
 
-        var cachedFavicon: File? = null
-        if (tabId != null) {
-            cachedFavicon = faviconPersister.faviconFile(FAVICON_TEMP_DIR, tabId, domain)
-        }
-        if (cachedFavicon == null) {
-            cachedFavicon = faviconPersister.faviconFile(FAVICON_PERSISTED_DIR, NO_SUBFOLDER, domain)
-        }
+        return withContext(dispatcherProvider.io()) {
+            var cachedFavicon: File? = null
+            if (tabId != null) {
+                cachedFavicon = faviconPersister.faviconFile(FAVICON_TEMP_DIR, tabId, domain)
+            }
+            if (cachedFavicon == null) {
+                cachedFavicon = faviconPersister.faviconFile(FAVICON_PERSISTED_DIR, NO_SUBFOLDER, domain)
+            }
 
-        return if (cachedFavicon != null) {
-            faviconDownloader.getFaviconFromDisk(cachedFavicon)
-        } else null
+            return@withContext if (cachedFavicon != null) {
+                faviconDownloader.getFaviconFromDisk(cachedFavicon)
+            } else null
+        }
     }
 
     override suspend fun loadFromDiskWithParams(
@@ -115,17 +131,19 @@ class DuckDuckGoFaviconManager constructor(
     ): Bitmap? {
         val domain = url.extractDomain() ?: return null
 
-        var cachedFavicon: File? = null
-        if (tabId != null) {
-            cachedFavicon = faviconPersister.faviconFile(FAVICON_TEMP_DIR, tabId, domain)
-        }
-        if (cachedFavicon == null) {
-            cachedFavicon = faviconPersister.faviconFile(FAVICON_PERSISTED_DIR, NO_SUBFOLDER, domain)
-        }
+        return withContext(dispatcherProvider.io()) {
+            var cachedFavicon: File? = null
+            if (tabId != null) {
+                cachedFavicon = faviconPersister.faviconFile(FAVICON_TEMP_DIR, tabId, domain)
+            }
+            if (cachedFavicon == null) {
+                cachedFavicon = faviconPersister.faviconFile(FAVICON_PERSISTED_DIR, NO_SUBFOLDER, domain)
+            }
 
-        return if (cachedFavicon != null) {
-            faviconDownloader.getFaviconFromDisk(cachedFavicon, cornerRadius, width, height)
-        } else null
+            return@withContext if (cachedFavicon != null) {
+                faviconDownloader.getFaviconFromDisk(cachedFavicon, cornerRadius, width, height)
+            } else null
+        }
     }
 
     override suspend fun loadToViewFromLocalOrFallback(
@@ -144,6 +162,11 @@ class DuckDuckGoFaviconManager constructor(
         } else {
             view.loadFavicon(bitmap, url)
         }
+    }
+
+    override suspend fun loadToViewFromLocalWithPlaceholder(tabId: String?, url: String, view: ImageView) {
+        val bitmap = loadFromDisk(tabId, url)
+        view.loadFavicon(bitmap, url)
     }
 
     override suspend fun persistCachedFavicon(

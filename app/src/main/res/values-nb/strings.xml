@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Innstillinger</string>
     <string name="settingsMenuItemTitle">Innstillinger</string>
-    <string name="settingsHeadingGeneral">Generelt</string>
-    <string name="settingsHeadingOther">Annet</string>
     <string name="settingsHeadingPrivacy">Personvern</string>
     <string name="settingsAboutDuckduckgo">Om DuckDuckGo</string>
     <string name="settingsVersion">Versjon</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Spør hver gang</string>
     <string name="settingsAppLinksAlways">Alltid</string>
     <string name="settingsAppLinksNever">Aldri</string>
+    <string name="settingsHeadingAppearance">Utseende</string>
+    <string name="settingsHeadingCustomize">Tilpass</string>
+    <string name="settingsHeadingAbout">Om</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Lagre</string>
@@ -591,7 +592,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Kun for denne økten</string>
     <string name="preciseLocationSiteDialogDenyAlways">Aldri tillat</string>
     <string name="preciseLocationSiteDialogDenyOnce">Ikke tillat for denne økten</string>
-    <string name="settingsPreciseLocation">Posisjon</string>
     <string name="preciseLocationFeatureDescription">Nettstedene du besøker kan be om å få tilgang til posisjonen til enheten din. De får ikke tilgang før du eksplisitt gir dem tillatelse. DuckDuckGo bruker kun posisjoner anonymt for å kunne gi deg lokale søkeresultater.</string>
     <string name="preciseLocationToggleText">Nettsteder kan be om posisjonen min</string>
     <string name="preciseLocationEmptyListHint">Ingen nettsider har fått tilgang til posisjon</string>
@@ -635,52 +635,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokkerer e-postsporere og skjuler adressen din</string>
     <string name="newEmailAliasMenuTitle">Opprett Duck-adresse</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Vil du fjerne e-postbeskyttelse?</string>
-    <string name="emailSignOutDialogText">Merk: Duck-adressen din slettes ikke ved at du fjerner e-postbeskyttelse fra denne enheten.</string>
-    <string name="emailSignOutDialogCancel">Avbryt</string>
-    <string name="emailSignOutDialogDisable">Fjern</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Venteliste for e-post</string>
-    <string name="waitlistNotificationTitle">E-postbeskyttelse er klar!</string>
-    <string name="waitlistNotificationDescription">Åpne invitasjonen din</string>
-
     <string name="waitlistNotificationDialogDescription">Skal vi sende et varsel til deg når det er din tur?</string>
     <string name="waitlistNotificationDialogNoThanks">Nei takk</string>
     <string name="waitlistNotificationDialogNotifyMe">VARSLE MEG</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">E-postbeskyttelse (Beta)</string>
     <string name="emailProtectionActivityTitle">E-postbeskyttelse (Beta)</string>
-    <string name="emailProtectionFooterDescription">Du behøver ikke å dele noen personopplysninger for å sette deg på ventelisten. Du sikrer plassen din i køen med et tidsstempel som kun eksisterer på enheten din, så vi kan varsle deg når det er din tur.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Det oppstod en feil under registrering for ventelisten. Prøv igjen senere.</string>
-    <string name="emailProtectionDuckAddressCta">Jeg har allerede en Duck-adresse</string>
-    <string name="emailProtectionInviteCodeCta">Jeg har en invitasjonskode</string>
-    <string name="emailProtectionWaitlistCta">Sett deg på den private ventelisten</string>
-    <string name="emailProtectionGetStartedCta">Kom i gang</string>
     <string name="emailNotSupported">Enheten støttes ikke</string>
     <string name="emailNotSupportedExplanation">Med e-postbeskyttelse kan du opprette private e-postadresser som fjerner e-postsporere. Vi må kryptere og lagre disse adressene du oppretter, lokalt på enheten din. Fordi enheten din ikke støtter kryptert lagring, er e-postbeskyttelse utilgjengelig.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Personvern for e-post gjort enkelt.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Blokker e-postsporere og skjul adressen din, uten å bytte e-postleverandør.<br/><a href=\"\"><b>Finn ut mer</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Du er satt på listen!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Vi sender deg et varsel når<br/> e-postbeskyttelse er klar for deg. <a href=\"\"><b>Finn ut mer</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Invitasjonen vises her når vi er klare for deg. Vil du <a href=\"\"><b>få et varsel</b></a> når den kommer?<br/><a href=\"\"><b>Finn ut mer om</b></a> e-postbeskyttelse.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Du er invitert!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Blokker e-postsporere og skjul adressen din,<br/>uten å bytte e-postleverandør.<br/><a href=\"\"><b>Finn ut mer</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Personlig Duck-adresse</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Hvis du fjerner e-postbeskyttelse fra denne enheten, fjerner du muligheten til å fylle inn din personlige Duck-adresse eller en nygenerert privat Duck-adresse i e-postfelt når du surfer på nettet.<br/><br/>Hvis du vil slette Duck-adressene dine helt, eller har andre spørsmål eller tilbakemeldinger, kan du kontakte oss på <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Fjern fra enheten</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Rediger bokmerke</string>
@@ -721,8 +684,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Surf privat med vår app for Mac</string>
-    <string name="macos_settings_description_list">Du er satt på listen!</string>
-    <string name="macos_settings_description_ready">Tilgjengelig for nedlasting på Mac</string>
     <string name="macos_settings_title">DuckDuckGo skrivebordsapp</string>
 
     <!-- Downloads -->
@@ -748,5 +709,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Blokker appsporere på enheten din</string>
     <string name="atp_SettingsDeviceShieldEnabled">Aktivert</string>
     <string name="atp_SettingsDeviceShieldDisabled">Deaktivert</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Det ser ut til at dette nettstedet har et popup-vindu om samtykke til informasjonskapsler👇</string>
+    <string name="autoconsentDialogDescription">Skal jeg håndtere dette for deg? Jeg kan prøve å minimere informasjonskapslene, maksimere personvernet og skjule popup-vinduer som dette.</string>
+    <string name="autoconsentPrimaryCta">Administrer popup-vinduer om informasjonskapsler</string>
+    <string name="autoconsentSecondaryCta">Nei takk</string>
+
+    <string name="autoconsentSetting">Administrer popup-vinduer om informasjonskapsler</string>
+    <string name="autoconsentAnimationText">Informasjonskapsler administrert</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Nettstedstillatelser</string>
+    <string name="sitePermissionsSettingsDescription">Nettsteder du besøker, kan be om tilgang til enhetens plassering, kamera eller mikrofon. De får ikke tilgang til disse med mindre du uttrykkelig gir dem tillatelse.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Tillat alle nettsteder å be om:</string>
+    <string name="sitePermissionsSettingsLocation">Posisjon</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Administrer nettsteder</string>
+    <string name="sitePermissionsSettingsEmptyText">Ingen nettsteder ennå</string>
+    <string name="permissionPerWebsiteText">Tillatelser for «%1$s» </string>
+    <string name="permissionsPerWebsiteAskSetting">Spør</string>
+    <string name="permissionsPerWebsiteDenySetting">Avvis</string>
+    <string name="permissionsPerWebsiteAllowSetting">Tillat</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$stillatelse for %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Autofyll</string>
 
 </resources>

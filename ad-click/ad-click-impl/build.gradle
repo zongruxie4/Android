@@ -18,7 +18,6 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'com.squareup.anvil'
-    id 'kotlin-android-extensions'
 }
 
 apply from: "$rootProject.projectDir/gradle/android-library.gradle"
@@ -94,12 +93,4 @@ dependencies {
     testImplementation Testing.robolectric
 
     testImplementation project(path: ':common-test')
-}
-
-fulladleModuleConfig {
-    maxTestShards.set(1)
-}
-
-tasks.register('androidTestsBuild') {
-    dependsOn 'assembleDebugAndroidTest'
 }

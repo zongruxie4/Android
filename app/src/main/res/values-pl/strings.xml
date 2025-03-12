@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Ustawienia</string>
     <string name="settingsMenuItemTitle">Ustawienia</string>
-    <string name="settingsHeadingGeneral">Ogólne</string>
-    <string name="settingsHeadingOther">Inne</string>
     <string name="settingsHeadingPrivacy">Prywatność</string>
     <string name="settingsAboutDuckduckgo">O DuckDuckGo</string>
     <string name="settingsVersion">Wersja</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Pytaj za każdym razem</string>
     <string name="settingsAppLinksAlways">Zawsze</string>
     <string name="settingsAppLinksNever">Nigdy</string>
+    <string name="settingsHeadingAppearance">Wygląd</string>
+    <string name="settingsHeadingCustomize">Spersonalizuj</string>
+    <string name="settingsHeadingAbout">Informacje</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Zapisz</string>
@@ -595,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Tylko dla tej sesji</string>
     <string name="preciseLocationSiteDialogDenyAlways">Zawsze odmawiaj</string>
     <string name="preciseLocationSiteDialogDenyOnce">Odmów w tej sesji</string>
-    <string name="settingsPreciseLocation">Lokalizacja</string>
     <string name="preciseLocationFeatureDescription">Odwiedzane witryny mogą prosić o dostęp do danych lokalizacji Twojego urządzenia. Nie będą mogły uzyskać do niej dostępu, dopóki wyraźnie nie udzielisz zgody. DuckDuckGo wykorzystuje Twoją lokalizację wyłącznie anonimowo do dostarczania lokalnych wyników wyszukiwania.</string>
     <string name="preciseLocationToggleText">Witryny mogą prosić o podanie mojej lokalizacji</string>
     <string name="preciseLocationEmptyListHint">Żadna witryna nie może uzyskać dostępu do mojej lokalizacji</string>
@@ -639,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokuje skrypty śledzące wiadomości e-mail i ukrywa Twój adres e-mail</string>
     <string name="newEmailAliasMenuTitle">Utwórz adres Duck</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Usunąć ochronę poczty e-mail?</string>
-    <string name="emailSignOutDialogText">Uwaga: usunięcie ochrony poczty e-mail z tego urządzenia nie spowoduje usunięcia Twojego adresu Duck.</string>
-    <string name="emailSignOutDialogCancel">Anuluj</string>
-    <string name="emailSignOutDialogDisable">Usuń</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Lista oczekujących na ochronę poczty e-mail</string>
-    <string name="waitlistNotificationTitle">Ochrona poczty e-mail jest gotowa!</string>
-    <string name="waitlistNotificationDescription">Otwórz zaproszenie</string>
-
     <string name="waitlistNotificationDialogDescription">Czy chcesz, abyśmy wysłali Ci powiadomienie, gdy nadejdzie Twoja kolej?</string>
     <string name="waitlistNotificationDialogNoThanks">Nie, dziękuję</string>
     <string name="waitlistNotificationDialogNotifyMe">POWIADOM MNIE</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Ochrona poczty e-mail (wersja beta)</string>
     <string name="emailProtectionActivityTitle">Ochrona poczty e-mail (wersja beta)</string>
-    <string name="emailProtectionFooterDescription">Nie musisz udostępniać żadnych danych osobowych, aby dołączyć do listy oczekujących. Miejsce w kolejce zostanie zarezerwowane zgodnie z sygnaturą czasową przechowywaną wyłącznie na Twoim urządzeniu, aby umożliwić nam powiadomienie, gdy nadejdzie Twoja kolej.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Wystąpił błąd podczas dołączania do listy oczekujących, spróbuj ponownie później</string>
-    <string name="emailProtectionDuckAddressCta">Mam już adres Duck</string>
-    <string name="emailProtectionInviteCodeCta">Mam kod zaproszenia</string>
-    <string name="emailProtectionWaitlistCta">Dołącz do prywatnej listy oczekujących</string>
-    <string name="emailProtectionGetStartedCta">Rozpocznij</string>
     <string name="emailNotSupported">Urządzenie nie jest obsługiwane</string>
     <string name="emailNotSupportedExplanation">Ochrona poczty e-mail umożliwia tworzenie prywatnych adresów e-mail, które usuwają skrypty śledzące wiadomości e-mail. Musimy szyfrować i przechowywać tworzone adresy lokalnie na Twoim urządzeniu. Ponieważ Twoje urządzenie nie obsługuje szyfrowanego przechowywania, ochrona poczty e-mail jest niedostępna.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Uproszczona prywatność poczty e-mail.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Zablokuj skrypty śledzące pocztę e-mail i ukryj swój adres bez zmiany dostawcy poczty e-mail.<a href=\"\"><b>Dowiedz się więcej</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Jesteś na liście!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Wyślemy Ci powiadomienie, gdy<br/> ochrona poczty e-mail będzie gotowa. <a href=\"\"><b>Dowiedz się więcej</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Twoje zaproszenie pojawi się tutaj, gdy będzie już gotowe. Chcesz <a href=\"\"><b>otrzymać powiadomienie</b></a>, gdy będzie gotowe?<br/><a href=\"\"><b>Dowiedz się więcej</b></a> o ochronie poczty e-mail.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Masz już zaproszenie!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Zablokuj skrypty śledzące pocztę e-mail i ukryj swój adres bez zmiany dostawcy poczty e-mail.<a href=\"\"><b>Dowiedz się więcej</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Osobisty adres Duck</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Usunięcie ochrony poczty e-mail z tego urządzenia usuwa opcję wpisywania osobistego adresu Duck lub nowo wygenerowanego prywatnego adresu Duck w polach adresu e-mail podczas przeglądania sieci.<br/><br/>Aby całkowicie usunąć swoje adresy Duck bądź przesłać jakiekolwiek pytania lub opinie, skontaktuj się z nami pod adresem <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Usuń z urządzenia</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Edytuj zakładkę</string>
@@ -729,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Przeglądaj prywatnie za pomocą aplikacji dla komputerów Mac</string>
-    <string name="macos_settings_description_list">Jesteś na liście!</string>
-    <string name="macos_settings_description_ready">Dostępne do pobrania na Mac</string>
     <string name="macos_settings_title">Aplikacja komputerowa DuckDuckGo</string>
 
     <!-- Downloads -->
@@ -756,5 +717,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Blokowanie skryptów śledzących aplikacji na urządzeniu</string>
     <string name="atp_SettingsDeviceShieldEnabled">Włączone</string>
     <string name="atp_SettingsDeviceShieldDisabled">Wyłączone</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Wygląda na to, że na tej stronie pojawia się okienko z prośbą o zgodę na używanie plików cookie 👇</string>
+    <string name="autoconsentDialogDescription">Mamy się tym za Ciebie zająć? Możemy spróbować zminimalizować liczbę plików cookie, zmaksymalizować prywatność i ukryć takie wyskakujące okienka.</string>
+    <string name="autoconsentPrimaryCta">Zarządzaj wyskakującymi okienkami z prośbą o używanie plików cookie</string>
+    <string name="autoconsentSecondaryCta">Nie, dziękuję</string>
+
+    <string name="autoconsentSetting">Zarządzaj wyskakującymi okienkami z prośbą o używanie plików cookie</string>
+    <string name="autoconsentAnimationText">Zarządzane pliki cookie</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Uprawnienia witryny</string>
+    <string name="sitePermissionsSettingsDescription">Strony, które odwiedzasz, mogą prosić o dostęp do lokalizacji Twojego urządzenia, kamery lub mikrofonu. Nie będą miały do nich dostępu, jeśli nie udzielisz im zgody.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Pozwól wszystkim stronom prosić o:</string>
+    <string name="sitePermissionsSettingsLocation">Lokalizacja</string>
+    <string name="sitePermissionsSettingsCamera">Aparat</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Zarządzaj witrynami</string>
+    <string name="sitePermissionsSettingsEmptyText">Nie masz jeszcze witryn</string>
+    <string name="permissionPerWebsiteText">Uprawnienia dla: „%1$s” </string>
+    <string name="permissionsPerWebsiteAskSetting">Poproś</string>
+    <string name="permissionsPerWebsiteDenySetting">Odmów</string>
+    <string name="permissionsPerWebsiteAllowSetting">Zezwól</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">Pozwolenie dla witryny %2$s na dostęp do urządzenia: %1$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Autouzupełnianie</string>
 
 </resources>

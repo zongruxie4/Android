@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Nustatymai</string>
     <string name="settingsMenuItemTitle">Nustatymai</string>
-    <string name="settingsHeadingGeneral">Bendrieji</string>
-    <string name="settingsHeadingOther">Kiti</string>
     <string name="settingsHeadingPrivacy">Privatumas</string>
     <string name="settingsAboutDuckduckgo">Apie „DuckDuckGo“</string>
     <string name="settingsVersion">Versija</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Klausti kiekvieną kartą</string>
     <string name="settingsAppLinksAlways">Visada</string>
     <string name="settingsAppLinksNever">Niekada</string>
+    <string name="settingsHeadingAppearance">Išvaizda</string>
+    <string name="settingsHeadingCustomize">Tinkinti</string>
+    <string name="settingsHeadingAbout">Apie</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Išsaugoti</string>
@@ -595,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Tik šiam seansui</string>
     <string name="preciseLocationSiteDialogDenyAlways">Visada atsisakyti</string>
     <string name="preciseLocationSiteDialogDenyOnce">Atsisakyti šiam seansui</string>
-    <string name="settingsPreciseLocation">Vieta</string>
     <string name="preciseLocationFeatureDescription">Svetainės, kuriose lankotės, gali prašyti jūsų įrenginio vietos. Jos negalės jo pasiekti, kol duosite leidimą. „DuckDuckGo“ jūsų vietą naudoja tik anonimiškai, kad pateiktų vietinės paieškos rezultatus.</string>
     <string name="preciseLocationToggleText">Svetainės gali prašyti mano vietos</string>
     <string name="preciseLocationEmptyListHint">Jokios svetainės nesuteikė leidimo pasiekti vietą</string>
@@ -639,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokuoja el. pašto sekimo priemones ir slepia jūsų adresą</string>
     <string name="newEmailAliasMenuTitle">Kurti „Duck“ adresą</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Pašalinti el. pašto apsaugą?</string>
-    <string name="emailSignOutDialogText">Pastaba. Pašalinus el. pašto apsaugą iš šio įrenginio, jūsų „Duck“ adresas nebus ištrintas.</string>
-    <string name="emailSignOutDialogCancel">Atšaukti</string>
-    <string name="emailSignOutDialogDisable">Pašalinti</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">El. pašto laukimo sąrašas</string>
-    <string name="waitlistNotificationTitle">El. pašto apsauga įjungta!</string>
-    <string name="waitlistNotificationDescription">Atidaryti pakvietimą</string>
-
     <string name="waitlistNotificationDialogDescription">Ar norėtumėte, kad atsiųstume jums pranešimą, kai ateis jūsų eilė?</string>
     <string name="waitlistNotificationDialogNoThanks">Ne, dėkoju</string>
     <string name="waitlistNotificationDialogNotifyMe">INFORMUOTI</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">El. pašto apsauga (beta)</string>
     <string name="emailProtectionActivityTitle">El. pašto apsauga (beta)</string>
-    <string name="emailProtectionFooterDescription">Jums nereikia dalintis savo asmenine informacija, kad prisijungtumėte prie laukiančiųjų sąrašo. Užsitikrinsite vietą eilėje laiko žyma, kuri egzistuoja tik jūsų įrenginyje, kad galėtumėte jus įspėti, kai ateis jūsų eilė.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Prisijungiant prie laukimo sąrašo įvyko klaida, bandykite dar kartą vėliau</string>
-    <string name="emailProtectionDuckAddressCta">Jau turiu „Duck“ adresą</string>
-    <string name="emailProtectionInviteCodeCta">Turiu kvietimo kodą</string>
-    <string name="emailProtectionWaitlistCta">Prisijungti prie privataus laukimo sąrašo</string>
-    <string name="emailProtectionGetStartedCta">Pradėti</string>
     <string name="emailNotSupported">Nepalaikomas įrenginys</string>
     <string name="emailNotSupportedExplanation">El. pašto apsauga leidžia jums sukurti privačius el. pašto adresus, kurie pašalina el. laiškų sekimo priemones. Mums reikia užšifruoti ir saugoti šiuos adresus, kuriuos lokaliai sukuriate įrenginyje. Kadangi jūsų įrenginys nepalaiko užšifruotos talpyklos funkcijos, El. pašto apsaugos funkcija neprieinama.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Supaprastintas el. pašto privatumas.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Blokuokite el. pašto sekimo priemones ir slėpkite savo adresą nekeisdami savo el. pašto teikėjo.<b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Jūs jau sąraše!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Atsiųsime jums pranešimą, kai<br/> el. pašto apsauga bus parengta. <b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Jūsų kvietimas pasirodys čia, kai bus parengtas. Ar norite <a href=\"\"><b>gauti pranešimą,</b></a> kai jis pasirodys?<br/><a href=\"\"><b>Sužinokite daugiau</b></a> apie el. pašto apsaugą.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Esate pakviesti!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Blokuokite el. pašto sekimo priemones ir slėpkite savo adresą nekeisdami savo el. pašto teikėjo.<b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Asmeninis „Duck“ adresas</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Pašalinus el. pašto apsaugą iš šio įrenginio, bus pašalinta parinktis įrašyti savo asmeninį „Duck“ adresą arba naujai sukurtą privatų „Duck“ adresą į el. pašto laukelius, kol naršysite svetainėje.<br/><br/>Norėdami visam laikui ištrinti „Duck“ adresus arba turėdami kitų klausimų ar atsiliepimų, susisiekite su mumis el. paštu <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Pašalinti šį įrenginį</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Redaguoti žymę</string>
@@ -729,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Naršykite privačiai su mūsų „Mac“ skirta programa</string>
-    <string name="macos_settings_description_list">Jūs jau sąraše!</string>
-    <string name="macos_settings_description_ready">Galima atsisiųsti „Mac“</string>
     <string name="macos_settings_title">„DuckDuckGo“ darbalaukio programa</string>
 
     <!-- Downloads -->
@@ -756,5 +717,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Blokuokite programėlių stebėjimo priemones savo įrenginyje</string>
     <string name="atp_SettingsDeviceShieldEnabled">Įjungta</string>
     <string name="atp_SettingsDeviceShieldDisabled">Išjungta</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Atrodo, kad šioje svetainėje yra sutikimo su slapukais iššokantysis langas👇</string>
+    <string name="autoconsentDialogDescription">Norite, kad viską sutvarkyčiau? Galiu pabandyti sumažinti slapukų skaičių, sustiprinti privatumą ir paslėpti tokius iššokančiuosius langus.</string>
+    <string name="autoconsentPrimaryCta">Valdyti slapukų iššokančiuosius langus</string>
+    <string name="autoconsentSecondaryCta">Ne, dėkoju</string>
+
+    <string name="autoconsentSetting">Valdyti slapukų iššokančiuosius langus</string>
+    <string name="autoconsentAnimationText">Slapukai valdomi</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Svetainės leidimai</string>
+    <string name="sitePermissionsSettingsDescription">Svetainėse, kuriose lankotės, gali būti prašoma prieigos prie jūsų įrenginio vietos, kameros arba mikrofono. Jos negalės prie jų prisijungti, nebent aiškiai suteiksite joms leidimą.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Leisti visoms svetainėms prašyti:</string>
+    <string name="sitePermissionsSettingsLocation">Vieta</string>
+    <string name="sitePermissionsSettingsCamera">Fotoaparatas</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofonas</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Tvarkyti svetaines</string>
+    <string name="sitePermissionsSettingsEmptyText">Svetainių dar nėra</string>
+    <string name="permissionPerWebsiteText">Leidimai „%1$s“ </string>
+    <string name="permissionsPerWebsiteAskSetting">Klausti</string>
+    <string name="permissionsPerWebsiteDenySetting">Atsisakyti</string>
+    <string name="permissionsPerWebsiteAllowSetting">Leisti</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s leidimas %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automatinis pildymas</string>
 
 </resources>

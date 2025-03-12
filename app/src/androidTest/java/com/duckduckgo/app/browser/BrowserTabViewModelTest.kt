@@ -24,8 +24,10 @@ import android.view.MenuItem
 import android.view.View
 import android.webkit.GeolocationPermissions
 import android.webkit.HttpAuthHandler
+import android.webkit.PermissionRequest
 import android.webkit.WebView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.room.Room
@@ -49,11 +51,12 @@ import com.duckduckgo.app.bookmarks.model.SavedSite.Bookmark
 import com.duckduckgo.app.bookmarks.model.SavedSite.Favorite
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command.LoadExtractedUrl
-import com.duckduckgo.app.browser.BrowserTabViewModel.Command.Navigate
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command.ShowBackNavigationHistory
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command.ShowPrivacyProtectionDisabledConfirmation
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command.ShowPrivacyProtectionEnabledConfirmation
 import com.duckduckgo.app.browser.BrowserTabViewModel.HighlightableButton
+import com.duckduckgo.app.browser.BrowserTabViewModel.NavigationCommand
+import com.duckduckgo.app.browser.BrowserTabViewModel.NavigationCommand.Navigate
 import com.duckduckgo.app.browser.LongPressHandler.RequiredAction.DownloadFile
 import com.duckduckgo.app.browser.LongPressHandler.RequiredAction.OpenInNewTab
 import com.duckduckgo.app.browser.addtohome.AddToHomeCapabilityDetector
@@ -127,15 +130,16 @@ import com.duckduckgo.downloads.api.DownloadStateListener
 import com.duckduckgo.downloads.api.FileDownloader
 import com.duckduckgo.downloads.api.FileDownloader.PendingFileDownload
 import com.duckduckgo.feature.toggles.api.FeatureToggle
+import com.duckduckgo.mobile.android.ui.store.AppTheme
 import com.duckduckgo.privacy.config.api.*
 import com.duckduckgo.privacy.config.impl.features.gpc.RealGpc
 import com.duckduckgo.privacy.config.impl.features.gpc.RealGpc.Companion.GPC_HEADER
 import com.duckduckgo.privacy.config.impl.features.gpc.RealGpc.Companion.GPC_HEADER_VALUE
-import com.duckduckgo.privacy.config.impl.features.unprotectedtemporary.UnprotectedTemporary
 import com.duckduckgo.privacy.config.store.features.gpc.GpcRepository
 import com.duckduckgo.remote.messaging.api.Content
 import com.duckduckgo.remote.messaging.api.RemoteMessage
 import com.duckduckgo.remote.messaging.api.RemoteMessagingRepository
+import com.duckduckgo.site.permissions.api.SitePermissionsManager
 import com.duckduckgo.voice.api.VoiceSearchAvailability
 import com.duckduckgo.voice.api.VoiceSearchAvailabilityPixelLogger
 import org.mockito.kotlin.*
@@ -325,6 +329,9 @@ class BrowserTabViewModelTest {
     @Mock
     private lateinit var mockAdClickManager: AdClickManager
 
+    @Mock
+    private lateinit var mockSitePermissionsManager: SitePermissionsManager
+
     private lateinit var remoteMessagingModel: RemoteMessagingModel
 
     private val lazyFaviconManager = Lazy { mockFaviconManager }
@@ -375,6 +382,8 @@ class BrowserTabViewModelTest {
 
     private val mockAutofillStore: AutofillStore = mock()
 
+    private val mockAppTheme: AppTheme = mock()
+
     @Before
     fun before() {
         MockitoAnnotations.openMocks(this)
@@ -410,7 +419,8 @@ class BrowserTabViewModelTest {
             userStageStore = mockUserStageStore,
             tabRepository = mockTabRepository,
             dispatchers = coroutineRule.testDispatcherProvider,
-            duckDuckGoUrlDetector = DuckDuckGoUrlDetector()
+            duckDuckGoUrlDetector = DuckDuckGoUrlDetector(),
+            appTheme = mockAppTheme,
         )
 
         val siteFactory = SiteFactory(mockPrivacyPractices, mockEntityLookup)
@@ -458,7 +468,7 @@ class BrowserTabViewModelTest {
             navigationAwareLoginDetector = mockNavigationAwareLoginDetector,
             userEventsStore = mockUserEventsStore,
             fileDownloader = mockFileDownloader,
-            gpc = RealGpc(context, mockFeatureToggle, mockGpcRepository, mockUnprotectedTemporary),
+            gpc = RealGpc(mockFeatureToggle, mockGpcRepository, mockUnprotectedTemporary),
             fireproofDialogsEventHandler = fireproofDialogsEventHandler,
             emailManager = mockEmailManager,
             favoritesRepository = mockFavoritesRepository,
@@ -474,7 +484,8 @@ class BrowserTabViewModelTest {
             voiceSearchPixelLogger = voiceSearchPixelLogger,
             settingsDataStore = mockSettingsDataStore,
             autofillStore = mockAutofillStore,
-            adClickManager = mockAdClickManager
+            adClickManager = mockAdClickManager,
+            sitePermissionsManager = mockSitePermissionsManager
         )
 
         testee.loadData("abc", null, false, false)
@@ -1397,7 +1408,7 @@ class BrowserTabViewModelTest {
         assertFalse(findInPageViewState().visible)
         assertCommandIssued<Command.DismissFindInPage>()
 
-        val issuedCommand = commandCaptor.allValues.find { it is Command.NavigateBack }
+        val issuedCommand = commandCaptor.allValues.find { it is NavigationCommand.NavigateBack }
         assertNull(issuedCommand)
     }
 
@@ -1453,7 +1464,7 @@ class BrowserTabViewModelTest {
     fun whenUserBrowsingPressesForwardThenNavigatesForward() {
         setBrowserShowing(true)
         testee.onUserPressedForward()
-        assertTrue(captureCommands().lastValue == Command.NavigateForward)
+        assertTrue(captureCommands().lastValue == NavigationCommand.NavigateForward)
     }
 
     @Test
@@ -1461,7 +1472,7 @@ class BrowserTabViewModelTest {
         setBrowserShowing(false)
         testee.onUserPressedForward()
         assertTrue(browserViewState().browserShowing)
-        assertTrue(captureCommands().lastValue == Command.Refresh)
+        assertTrue(captureCommands().lastValue == NavigationCommand.Refresh)
     }
 
     @Test
@@ -1491,7 +1502,7 @@ class BrowserTabViewModelTest {
     @Test
     fun whenRefreshRequestedWithBrowserGlobalLayoutThenRefresh() {
         testee.onRefreshRequested()
-        assertCommandIssued<Command.Refresh>()
+        assertCommandIssued<NavigationCommand.Refresh>()
     }
 
     @Test
@@ -1550,7 +1561,7 @@ class BrowserTabViewModelTest {
         setupNavigation(isBrowsing = true, canGoBack = true, stepsToPreviousPage = 2)
         assertTrue(testee.onUserPressedBack())
 
-        val backCommand = captureCommands().lastValue as Command.NavigateBack
+        val backCommand = captureCommands().lastValue as NavigationCommand.NavigateBack
         assertNotNull(backCommand)
         assertEquals(2, backCommand.steps)
     }
@@ -1592,7 +1603,7 @@ class BrowserTabViewModelTest {
         testee.onChangeBrowserModeClicked()
         verify(mockCommandObserver, atLeastOnce()).onChanged(commandCaptor.capture())
         val ultimateCommand = commandCaptor.lastValue
-        assertTrue(ultimateCommand == Command.Refresh)
+        assertTrue(ultimateCommand == NavigationCommand.Refresh)
     }
 
     @Test
@@ -1602,7 +1613,7 @@ class BrowserTabViewModelTest {
         testee.onChangeBrowserModeClicked()
         verify(mockCommandObserver, atLeastOnce()).onChanged(commandCaptor.capture())
         val ultimateCommand = commandCaptor.lastValue
-        assertTrue(ultimateCommand == Command.Refresh)
+        assertTrue(ultimateCommand == NavigationCommand.Refresh)
     }
 
     @Test
@@ -1612,7 +1623,7 @@ class BrowserTabViewModelTest {
         testee.onChangeBrowserModeClicked()
         verify(mockCommandObserver, atLeastOnce()).onChanged(commandCaptor.capture())
         val ultimateCommand = commandCaptor.lastValue
-        assertTrue(ultimateCommand == Command.Refresh)
+        assertTrue(ultimateCommand == NavigationCommand.Refresh)
     }
 
     @Test
@@ -1660,7 +1671,7 @@ class BrowserTabViewModelTest {
         testee.onPrivacyProtectionMenuClicked()
         verify(mockUserWhitelistDao).insert(UserWhitelistedDomain("www.example.com"))
         verify(mockPixel).fire(AppPixelName.BROWSER_MENU_WHITELIST_ADD)
-        verify(mockCommandObserver).onChanged(Command.Refresh)
+        verify(mockCommandObserver).onChanged(NavigationCommand.Refresh)
     }
 
     @Test
@@ -1680,7 +1691,7 @@ class BrowserTabViewModelTest {
         testee.onPrivacyProtectionMenuClicked()
         verify(mockUserWhitelistDao).delete(UserWhitelistedDomain("www.example.com"))
         verify(mockPixel).fire(AppPixelName.BROWSER_MENU_WHITELIST_REMOVE)
-        verify(mockCommandObserver).onChanged(Command.Refresh)
+        verify(mockCommandObserver).onChanged(NavigationCommand.Refresh)
     }
 
     @Test
@@ -2118,7 +2129,7 @@ class BrowserTabViewModelTest {
     }
 
     @Test
-    fun whenCtaShownThenFirePixel() {
+    fun whenCtaShownThenFirePixel() = runTest {
         val cta = HomePanelCta.Survey(Survey("abc", "http://example.com", daysInstalled = 1, status = Survey.Status.SCHEDULED))
         testee.ctaViewState.value = BrowserTabViewModel.CtaViewState(cta = cta)
 
@@ -2133,6 +2144,23 @@ class BrowserTabViewModelTest {
 
         testee.registerDaxBubbleCtaDismissed()
         verify(mockDismissedCtaDao).insert(DismissedCta(cta.ctaId))
+    }
+
+    @Test
+    fun whenRegisterDaxBubbleCtaDismissedThenCtaChangedToNull() = runTest {
+        val cta = DaxBubbleCta.DaxIntroCta(mockOnboardingStore, mockAppInstallStore)
+        testee.ctaViewState.value = BrowserTabViewModel.CtaViewState(cta = cta)
+
+        testee.registerDaxBubbleCtaDismissed()
+        assertNull(testee.ctaViewState.value!!.cta)
+    }
+
+    @Test
+    fun whenRefreshCtaIfCtaAlreadyShownForCurrentPageThenReturnNull() = runTest {
+        setBrowserShowing(isBrowsing = true)
+        testee.hasCtaBeenShownForCurrentPage.set(true)
+
+        assertNull(testee.refreshCta())
     }
 
     @Test
@@ -2169,6 +2197,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenSurveyCtaDismissedAndNoOtherCtaPossibleCtaIsNull() = runTest {
+        setBrowserShowing(isBrowsing = false)
         whenever(mockWidgetCapabilities.hasInstalledWidgets).thenReturn(true)
 
         givenShownCtas(CtaId.DAX_INTRO, CtaId.DAX_END)
@@ -2179,6 +2208,7 @@ class BrowserTabViewModelTest {
 
     @Test
     fun whenSurveyCtaDismissedAndWidgetCtaIsPossibleThenNextCtaIsWidget() = runTest {
+        setBrowserShowing(isBrowsing = false)
         whenever(mockWidgetCapabilities.supportsAutomaticWidgetAdd).thenReturn(true)
         whenever(mockWidgetCapabilities.hasInstalledWidgets).thenReturn(false)
 
@@ -2210,7 +2240,7 @@ class BrowserTabViewModelTest {
         setCta(cta)
         testee.onDaxDialogDismissed()
         val command = captureCommands().lastValue
-        assertTrue(command is Command.DaxCommand.FinishTrackerAnimation)
+        assertTrue(command is Command.DaxCommand.FinishPartialTrackerAnimation)
     }
 
     @Test
@@ -2218,7 +2248,7 @@ class BrowserTabViewModelTest {
         val cta = DaxDialogCta.DaxSerpCta(mockOnboardingStore, mockAppInstallStore)
         setCta(cta)
         testee.onDaxDialogDismissed()
-        assertCommandNotIssued<Command.DaxCommand.FinishTrackerAnimation>()
+        assertCommandNotIssued<Command.DaxCommand.FinishPartialTrackerAnimation>()
     }
 
     @Test
@@ -3781,6 +3811,13 @@ class BrowserTabViewModelTest {
     }
 
     @Test
+    fun whenPageChangedThenSetCtaBeenShownForCurrentPageToFalse() {
+        testee.hasCtaBeenShownForCurrentPage.set(true)
+        loadUrl(url = "www.example.com", isBrowserShowing = true)
+        assertFalse(testee.hasCtaBeenShownForCurrentPage.get())
+    }
+
+    @Test
     fun whenPageChangedAndIsAppLinkThenUpdatePreviousAppLink() {
         val appLink = SpecialUrlDetector.UrlType.AppLink(uriString = "www.example.com")
         whenever(mockSpecialUrlDetector.determineType(anyString())).thenReturn(appLink)
@@ -4173,6 +4210,63 @@ class BrowserTabViewModelTest {
         verify(mockAutofillStore).updateCredentials(url, credentials)
     }
 
+    @Test
+    fun whenOnAutoconsentResultReceivedThenSiteUpdated() {
+        updateUrl("http://www.example.com/", "http://twitter.com/explore", true)
+        testee.onAutoconsentResultReceived(consentManaged = true, optOutFailed = true, selfTestFailed = true)
+        assertTrue(testee.siteLiveData.value?.consentManaged!!)
+        assertTrue(testee.siteLiveData.value?.consentOptOutFailed!!)
+        assertTrue(testee.siteLiveData.value?.consentSelfTestFailed!!)
+    }
+
+    @Test
+    fun givenPermissionsAlreadyGrantedWhenWebsiteRequestsSitePermissionThenGrantItAutomatically() = runTest {
+        val request: PermissionRequest = mock()
+        val permissionsGranted = arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE, PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+        whenever(mockSitePermissionsManager.getSitePermissionsGranted(any(), any(), any())).thenReturn(permissionsGranted)
+
+        givenSitePermissionsRequestFromDomain(request)
+
+        assertCommandIssued<Command.GrantSitePermissionRequest> {
+            assertEquals(this.request, request)
+            assertArrayEquals(this.sitePermissionsToGrant, permissionsGranted)
+        }
+    }
+
+    @Test
+    fun givenPermissionNeverGrantedWhenWebsiteRequestsSitePermissionThenGrantItAutomatically() = runTest {
+        val request: PermissionRequest = mock()
+        val permissionsGranted = arrayOf<String>()
+        val permissionsToAsk = arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE, PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+        whenever(mockSitePermissionsManager.getSitePermissionsGranted(any(), any(), any())).thenReturn(permissionsGranted)
+
+        givenSitePermissionsRequestFromDomain(request)
+
+        assertCommandIssued<Command.ShowSitePermissionsDialog> {
+            assertEquals(this.request, request)
+            assertArrayEquals(this.permissionsToRequest, permissionsToAsk)
+        }
+    }
+
+    @Test
+    fun whenOnePermissionIsGrantedAndOtherNeedsToBeRequestedThenBothCommandsAreCalled() = runTest {
+        val request: PermissionRequest = mock()
+        val permissionsGranted = arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+        val permissionsToAsk = arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+        whenever(mockSitePermissionsManager.getSitePermissionsGranted(any(), any(), any())).thenReturn(permissionsGranted)
+
+        givenSitePermissionsRequestFromDomain(request)
+
+        assertCommandIssued<Command.GrantSitePermissionRequest> {
+            assertEquals(this.request, request)
+            assertArrayEquals(this.sitePermissionsToGrant, permissionsGranted)
+        }
+        assertCommandIssued<Command.ShowSitePermissionsDialog> {
+            assertEquals(this.request, request)
+            assertArrayEquals(this.permissionsToRequest, permissionsToAsk)
+        }
+    }
+
     private fun assertShowHistoryCommandSent(expectedStackSize: Int) {
         assertCommandIssued<ShowBackNavigationHistory> {
             assertEquals(expectedStackSize, history.size)
@@ -4228,6 +4322,11 @@ class BrowserTabViewModelTest {
         permission: LocationPermissionType
     ) {
         locationPermissionsDao.insert(LocationPermissionEntity(domain, permission))
+    }
+
+    private fun givenSitePermissionsRequestFromDomain(request: PermissionRequest) {
+        whenever(request.origin).thenReturn("https://example.com".toUri())
+        testee.onSitePermissionRequested(request, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE, PermissionRequest.RESOURCE_VIDEO_CAPTURE))
     }
 
     class StubPermissionCallback : GeolocationPermissions.Callback {

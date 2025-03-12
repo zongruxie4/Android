@@ -19,9 +19,9 @@ package com.duckduckgo.mobile.android.vpn.apps
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import com.duckduckgo.app.global.DispatcherProvider
-import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.di.scopes.AppScope
 import com.duckduckgo.mobile.android.vpn.feature.AppTpFeatureConfig
+import com.duckduckgo.mobile.android.vpn.feature.AppTpSetting
 import com.duckduckgo.mobile.android.vpn.trackers.AppTrackerExcludedPackage
 import com.duckduckgo.mobile.android.vpn.trackers.AppTrackerManualExcludedApp
 import com.duckduckgo.mobile.android.vpn.trackers.AppTrackerRepository
@@ -60,9 +60,8 @@ interface TrackingProtectionAppsRepository {
 class RealTrackingProtectionAppsRepository @Inject constructor(
     private val packageManager: PackageManager,
     private val appTrackerRepository: AppTrackerRepository,
-    private val appBuildConfig: AppBuildConfig,
+    private val dispatcherProvider: DispatcherProvider,
     private val appTpFeatureConfig: AppTpFeatureConfig,
-    private val dispatcherProvider: DispatcherProvider
 ) : TrackingProtectionAppsRepository {
 
     private var installedApps: Sequence<ApplicationInfo> = emptySequence()
@@ -145,7 +144,7 @@ class RealTrackingProtectionAppsRepository @Inject constructor(
             return !userExcludedApp.isProtected
         }
 
-        if (appInfo.isGame()) {
+        if (appInfo.isGame() && !appTpFeatureConfig.isEnabled(AppTpSetting.ProtectGames)) {
             return true
         }
 
@@ -162,7 +161,7 @@ class RealTrackingProtectionAppsRepository @Inject constructor(
         if (ddgExclusionList.any { it.packageId == appInfo.packageName }) {
             return TrackingProtectionAppInfo.KNOWN_ISSUES_EXCLUSION_REASON
         }
-        if (appInfo.isGame()) {
+        if (appInfo.isGame() && !appTpFeatureConfig.isEnabled(AppTpSetting.ProtectGames)) {
             return TrackingProtectionAppInfo.KNOWN_ISSUES_EXCLUSION_REASON
         }
         return TrackingProtectionAppInfo.NO_ISSUES
@@ -196,19 +195,13 @@ class RealTrackingProtectionAppsRepository @Inject constructor(
 
     override suspend fun isAppProtectionEnabled(packageName: String): Boolean {
         Timber.d("TrackingProtectionAppsRepository: Checking $packageName protection status")
+        val appInfo = runCatching { packageManager.getApplicationInfo(packageName, 0) }.getOrElse { return true }
         val appExclusionList = appTrackerRepository.getAppExclusionList()
         val manualAppExclusionList = appTrackerRepository.getManualAppExclusionList()
 
-        if (appTrackerRepository.getSystemAppOverrideList().map { it.packageId }.contains(packageName)) {
-            return true
-        }
+        val isExcluded = shouldBeExcluded(appInfo, appExclusionList, manualAppExclusionList)
 
-        val userExcludedApp = manualAppExclusionList.find { it.packageId == packageName }
-        if (userExcludedApp != null) {
-            return userExcludedApp.isProtected
-        }
-
-        return !appExclusionList.any { it.packageId == packageName }
+        return !isExcluded
     }
 
     companion object {

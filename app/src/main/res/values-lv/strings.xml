@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Iestatījumi</string>
     <string name="settingsMenuItemTitle">Iestatījumi</string>
-    <string name="settingsHeadingGeneral">Vispārīgi</string>
-    <string name="settingsHeadingOther">Citi</string>
     <string name="settingsHeadingPrivacy">Privātums</string>
     <string name="settingsAboutDuckduckgo">Par DuckDuckGo</string>
     <string name="settingsVersion">Versija</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Jautāt katru reizi</string>
     <string name="settingsAppLinksAlways">Vienmēr</string>
     <string name="settingsAppLinksNever">Nekad</string>
+    <string name="settingsHeadingAppearance">Izskats</string>
+    <string name="settingsHeadingCustomize">Pielāgošana</string>
+    <string name="settingsHeadingAbout">Par</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Saglabāt</string>
@@ -593,7 +594,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Tikai šai sesijai</string>
     <string name="preciseLocationSiteDialogDenyAlways">Vienmēr aizliegt</string>
     <string name="preciseLocationSiteDialogDenyOnce">Aizliegt šai sesijai</string>
-    <string name="settingsPreciseLocation">Atrašanās vieta</string>
     <string name="preciseLocationFeatureDescription">Apmeklētās vietnes var prasīt atklāt tavas ierīces atrašanās vietu. Tās nevarēs tai piekļūt, ja tu skaidri nepiešķirsi atļauju. DuckDuckGo izmanto tavu atrašanās vietu tikai anonīmi, lai nodrošinātu lokālās meklēšanas rezultātus.</string>
     <string name="preciseLocationToggleText">Vietnes var pieprasīt manu atrašanās vietu</string>
     <string name="preciseLocationEmptyListHint">Nevienai vietnei nav piešķirta atļauja piekļūt atrašanās vietai</string>
@@ -637,52 +637,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Bloķē e-pasta izsekotājus un paslēpj tavu adresi</string>
     <string name="newEmailAliasMenuTitle">Izveidot Duck adresi</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Vai noņemt e-pasta aizsardzību?</string>
-    <string name="emailSignOutDialogText">Piezīme: noņemot e-pasta aizsardzību no šīs ierīces, tava Duck adrese netiks dzēsta.</string>
-    <string name="emailSignOutDialogCancel">Atcelt</string>
-    <string name="emailSignOutDialogDisable">Noņemt</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">E-pasta nogaides saraksts</string>
-    <string name="waitlistNotificationTitle">E-pasta aizsardzība ir gatava!</string>
-    <string name="waitlistNotificationDescription">Atver savu ielūgumu</string>
-
     <string name="waitlistNotificationDialogDescription">Vai vēlies, lai mēs nosūtām tev paziņojumu, kad pienāks tava kārta?</string>
     <string name="waitlistNotificationDialogNoThanks">Nē, paldies</string>
     <string name="waitlistNotificationDialogNotifyMe">INFORMĒT MANI</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">E-pasta aizsardzība (Beta)</string>
     <string name="emailProtectionActivityTitle">E-pasta aizsardzība (Beta)</string>
-    <string name="emailProtectionFooterDescription">Lai pievienotos gaidīšanas sarakstam, tev nav jādalās ar personisku informāciju. Tu ieņemsi vietu rindā, izmantojot laikspiedolu, kas pastāv tikai tavā ierīcē, lai mēs varētu tevi informēt, kad pienāks tava kārta.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Radās kļūda, pievienojoties nogaides sarakstam. Lūdzu, mēģini vēlāk vēlreiz.</string>
-    <string name="emailProtectionDuckAddressCta">Man jau ir Duck adrese</string>
-    <string name="emailProtectionInviteCodeCta">Man ir uzaicinājuma kods</string>
-    <string name="emailProtectionWaitlistCta">Pievienojies privātajam nogaides sarakstam</string>
-    <string name="emailProtectionGetStartedCta">Sākt darbu</string>
     <string name="emailNotSupported">Ierīce netiek atbalstīta</string>
     <string name="emailNotSupportedExplanation">E-pasta aizsardzība ļauj izveidot privātas e-pasta adreses, kas noņem e-pasta izsekotājus. Mums ir jāšifrē un jāsaglabā šīs tavā ierīcē vietēji izveidotās adreses. Tā kā tava ierīce neatbalsta šifrētu krātuvi, e-pasta aizsardzība nav pieejama.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">E-pasta konfidencialitāte, vienkāršota.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Bloķē e-pasta izsekotājus un paslēp savu adresi, nemainot e-pasta pakalpojumu sniedzēju.<br /><a href=\"\"><b>Uzzini vairāk</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Tu esi sarakstā!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Mēs nosūtīsim tev paziņojumu, kad<br/> e-pasta aizsardzība būs sagatavota. <a href=\"\"><b>Uzzini vairāk</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Tavs uzaicinājums būs redzams šeit, kad tas būs sagatavots. Vai vēlies <a href=\"\"><b>saņemt paziņojumu</b></a>, kad tas tiks nosūtīts?<br/><a href=\"\"><b>Uzzini vairāk</b></a> par e-pasta aizsardzību.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Tu esi uzaicināts(-ta)!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Bloķē e-pasta izsekotājus un paslēp savu adresi,<br/>nemainot e-pasta pakalpojumu sniedzēju.<br/><a href=\"\"><b>Uzzini vairāk</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Personīgā Duck adrese</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Noņemot e-pasta aizsardzību no šīs ierīces, tīmekļa pārlūkošanas laikā tiek noņemta iespēja e-pasta laukos ievadīt tavu personisko Duck adresi vai tikko ģenerēto privāto Duck adresi.<br/><br/>Lai pilnībā dzēstu savas Duck adreses vai gadījumā, ja tev ir kādi citi jautājumi vai atsauksmes, sazinies ar mums pa e-pastu <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Noņemt no ierīces</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Rediģēt grāmatzīmi</string>
@@ -725,8 +688,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Pārlūko privāti, izmantojot mūsu Mac lietotni</string>
-    <string name="macos_settings_description_list">Tu esi sarakstā!</string>
-    <string name="macos_settings_description_ready">Pieejams lejupielādei Mac datorā</string>
     <string name="macos_settings_title">DuckDuckGo darbvirsmas lietotne</string>
 
     <!-- Downloads -->
@@ -752,5 +713,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Lietotņu izsekotāju bloķēšana ierīcē</string>
     <string name="atp_SettingsDeviceShieldEnabled">Iespējots</string>
     <string name="atp_SettingsDeviceShieldDisabled">Atspējots</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Izskatās, ka šajā vietnē ir sīkfailu piekrišanas uznirstošais logs👇</string>
+    <string name="autoconsentDialogDescription">Vai vēlies, lai es tos apstrādāju tavā vietā? Es varu mēģināt samazināt sīkfailus, maksimāli pastiprināt privātumu un paslēpt šādus uznirstošos logus.</string>
+    <string name="autoconsentPrimaryCta">Pārvaldīt sīkfailu uznirstošos logus</string>
+    <string name="autoconsentSecondaryCta">Nē, paldies</string>
+
+    <string name="autoconsentSetting">Pārvaldīt sīkfailu uznirstošos logus</string>
+    <string name="autoconsentAnimationText">Pārvaldītie sīkfaili</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Vietnes atļaujas</string>
+    <string name="sitePermissionsSettingsDescription">Apmeklētās vietnes var prasīt piekļuvi tavas ierīces atrašanās vietai, kamerai vai mikrofonam. Tās nevarēs tiem piekļūt, ja vien īpaši nedosi attiecīgo atļauju.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Ļaut visām vietnēm prasīt:</string>
+    <string name="sitePermissionsSettingsLocation">Atrašanās vieta</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofons</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Pārvaldīt vietnes</string>
+    <string name="sitePermissionsSettingsEmptyText">Vēl nav nevienas vietnes</string>
+    <string name="permissionPerWebsiteText">Atļaujas vietnei \"%1$s\" </string>
+    <string name="permissionsPerWebsiteAskSetting">Jautāt</string>
+    <string name="permissionsPerWebsiteDenySetting">Liegt</string>
+    <string name="permissionsPerWebsiteAllowSetting">Atļaut</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s – atļauja vietnei %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automātiska aizpilde</string>
 
 </resources>

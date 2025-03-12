@@ -25,6 +25,7 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.webkit.GeolocationPermissions
+import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -36,6 +37,7 @@ import androidx.lifecycle.Observer
 import com.duckduckgo.adclick.api.AdClickManager
 import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.app.accessibility.data.AccessibilitySettingsDataStore
+import com.duckduckgo.app.accessibility.data.AccessibilitySettingsSharedPreferences.Companion.FONT_SIZE_DEFAULT
 import com.duckduckgo.app.autocomplete.api.AutoComplete
 import com.duckduckgo.app.autocomplete.api.AutoComplete.AutoCompleteResult
 import com.duckduckgo.app.autocomplete.api.AutoComplete.AutoCompleteSuggestion
@@ -121,6 +123,8 @@ import com.duckduckgo.downloads.api.FileDownloader
 import com.duckduckgo.downloads.api.FileDownloader.PendingFileDownload
 import com.duckduckgo.privacy.config.api.*
 import com.duckduckgo.remote.messaging.api.RemoteMessage
+import com.duckduckgo.privacy.config.api.TrackingParameters
+import com.duckduckgo.site.permissions.api.SitePermissionsManager
 import com.duckduckgo.voice.api.VoiceSearchAvailability
 import com.duckduckgo.voice.api.VoiceSearchAvailabilityPixelLogger
 import com.jakewharton.rxrelay2.PublishRelay
@@ -132,6 +136,7 @@ import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @ContributesViewModel(FragmentScope::class)
@@ -177,7 +182,8 @@ class BrowserTabViewModel @Inject constructor(
     private val voiceSearchPixelLogger: VoiceSearchAvailabilityPixelLogger,
     private val settingsDataStore: SettingsDataStore,
     private val autofillStore: AutofillStore,
-    private val adClickManager: AdClickManager
+    private val adClickManager: AdClickManager,
+    private val sitePermissionsManager: SitePermissionsManager
 ) : WebViewClientListener,
     EditSavedSiteListener,
     HttpAuthenticationListener,
@@ -278,9 +284,9 @@ class BrowserTabViewModel @Inject constructor(
     )
 
     data class AccessibilityViewState(
-        val fontSize: Float,
-        val forceZoom: Boolean,
-        val refreshWebView: Boolean
+        val fontSize: Float = FONT_SIZE_DEFAULT,
+        val forceZoom: Boolean = false,
+        val refreshWebView: Boolean = false
     )
 
     data class FindInPageViewState(
@@ -312,14 +318,6 @@ class BrowserTabViewModel @Inject constructor(
     )
 
     sealed class Command {
-        object Refresh : Command()
-        class Navigate(
-            val url: String,
-            val headers: Map<String, String>
-        ) : Command()
-
-        class NavigateBack(val steps: Int) : Command()
-        object NavigateForward : Command()
         class OpenInNewTab(
             val query: String,
             val sourceTabId: String? = null
@@ -431,7 +429,7 @@ class BrowserTabViewModel @Inject constructor(
         class InjectEmailAddress(val address: String) : Command()
         class ShowEmailTooltip(val address: String) : Command()
         sealed class DaxCommand : Command() {
-            object FinishTrackerAnimation : DaxCommand()
+            object FinishPartialTrackerAnimation : DaxCommand()
             class HideDaxDialog(val cta: Cta) : DaxCommand()
         }
         class InjectCredentials(val url: String, val credentials: LoginCredentials) : Command()
@@ -441,6 +439,26 @@ class BrowserTabViewModel @Inject constructor(
         class ShowBackNavigationHistory(val history: List<NavigationHistoryEntry>) : Command()
         class NavigateToHistory(val historyStackIndex: Int) : Command()
         object EmailSignEvent : Command()
+        class ShowSitePermissionsDialog(
+            val permissionsToRequest: Array<String>,
+            val request: PermissionRequest
+        ) : Command()
+        class GrantSitePermissionRequest(
+            val sitePermissionsToGrant: Array<String>,
+            val request: PermissionRequest
+        ) : Command()
+    }
+
+    sealed class NavigationCommand : Command() {
+        class NavigateToHistory(val historyStackIndex: Int) : Command()
+        object Refresh : NavigationCommand()
+        class Navigate(
+            val url: String,
+            val headers: Map<String, String>
+        ) : NavigationCommand()
+
+        class NavigateBack(val steps: Int) : NavigationCommand()
+        object NavigateForward : NavigationCommand()
     }
 
     val autoCompleteViewState: MutableLiveData<AutoCompleteViewState> = MutableLiveData()
@@ -455,6 +473,7 @@ class BrowserTabViewModel @Inject constructor(
     val privacyGradeViewState: MutableLiveData<PrivacyGradeViewState> = MutableLiveData()
 
     var skipHome = false
+    var hasCtaBeenShownForCurrentPage: AtomicBoolean = AtomicBoolean(false)
     val tabs: LiveData<List<TabEntity>> = tabRepository.liveTabs
     val survey: LiveData<Survey> = ctaViewModel.surveyLiveData
     val command: SingleLiveEvent<Command> = SingleLiveEvent()
@@ -859,7 +878,7 @@ class BrowserTabViewModel @Inject constructor(
                     clearPreviousUrl()
                 }
 
-                command.value = Navigate(urlToNavigate, getUrlHeaders(urlToNavigate))
+                command.value = NavigationCommand.Navigate(urlToNavigate, getUrlHeaders(urlToNavigate))
             }
         }
 
@@ -996,9 +1015,9 @@ class BrowserTabViewModel @Inject constructor(
         navigationAwareLoginDetector.onEvent(NavigationEvent.UserAction.NavigateForward)
         if (!currentBrowserViewState().browserShowing) {
             browserViewState.value = browserStateModifier.copyForBrowserShowing(currentBrowserViewState())
-            command.value = Refresh
+            command.value = NavigationCommand.Refresh
         } else {
-            command.value = NavigateForward
+            command.value = NavigationCommand.NavigateForward
         }
     }
 
@@ -1011,7 +1030,7 @@ class BrowserTabViewModel @Inject constructor(
         if (currentGlobalLayoutState() is Invalidated) {
             recoverTabWithQuery(url.orEmpty())
         } else {
-            command.value = Refresh
+            command.value = NavigationCommand.Refresh
         }
     }
 
@@ -1036,7 +1055,7 @@ class BrowserTabViewModel @Inject constructor(
         }
 
         if (navigation.canGoBack) {
-            command.value = NavigateBack(navigation.stepsToPreviousPage)
+            command.value = NavigationCommand.NavigateBack(navigation.stepsToPreviousPage)
             return true
         } else if (hasSourceTab) {
             viewModelScope.launch {
@@ -1104,6 +1123,7 @@ class BrowserTabViewModel @Inject constructor(
             is WebNavigationStateChange.PageCleared -> pageCleared()
             is WebNavigationStateChange.UrlUpdated -> urlUpdated(stateChange.url)
             is WebNavigationStateChange.PageNavigationCleared -> disableUserNavigation()
+            else -> {}
         }
 
         if (newWebNavigationState.progress ?: 0 >= SHOW_CONTENT_MIN_PROGRESS) {
@@ -1135,6 +1155,7 @@ class BrowserTabViewModel @Inject constructor(
         title: String?
     ) {
         Timber.v("Page changed: $url")
+        hasCtaBeenShownForCurrentPage.set(false)
         buildSiteFactory(url, title)
         setAdClickActiveTabData(url)
 
@@ -1174,8 +1195,6 @@ class BrowserTabViewModel @Inject constructor(
             showDaxIcon = shouldShowDaxIcon(url, true),
             canPrintPage = domain != null
         )
-
-        Timber.d("showPrivacyGrade=true, showSearchIcon=false, showClearButton=false")
 
         if (duckDuckGoUrlDetector.isDuckDuckGoQueryUrl(url)) {
             statisticsUpdater.refreshSearchRetentionAtb()
@@ -1358,7 +1377,6 @@ class BrowserTabViewModel @Inject constructor(
             showDaxIcon = false,
             canPrintPage = false
         )
-        Timber.d("showPrivacyGrade=false, showSearchIcon=true, showClearButton=true")
     }
 
     override fun pageRefreshed(refreshedUrl: String) {
@@ -1392,6 +1410,20 @@ class BrowserTabViewModel @Inject constructor(
         if (newProgress == 100) {
             command.value = RefreshUserAgent(url, currentBrowserViewState().isDesktopBrowsingMode)
             navigationAwareLoginDetector.onEvent(NavigationEvent.PageFinished)
+        }
+    }
+
+    override fun onSitePermissionRequested(request: PermissionRequest, sitePermissionsAllowedToAsk: Array<String>) {
+        viewModelScope.launch(dispatchers.io()) {
+            val url = request.origin.toString()
+            val sitePermissionsGranted = sitePermissionsManager.getSitePermissionsGranted(url, tabId, sitePermissionsAllowedToAsk)
+            val sitePermissionsToAsk = sitePermissionsAllowedToAsk.filter { !sitePermissionsGranted.contains(it) }.toTypedArray()
+            if (sitePermissionsGranted.isNotEmpty()) {
+                command.postValue(GrantSitePermissionRequest(sitePermissionsGranted, request))
+            }
+            if (sitePermissionsToAsk.isNotEmpty()) {
+                command.postValue(ShowSitePermissionsDialog(sitePermissionsToAsk, request))
+            }
         }
     }
 
@@ -1629,6 +1661,12 @@ class BrowserTabViewModel @Inject constructor(
     private fun enableUrlParametersRemovedFlag() {
         site?.urlParametersRemoved = true
         onSiteChanged()
+    }
+
+    fun onAutoconsentResultReceived(consentManaged: Boolean, optOutFailed: Boolean, selfTestFailed: Boolean) {
+        site?.consentManaged = consentManaged
+        site?.consentOptOutFailed = optOutFailed
+        site?.consentSelfTestFailed = selfTestFailed
     }
 
     private fun onSiteChanged() {
@@ -1972,7 +2010,7 @@ class BrowserTabViewModel @Inject constructor(
             } else {
                 addToWhitelist(domain)
             }
-            command.postValue(Refresh)
+            command.postValue(NavigationCommand.Refresh)
         }
     }
 
@@ -2003,7 +2041,7 @@ class BrowserTabViewModel @Inject constructor(
             userWhitelistDao.insert(domain)
             withContext(dispatchers.main()) {
                 browserViewState.value = currentBrowserViewState().copy(isPrivacyProtectionEnabled = true)
-                command.value = Refresh
+                command.value = NavigationCommand.Refresh
             }
         }
     }
@@ -2013,7 +2051,7 @@ class BrowserTabViewModel @Inject constructor(
             userWhitelistDao.delete(domain)
             withContext(dispatchers.main()) {
                 browserViewState.value = currentBrowserViewState().copy(isPrivacyProtectionEnabled = false)
-                command.value = Refresh
+                command.value = NavigationCommand.Refresh
             }
         }
     }
@@ -2124,31 +2162,47 @@ class BrowserTabViewModel @Inject constructor(
         if (desktopSiteRequested && uri.isMobileSite) {
             val desktopUrl = uri.toDesktopUri().toString()
             Timber.i("Original URL $url - attempting $desktopUrl with desktop site UA string")
-            command.value = Navigate(desktopUrl, getUrlHeaders(desktopUrl))
+            command.value = NavigationCommand.Navigate(desktopUrl, getUrlHeaders(desktopUrl))
         } else {
-            command.value = Refresh
+            command.value = NavigationCommand.Refresh
         }
     }
 
     private fun initializeViewStates() {
+        initializeDefaultViewStates()
+        viewModelScope.launch {
+            initializeViewStatesFromPersistedData()
+        }
+    }
+
+    private fun initializeDefaultViewStates() {
         globalLayoutState.value = Browser()
-        browserViewState.value = BrowserViewState().copy(
-            addToHomeVisible = addToHomeCapabilityDetector.isAddToHomeSupported(),
-            showAutofill = autofillStore.autofillAvailable
-        )
+        browserViewState.value = BrowserViewState()
         loadingViewState.value = LoadingViewState()
         autoCompleteViewState.value = AutoCompleteViewState()
-        omnibarViewState.value = OmnibarViewState(
-            showVoiceSearch = voiceSearchAvailability.shouldShowVoiceSearch()
-        )
+        omnibarViewState.value = OmnibarViewState()
         findInPageViewState.value = FindInPageViewState()
         ctaViewState.value = CtaViewState()
         privacyGradeViewState.value = PrivacyGradeViewState()
-        accessibilityViewState.value = AccessibilityViewState(
-            fontSize = accessibilitySettingsDataStore.fontSize,
-            forceZoom = accessibilitySettingsDataStore.forceZoom,
-            refreshWebView = false
-        )
+        accessibilityViewState.value = AccessibilityViewState()
+    }
+
+    private suspend fun initializeViewStatesFromPersistedData() {
+        withContext(dispatchers.io()) {
+            val addToHomeSupported = addToHomeCapabilityDetector.isAddToHomeSupported()
+            val showAutofill = autofillStore.autofillAvailable
+            val showVoiceSearch = voiceSearchAvailability.shouldShowVoiceSearch()
+
+            withContext(dispatchers.main()) {
+                browserViewState.value = currentBrowserViewState().copy(
+                    addToHomeVisible = addToHomeSupported,
+                    showAutofill = showAutofill
+                )
+                omnibarViewState.value = currentOmnibarViewState().copy(
+                    showVoiceSearch = showVoiceSearch
+                )
+            }
+        }
     }
 
     fun onShareSelected() {
@@ -2168,7 +2222,7 @@ class BrowserTabViewModel @Inject constructor(
     }
 
     override fun historicalPageSelected(stackIndex: Int) {
-        command.value = NavigateToHistory(stackIndex)
+        command.value = NavigationCommand.NavigateToHistory(stackIndex)
     }
 
     private fun removeAtbAndSourceParamsFromSearch(url: String): String {
@@ -2274,21 +2328,25 @@ class BrowserTabViewModel @Inject constructor(
 
     fun onCtaShown() {
         val cta = ctaViewState.value?.cta ?: return
-        ctaViewModel.onCtaShown(cta)
+        viewModelScope.launch(dispatchers.io()) {
+            ctaViewModel.onCtaShown(cta)
+        }
     }
 
     suspend fun refreshCta(locale: Locale = Locale.getDefault()): Cta? {
-        Timber.i("favoritesOnboarding: - refreshCta $showFavoritesOnboarding")
         if (currentGlobalLayoutState() is Browser) {
+            val isBrowserShowing = currentBrowserViewState().browserShowing
+            if (hasCtaBeenShownForCurrentPage.get() && isBrowserShowing) return null
             val cta = withContext(dispatchers.io()) {
                 ctaViewModel.refreshCta(
                     dispatchers.io(),
-                    currentBrowserViewState().browserShowing,
+                    isBrowserShowing,
                     siteLiveData.value,
                     showFavoritesOnboarding,
                     locale
                 )
             }
+            if (isBrowserShowing && cta != null) hasCtaBeenShownForCurrentPage.set(true)
             ctaViewState.value = currentCtaViewState().copy(cta = cta)
             ctaChangedTicker.emit(System.currentTimeMillis().toString())
             return cta
@@ -2304,6 +2362,7 @@ class BrowserTabViewModel @Inject constructor(
         viewModelScope.launch {
             val cta = ctaViewState.value?.cta ?: return@launch
             ctaViewModel.registerDaxBubbleCtaDismissed(cta)
+            ctaViewState.value = currentCtaViewState().copy(cta = null)
         }
     }
 
@@ -2365,7 +2424,7 @@ class BrowserTabViewModel @Inject constructor(
     fun onDaxDialogDismissed() {
         val cta = currentCtaViewState().cta ?: return
         if (cta is DaxDialogCta.DaxTrackersBlockedCta) {
-            command.value = DaxCommand.FinishTrackerAnimation
+            command.value = DaxCommand.FinishPartialTrackerAnimation
         }
         onUserDismissedCta()
     }
@@ -2680,14 +2739,14 @@ class BrowserTabViewModel @Inject constructor(
         command.postValue(CancelIncomingAutofillRequest(originalUrl))
     }
 
-    override fun saveCredentials(url: String, credentials: LoginCredentials) {
-        viewModelScope.launch {
+    override suspend fun saveCredentials(url: String, credentials: LoginCredentials): LoginCredentials? {
+        return withContext(appCoroutineScope.coroutineContext) {
             autofillStore.saveCredentials(url, credentials)
         }
     }
 
-    override fun updateCredentials(url: String, credentials: LoginCredentials) {
-        viewModelScope.launch {
+    override suspend fun updateCredentials(url: String, credentials: LoginCredentials): LoginCredentials? {
+        return withContext(appCoroutineScope.coroutineContext) {
             autofillStore.updateCredentials(url, credentials)
         }
     }

@@ -22,7 +22,7 @@ import com.duckduckgo.privacy.config.api.PrivacyFeatureName
 import com.duckduckgo.privacy.config.api.AmpLinks
 import com.duckduckgo.privacy.config.api.AmpLinkException
 import com.duckduckgo.privacy.config.api.AmpLinkType
-import com.duckduckgo.privacy.config.impl.features.unprotectedtemporary.UnprotectedTemporary
+import com.duckduckgo.privacy.config.api.UnprotectedTemporary
 import com.duckduckgo.privacy.config.store.features.amplinks.AmpLinksRepository
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -64,7 +64,7 @@ class AmpFormatReferenceTest(private val testCase: TestCase) {
             val test = adapter.fromJson(
                 FileUtilities.loadText(
                     AmpFormatReferenceTest::class.java.classLoader!!,
-                    "reference_tests/amplinks/amp_links_matching_tests.json"
+                    "reference_tests/amplinks/tests.json"
                 )
             )
             return test?.ampFormats?.tests ?: emptyList()
@@ -88,11 +88,12 @@ class AmpFormatReferenceTest(private val testCase: TestCase) {
         val ampLinkFormats = CopyOnWriteArrayList<Regex>()
         val jsonObject: JSONObject = FileUtilities.getJsonObjectFromFile(
             AmpFormatReferenceTest::class.java.classLoader!!,
-            "reference_tests/amplinks/amp_links_reference.json"
+            "reference_tests/amplinks/config_reference.json"
         )
+        val features: JSONObject = jsonObject.getJSONObject("features")
 
-        jsonObject.keys().forEach { key ->
-            val ampLinksFeature: AmpLinksFeature? = jsonAdapter.fromJson(jsonObject.get(key).toString())
+        features.keys().forEach { key ->
+            val ampLinksFeature: AmpLinksFeature? = jsonAdapter.fromJson(features.get(key).toString())
             exceptions.addAll(ampLinksFeature!!.exceptions)
             ampLinkFormats.addAll(ampLinksFeature.settings.linkFormats.map { it.toRegex(RegexOption.IGNORE_CASE) })
         }
@@ -116,5 +117,9 @@ class AmpFormatReferenceTest(private val testCase: TestCase) {
 
     data class ReferenceTest(
         val ampFormats: AmpFormatTest
+    )
+
+    data class Features(
+        val ampLink: JSONObject
     )
 }

@@ -98,7 +98,6 @@ import com.duckduckgo.app.email.EmailInjector
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteEntity
 import com.duckduckgo.app.fire.fireproofwebsite.data.website
 import com.duckduckgo.app.global.model.orderedTrackingEntities
-import com.duckduckgo.mobile.android.ui.view.DaxDialog
 import com.duckduckgo.mobile.android.ui.view.DaxDialogListener
 import com.duckduckgo.app.global.view.NonDismissibleBehavior
 import com.duckduckgo.app.global.view.TextChangedWatcher
@@ -138,8 +137,6 @@ import kotlinx.android.synthetic.main.include_omnibar_toolbar.view.*
 import kotlinx.android.synthetic.main.include_quick_access_items.*
 import kotlinx.android.synthetic.main.popup_window_browser_menu.view.*
 import com.duckduckgo.autofill.*
-import com.duckduckgo.autofill.CredentialAutofillPickerDialog.Companion.RESULT_KEY_CREDENTIAL_PICKER
-import com.duckduckgo.autofill.CredentialSavePickerDialog.Companion.RESULT_KEY_CREDENTIAL_RESULT_SAVE
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResultListener
 import kotlinx.coroutines.*
@@ -154,6 +151,7 @@ import com.duckduckgo.app.browser.urlextraction.UrlExtractingWebViewClient
 import android.content.pm.ResolveInfo
 import android.print.PrintAttributes
 import android.print.PrintManager
+import android.webkit.PermissionRequest
 import android.webkit.URLUtil
 import com.duckduckgo.app.bookmarks.model.SavedSite.Bookmark
 import com.duckduckgo.app.bookmarks.model.SavedSite.Favorite
@@ -162,13 +160,13 @@ import com.duckduckgo.app.browser.BrowserTabViewModel.AccessibilityViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.AutoCompleteViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.BrowserViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command
-import com.duckduckgo.app.browser.BrowserTabViewModel.Command.NavigateToHistory
 import com.duckduckgo.app.browser.BrowserTabViewModel.Command.ShowBackNavigationHistory
 import com.duckduckgo.app.browser.BrowserTabViewModel.CtaViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.FindInPageViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.GlobalLayoutViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.HighlightableButton
 import com.duckduckgo.app.browser.BrowserTabViewModel.LoadingViewState
+import com.duckduckgo.app.browser.BrowserTabViewModel.NavigationCommand
 import com.duckduckgo.app.browser.BrowserTabViewModel.OmnibarViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.PrivacyGradeViewState
 import com.duckduckgo.app.browser.BrowserTabViewModel.SavedSiteChangedViewState
@@ -179,6 +177,7 @@ import com.duckduckgo.app.downloads.DownloadsFileActions
 import com.duckduckgo.app.browser.menu.BrowserPopupMenu
 import com.duckduckgo.app.browser.print.PrintInjector
 import com.duckduckgo.app.browser.remotemessage.asMessage
+import com.duckduckgo.app.cta.ui.DaxDialogCta.DaxAutoconsentCta
 import com.duckduckgo.app.global.DuckDuckGoFragment
 import com.duckduckgo.app.global.FragmentViewModelFactory
 import com.duckduckgo.app.global.view.launchDefaultAppActivity
@@ -188,12 +187,13 @@ import com.duckduckgo.app.widget.AddWidgetLauncher
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.autofill.BrowserAutofill
 import com.duckduckgo.autofill.Callback
-import com.duckduckgo.autofill.CredentialUpdateExistingCredentialsDialog.Companion.RESULT_KEY_CREDENTIAL_RESULT_UPDATE
 import com.duckduckgo.autofill.domain.app.LoginCredentials
 import com.duckduckgo.autofill.domain.app.LoginTriggerType
 import com.duckduckgo.autofill.store.AutofillStore.ContainsCredentialsResult.*
 import com.duckduckgo.autofill.ui.AutofillSettingsActivityLauncher
 import com.duckduckgo.autofill.ui.ExistingCredentialMatchDetector
+import com.duckduckgo.autoconsent.api.Autoconsent
+import com.duckduckgo.autoconsent.api.AutoconsentCallback
 import com.duckduckgo.di.scopes.FragmentScope
 import com.duckduckgo.voice.api.VoiceSearchLauncher
 import com.duckduckgo.voice.api.VoiceSearchLauncher.Source.BROWSER
@@ -203,6 +203,9 @@ import com.duckduckgo.remote.messaging.api.RemoteMessage
 import com.duckduckgo.downloads.api.DownloadCommand
 import com.duckduckgo.downloads.api.FileDownloader
 import com.duckduckgo.downloads.api.FileDownloader.PendingFileDownload
+import com.duckduckgo.mobile.android.ui.store.AppTheme
+import com.duckduckgo.site.permissions.api.SitePermissionsDialogLauncher
+import com.duckduckgo.site.permissions.api.SitePermissionsGrantedListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import kotlinx.coroutines.flow.cancellable
 import javax.inject.Provider
@@ -212,11 +215,11 @@ class BrowserTabFragment :
     DuckDuckGoFragment(),
     FindListener,
     CoroutineScope,
-    DaxDialogListener,
     TrackersAnimatorListener,
     DownloadConfirmationDialogListener,
     SiteLocationPermissionDialog.SiteLocationPermissionDialogListener,
-    SystemLocationPermissionDialog.SystemLocationPermissionDialogListener {
+    SystemLocationPermissionDialog.SystemLocationPermissionDialogListener,
+    SitePermissionsGrantedListener {
 
     private val supervisorJob = SupervisorJob()
 
@@ -343,6 +346,18 @@ class BrowserTabFragment :
     @Inject
     lateinit var existingCredentialMatchDetector: ExistingCredentialMatchDetector
 
+    @Inject
+    lateinit var autoconsent: Autoconsent
+
+    @Inject
+    lateinit var autofillSettingsActivityLauncher: AutofillSettingsActivityLauncher
+
+    @Inject
+    lateinit var appTheme: AppTheme
+
+    @Inject
+    lateinit var sitePermissionsDialogLauncher: SitePermissionsDialogLauncher
+
     private var urlExtractingWebView: UrlExtractingWebView? = null
 
     var messageFromPreviousTab: Message? = null
@@ -381,7 +396,17 @@ class BrowserTabFragment :
         viewModel
     }
 
-    private val animatorHelper by lazy { BrowserTrackersAnimatorHelper() }
+    private val animatorHelper by lazy {
+        BrowserTrackersAnimatorHelper(
+            omnibarViews = listOf(clearTextButton, omnibarTextInput, searchIcon),
+            privacyGradeView = privacyGradeButton,
+            cookieView = cookieAnimation,
+            cookieScene = scene_root,
+            dummyCookieView = cookieDummyView,
+            container = animationContainer,
+            appTheme = appTheme
+        )
+    }
 
     private val smoothProgressAnimator by lazy { SmoothProgressAnimator(pageLoadingIndicator) }
 
@@ -416,6 +441,26 @@ class BrowserTabFragment :
     private val omnibarInputTextWatcher = object : TextChangedWatcher() {
         override fun afterTextChanged(editable: Editable) {
             viewModel.onOmnibarInputStateChanged(omnibarTextInput.text.toString(), omnibarTextInput.hasFocus(), true)
+        }
+    }
+
+    private val autoconsentCallback = object : AutoconsentCallback {
+        override fun onFirstPopUpHandled() {
+            // Remove comment to promote feature
+            // ctaViewModel.enableAutoconsentCta()
+            // launch {
+            //     viewModel.refreshCta()
+            // }
+        }
+
+        override fun onPopUpHandled() {
+            launch {
+                context?.let { animatorHelper.createCookiesAnimation(it) }
+            }
+        }
+
+        override fun onResultReceived(consentManaged: Boolean, optOutFailed: Boolean, selfTestFailed: Boolean) {
+            viewModel.onAutoconsentResultReceived(consentManaged, optOutFailed, selfTestFailed)
         }
     }
 
@@ -482,6 +527,7 @@ class BrowserTabFragment :
                 else -> resumeWebView()
             }
         }
+        sitePermissionsDialogLauncher.registerPermissionLauncher(this)
     }
 
     private fun resumeWebView() {
@@ -532,6 +578,10 @@ class BrowserTabFragment :
                 }
             }
         })
+
+        childFragmentManager.findFragmentByTag(ADD_SAVED_SITE_FRAGMENT_TAG)?.let { dialog ->
+            (dialog as EditSavedSiteDialogFragment).listener = viewModel
+        }
     }
 
     private fun getDaxDialogFromActivity(): Fragment? = activity?.supportFragmentManager?.findFragmentByTag(DAX_DIALOG_DIALOG_TAG)
@@ -789,11 +839,11 @@ class BrowserTabFragment :
     }
 
     private fun processCommand(it: Command?) {
-        if (it !is Command.DaxCommand) {
+        if (it is NavigationCommand) {
             renderer.cancelTrackersAnimation()
         }
         when (it) {
-            is Command.Refresh -> refresh()
+            is NavigationCommand.Refresh -> refresh()
             is Command.OpenInNewTab -> {
                 browserActivity?.openInNewTab(it.query, it.sourceTabId)
             }
@@ -811,15 +861,15 @@ class BrowserTabFragment :
             is Command.DeleteFireproofConfirmation -> removeFireproofWebsiteConfirmation(it.fireproofWebsiteEntity)
             is Command.ShowPrivacyProtectionEnabledConfirmation -> privacyProtectionEnabledConfirmation(it.domain)
             is Command.ShowPrivacyProtectionDisabledConfirmation -> privacyProtectionDisabledConfirmation(it.domain)
-            is Command.Navigate -> {
+            is NavigationCommand.Navigate -> {
                 dismissAppLinkSnackBar()
                 navigate(it.url, it.headers)
             }
-            is Command.NavigateBack -> {
+            is NavigationCommand.NavigateBack -> {
                 dismissAppLinkSnackBar()
                 webView?.goBackOrForward(-it.steps)
             }
-            is Command.NavigateForward -> {
+            is NavigationCommand.NavigateForward -> {
                 dismissAppLinkSnackBar()
                 webView?.goForward()
             }
@@ -903,7 +953,7 @@ class BrowserTabFragment :
             is Command.GenerateWebViewPreviewImage -> generateWebViewPreviewImage()
             is Command.LaunchTabSwitcher -> launchTabSwitcher()
             is Command.ShowErrorWithAction -> showErrorSnackbar(it)
-            is Command.DaxCommand.FinishTrackerAnimation -> finishTrackerAnimation()
+            is Command.DaxCommand.FinishPartialTrackerAnimation -> finishPartialTrackerAnimation()
             is Command.DaxCommand.HideDaxDialog -> showHideTipsDialog(it.cta)
             is Command.HideWebContent -> webView?.hide()
             is Command.ShowWebContent -> webView?.show()
@@ -929,11 +979,16 @@ class BrowserTabFragment :
                 omnibarTextInput.setSelection(it.query.length)
             }
             is ShowBackNavigationHistory -> showBackNavigationHistory(it)
-            is NavigateToHistory -> navigateBackHistoryStack(it.historyStackIndex)
+            is NavigationCommand.NavigateToHistory -> navigateBackHistoryStack(it.historyStackIndex)
             is Command.EmailSignEvent -> {
                 notifyEmailSignEvent()
             }
             is Command.PrintLink -> launchPrint(it.url)
+            is Command.ShowSitePermissionsDialog -> showSitePermissionsDialog(it.permissionsToRequest, it.request)
+            is Command.GrantSitePermissionRequest -> grantSitePermissionRequest(it.sitePermissionsToGrant, it.request)
+            else -> {
+                // NO OP
+            }
         }
     }
 
@@ -1051,7 +1106,7 @@ class BrowserTabFragment :
                 Snackbar.LENGTH_SHORT
             )
         snackbar.view.setOnClickListener {
-            browserActivity?.launchLocationSettings()
+            browserActivity?.launchSitePermissionsSettings()
         }
         snackbar.show()
     }
@@ -1139,7 +1194,11 @@ class BrowserTabFragment :
     private fun openAppLink(appLink: SpecialUrlDetector.UrlType.AppLink) {
         if (appLink.appIntent != null) {
             appLink.appIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(appLink.appIntent)
+            try {
+                startActivity(appLink.appIntent)
+            } catch (e: SecurityException) {
+                showToast(R.string.unableToOpenLink)
+            }
         } else if (appLink.excludedComponents != null && appBuildConfig.sdkInt >= Build.VERSION_CODES.N) {
             val title = getString(R.string.appLinkIntentChooserTitle)
             val chooserIntent = getChooserIntent(appLink.uriString, title, appLink.excludedComponents)
@@ -1560,6 +1619,7 @@ class BrowserTabFragment :
             emailInjector.addJsInterface(it) { viewModel.showEmailTooltip() }
             configureWebViewForAutofill(it)
             printInjector.addJsInterface(it) { viewModel.printFromWebView() }
+            autoconsent.addJsInterface(it, autoconsentCallback)
         }
 
         if (appBuildConfig.isDebug) {
@@ -1570,16 +1630,32 @@ class BrowserTabFragment :
     private fun configureWebViewForAutofill(it: DuckDuckGoWebView) {
         browserAutofill.addJsInterface(it, autofillCallback)
 
-        setFragmentResultListener(RESULT_KEY_CREDENTIAL_PICKER) { _, result ->
+        setFragmentResultListener(CredentialAutofillPickerDialog.resultKey(tabId)) { _, result ->
             autofillCredentialsSelectionResultHandler.processAutofillCredentialSelectionResult(result, this, viewModel)
         }
 
-        setFragmentResultListener(RESULT_KEY_CREDENTIAL_RESULT_SAVE) { _, result ->
-            autofillCredentialsSelectionResultHandler.processSaveCredentialsResult(result, viewModel)
+        setFragmentResultListener(CredentialSavePickerDialog.resultKeyUserChoseToSaveCredentials(tabId)) { _, result ->
+            launch {
+                autofillCredentialsSelectionResultHandler.processSaveCredentialsResult(result, viewModel)?.let {
+                    showAuthenticationSavedOrUpdatedSnackbar(it, R.string.autofillLoginSavedSnackbarMessage)
+                }
+            }
         }
 
-        setFragmentResultListener(RESULT_KEY_CREDENTIAL_RESULT_UPDATE) { _, result ->
-            autofillCredentialsSelectionResultHandler.processUpdateCredentialsResult(result, viewModel)
+        setFragmentResultListener(CredentialSavePickerDialog.resultKeyShouldPromptToDisableAutofill(tabId)) { _, _ ->
+            launch {
+                this@BrowserTabFragment.context?.let {
+                    autofillCredentialsSelectionResultHandler.processPromptToDisableAutofill(this@BrowserTabFragment.requireContext(), viewModel)
+                }
+            }
+        }
+
+        setFragmentResultListener(CredentialUpdateExistingCredentialsDialog.resultKey(tabId)) { _, result ->
+            launch {
+                autofillCredentialsSelectionResultHandler.processUpdateCredentialsResult(result, viewModel)?.let {
+                    showAuthenticationSavedOrUpdatedSnackbar(it, R.string.autofillLoginUpdatedSnackbarMessage)
+                }
+            }
         }
     }
 
@@ -1596,7 +1672,7 @@ class BrowserTabFragment :
     private fun showAutofillDialogChooseCredentials(credentials: List<LoginCredentials>, triggerType: LoginTriggerType) {
         Timber.v("onCredentialsAvailable. %d creds to choose from", credentials.size)
         val url = webView?.url ?: return
-        val dialog = credentialAutofillDialogFactory.autofillSelectCredentialsDialog(url, credentials, triggerType)
+        val dialog = credentialAutofillDialogFactory.autofillSelectCredentialsDialog(url, credentials, triggerType, tabId)
         showDialogHidingPrevious(dialog, CredentialAutofillPickerDialog.TAG)
     }
 
@@ -1604,7 +1680,7 @@ class BrowserTabFragment :
         val url = webView?.url ?: return
         if (url != currentUrl) return
 
-        val dialog = credentialAutofillDialogFactory.autofillSavingCredentialsDialog(url, credentials)
+        val dialog = credentialAutofillDialogFactory.autofillSavingCredentialsDialog(url, credentials, tabId)
         showDialogHidingPrevious(dialog, CredentialSavePickerDialog.TAG)
     }
 
@@ -1612,14 +1688,38 @@ class BrowserTabFragment :
         val url = webView?.url ?: return
         if (url != currentUrl) return
 
-        val dialog = credentialAutofillDialogFactory.autofillSavingUpdateCredentialsDialog(url, credentials)
+        val dialog = credentialAutofillDialogFactory.autofillSavingUpdateCredentialsDialog(url, credentials, tabId)
         showDialogHidingPrevious(dialog, CredentialUpdateExistingCredentialsDialog.TAG)
+    }
+
+    private suspend fun showAuthenticationSavedOrUpdatedSnackbar(
+        loginCredentials: LoginCredentials,
+        @StringRes messageResourceId: Int,
+        delay: Long = 200
+    ) {
+        delay(delay)
+        withContext(Dispatchers.Main) {
+            browserLayout.makeSnackbarWithNoBottomInset(messageResourceId, Snackbar.LENGTH_LONG)
+                .setAction(R.string.autofillSnackbarAction) {
+                    context?.let { startActivity(autofillSettingsActivityLauncher.intent(it, loginCredentials)) }
+                }.show()
+        }
     }
 
     private fun showDialogHidingPrevious(dialog: DialogFragment, tag: String) {
         childFragmentManager.findFragmentByTag(tag)?.let {
             Timber.i("Found existing dialog for %s; removing it now", tag)
+            if (it is DaxDialog) {
+                it.setDaxDialogListener(null) // Avoids calling onDaxDialogDismiss()
+            }
             childFragmentManager.commitNow(allowStateLoss = true) { remove(it) }
+        }
+        dialog.show(childFragmentManager, tag)
+    }
+
+    private fun showDialogIfNotExist(dialog: DialogFragment, tag: String) {
+        childFragmentManager.findFragmentByTag(tag)?.let {
+            return
         }
         dialog.show(childFragmentManager, tag)
     }
@@ -1925,6 +2025,7 @@ class BrowserTabFragment :
         if (ctaContainer.isNotEmpty()) {
             renderer.renderHomeCta()
         }
+        renderer.recreateDaxDialogCta()
         configureQuickAccessGridLayout(quickAccessRecyclerView)
         configureQuickAccessGridLayout(quickAccessSuggestionsRecyclerView)
         decorator.recreatePopupMenu()
@@ -2090,30 +2191,14 @@ class BrowserTabFragment :
         }
     }
 
-    private fun finishTrackerAnimation() {
-        animatorHelper.finishTrackerAnimation(omnibarViews(), animationContainer)
+    private fun finishPartialTrackerAnimation() {
+        context?.let { animatorHelper.finishTrackerAnimation(it) }
     }
 
     private fun showHideTipsDialog(cta: Cta) {
         context?.let {
             launchHideTipsDialog(it, cta)
         }
-    }
-
-    override fun onDaxDialogDismiss() {
-        viewModel.onDaxDialogDismissed()
-    }
-
-    override fun onDaxDialogHideClick() {
-        viewModel.onUserHideDaxDialog()
-    }
-
-    override fun onDaxDialogPrimaryCtaClick() {
-        viewModel.onUserClickCtaOkButton()
-    }
-
-    override fun onDaxDialogSecondaryCtaClick() {
-        viewModel.onUserClickCtaSecondaryButton()
     }
 
     private fun showBackNavigationHistory(history: ShowBackNavigationHistory) {
@@ -2369,6 +2454,7 @@ class BrowserTabFragment :
                     viewModel.onPrintSelected()
                 }
                 onMenuItemClicked(view.autofillMenuItem) {
+                    pixel.fire(AppPixelName.MENU_ACTION_AUTOFILL_PRESSED)
                     viewModel.onAutofillMenuSelected()
                 }
             }
@@ -2457,7 +2543,7 @@ class BrowserTabFragment :
                 privacyGradeButton?.isEnabled = viewState.isEnabled
 
                 if (viewState.shouldAnimate) {
-                    animatorHelper.startPulseAnimation(privacyGradeButton)
+                    animatorHelper.startPulseAnimation()
                 } else {
                     animatorHelper.stopPulseAnimation()
                 }
@@ -2557,8 +2643,8 @@ class BrowserTabFragment :
                     val site = viewModel.siteLiveData.value
                     val events = site?.orderedTrackingEntities()
 
-                    activity?.let { activity ->
-                        animatorHelper.startTrackersAnimation(lastSeenCtaViewState?.cta, activity, animationContainer, omnibarViews(), events)
+                    context?.let {
+                        animatorHelper.startTrackersAnimation(it, lastSeenCtaViewState?.cta, events)
                     }
                 }
             }
@@ -2737,20 +2823,66 @@ class BrowserTabFragment :
             messageCta.gone()
         }
 
+        fun recreateDaxDialogCta() {
+            val configuration = lastSeenCtaViewState?.cta
+            if (configuration is DaxDialogCta) {
+                activity?.let { activity ->
+                    val listener = if (configuration is DaxAutoconsentCta) daxAutoconsentListener else daxListener
+                    configuration.createCta(activity, listener).apply {
+                        showDialogHidingPrevious(this, DAX_DIALOG_DIALOG_TAG)
+                    }
+                }
+            }
+        }
+
         private fun showDaxDialogCta(configuration: DialogCta) {
             hideHomeCta()
             hideDaxCta()
             activity?.let { activity ->
-                val daxDialog = getDaxDialogFromActivity() as? DaxDialog
-                if (daxDialog != null) {
-                    daxDialog.setDaxDialogListener(this@BrowserTabFragment)
-                    return
-                }
-                configuration.createCta(activity).apply {
-                    setDaxDialogListener(this@BrowserTabFragment)
-                    getDaxDialog().show(activity.supportFragmentManager, DAX_DIALOG_DIALOG_TAG)
+                val listener = if (configuration is DaxAutoconsentCta) daxAutoconsentListener else daxListener
+                configuration.createCta(activity, listener).apply {
+                    showDialogIfNotExist(this, DAX_DIALOG_DIALOG_TAG)
                 }
                 viewModel.onCtaShown()
+            }
+        }
+
+        private val daxAutoconsentListener = object : DaxDialogListener {
+            override fun onDaxDialogDismiss() {
+                autoconsent.firstPopUpHandled()
+                viewModel.onDaxDialogDismissed()
+            }
+
+            override fun onDaxDialogHideClick() {
+                viewModel.onUserHideDaxDialog()
+            }
+
+            override fun onDaxDialogPrimaryCtaClick() {
+                webView?.let { autoconsent.setAutoconsentOptOut(it) }
+                viewModel.onUserClickCtaOkButton()
+            }
+
+            override fun onDaxDialogSecondaryCtaClick() {
+                autoconsent.setAutoconsentOptIn()
+                viewModel.onUserClickCtaSecondaryButton()
+            }
+        }
+
+        private val daxListener = object : DaxDialogListener {
+            override fun onDaxDialogDismiss() {
+                viewModel.onDaxDialogDismissed()
+            }
+
+            override fun onDaxDialogHideClick() {
+                viewModel.onUserHideDaxDialog()
+            }
+
+            override fun onDaxDialogPrimaryCtaClick() {
+                viewModel.onUserClickCtaOkButton()
+            }
+
+            override fun onDaxDialogSecondaryCtaClick() {
+                viewModel.onUserClickCtaSecondaryButton()
             }
         }
 
@@ -2896,6 +3028,16 @@ class BrowserTabFragment :
         }
     }
 
+    private fun showSitePermissionsDialog(permissionsToRequest: Array<String>, request: PermissionRequest) {
+        activity?.let {
+            sitePermissionsDialogLauncher.askForSitePermission(it, webView?.url.orEmpty(), tabId, permissionsToRequest, request, this)
+        }
+    }
+
+    private fun grantSitePermissionRequest(sitePermissionsToGrant: Array<String>, request: PermissionRequest) {
+        request.grant(sitePermissionsToGrant)
+    }
+
     override fun continueDownload(pendingFileDownload: PendingFileDownload) {
         Timber.i("Continuing to download %s", pendingFileDownload)
         viewModel.download(pendingFileDownload)
@@ -2930,5 +3072,10 @@ class BrowserTabFragment :
 
     override fun onSystemLocationPermissionNeverAllowed() {
         viewModel.onSystemLocationPermissionNeverAllowed()
+    }
+
+    override fun permissionsGrantedOnWhereby() {
+        val roomParameters = "?skipMediaPermissionPrompt"
+        webView?.loadUrl("${webView?.url.orEmpty()}$roomParameters")
     }
 }

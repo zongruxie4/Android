@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Ayarlar</string>
     <string name="settingsMenuItemTitle">Ayarlar</string>
-    <string name="settingsHeadingGeneral">Genel</string>
-    <string name="settingsHeadingOther">Diğer</string>
     <string name="settingsHeadingPrivacy">Gizlilik</string>
     <string name="settingsAboutDuckduckgo">DuckDuckGo Hakkında</string>
     <string name="settingsVersion">Versiyon</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Her seferinde sor</string>
     <string name="settingsAppLinksAlways">Her zaman</string>
     <string name="settingsAppLinksNever">Hiçbir zaman</string>
+    <string name="settingsHeadingAppearance">Görünüm</string>
+    <string name="settingsHeadingCustomize">Özelleştir</string>
+    <string name="settingsHeadingAbout">Hakkında</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Kaydet</string>
@@ -591,7 +592,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Yalnızca Bu Oturum için</string>
     <string name="preciseLocationSiteDialogDenyAlways">Her Zaman Reddet</string>
     <string name="preciseLocationSiteDialogDenyOnce">Bu Oturum için Reddet</string>
-    <string name="settingsPreciseLocation">Konum</string>
     <string name="preciseLocationFeatureDescription">Ziyaret ettiğiniz siteler cihazınızın konumunu öğrenmek isteyebilir. Ancak siz açıkça izin vermediğiniz takdirde konumunuza erişemezler. DuckDuckGo, konumunuzu yalnızca yerel arama sonuçları sunmak için anonim olarak kullanır.</string>
     <string name="preciseLocationToggleText">Siteler Konumumu Sorabilir</string>
     <string name="preciseLocationEmptyListHint">Hiçbir web sitesine konuma erişim izni verilmedi</string>
@@ -635,52 +635,15 @@
     <string name="autofillTooltipGenerateAddressDescription">E-posta izleyicileri engeller ve adresinizi gizler</string>
     <string name="newEmailAliasMenuTitle">Duck Adresi Oluştur</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">E-posta Korumaları Kaldırılsın mı?</string>
-    <string name="emailSignOutDialogText">Not: E-posta Korumalarının bu cihazdan kaldırılması Duck Adresinizin silinmesine yol açmaz.</string>
-    <string name="emailSignOutDialogCancel">İptal</string>
-    <string name="emailSignOutDialogDisable">Kaldır</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">E-posta bekleme listesi</string>
-    <string name="waitlistNotificationTitle">E-posta Koruması hazır!</string>
-    <string name="waitlistNotificationDescription">Davetiyenizi açın</string>
-
     <string name="waitlistNotificationDialogDescription">Sıra size geldiğinde size bir bildirim göndermemizi ister misiniz?</string>
     <string name="waitlistNotificationDialogNoThanks">Hayır Teşekkürler</string>
     <string name="waitlistNotificationDialogNotifyMe">BANA BİLDİR</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">E-posta Koruması (Beta)</string>
     <string name="emailProtectionActivityTitle">E-posta Koruması (Beta)</string>
-    <string name="emailProtectionFooterDescription">Bekleme listesine katılmak için kişisel bilgilerinizi paylaşmanız gerekmez. Yerinizi yalnızca cihazınıza yerleştirilen bir zaman damgası ile güvence altına alacaksınız. Böylece sıranız geldiğinde sizi bilgilendirebiliriz.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Bekleme listesine katılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.</string>
-    <string name="emailProtectionDuckAddressCta">Zaten Duck Adresim var</string>
-    <string name="emailProtectionInviteCodeCta">Davet Kodum var</string>
-    <string name="emailProtectionWaitlistCta">Özel Bekleme Listesine Katılın</string>
-    <string name="emailProtectionGetStartedCta">Başlayın</string>
     <string name="emailNotSupported">Cihaz desteklenmiyor</string>
     <string name="emailNotSupportedExplanation">E-posta Koruması, e-posta izleyicilerini devre dışı bırakan özel e-posta adresleri oluşturmanıza olanak tanır. Oluşturduğunuz bu adresleri cihazınızda yerel olarak şifrelememiz ve depolamamız gerekir. Cihazınız şifreli depolama alanını desteklemediğinden E-posta Koruması kullanılamıyor.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">E-posta gizliliğinin basitleştirilmiş hâli.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[E-posta sağlayıcınızı değiştirmeden e-posta izleyicileri engelleyin ve adresinizi gizleyin.<a href=\"\"><b>Daha fazla bilgi</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Listedesiniz!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[<br/> E-posta Koruması hazır olduğunda size bildirim gönderilecektir. <a href=\"\"><b>Daha fazla bilgi</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Özellik hazır olduğunda davetiye burada gösterilecek. Bunun için <a href=\"\"><b>bildirim almak</b></a> ister misiniz?<br/>E-posta Koruma hakkında<a href=\"\"><b>daha fazla bilgi edinin</b></a>.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Davetlisiniz!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[E-posta sağlayıcınızı değiştirmeden e-posta izleyicileri engelleyin ve adresinizi gizleyin.<a href=\"\"><b>Daha fazla bilgi</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Kişisel Duck Adresi</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[E-posta Korumasını bu cihazdan kaldırmak, Web\'de gezinirken Kişisel Duck Adresinizi veya yeni oluşturulan Özel Duck Adresinizi e-posta alanlarına doldurma seçeneğini kaldırır.<br/><br/>Duck Adreslerinizi tamamen silmek veya diğer sorularınız veya geri bildirimleriniz için <a href=\"mailto:support@duck.com\">support@duck.com</a> adresinden bize ulaşın.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Cihazdan Kaldır</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Yer İşaretini Düzenle</string>
@@ -721,8 +684,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Mac için uygulamamızla internette gezinirken gizliliğinizi koruyun</string>
-    <string name="macos_settings_description_list">Listedesiniz!</string>
-    <string name="macos_settings_description_ready">Mac cihazlarda indirilebilir</string>
     <string name="macos_settings_title">DuckDuckGo Masaüstü Uygulaması</string>
 
     <!-- Downloads -->
@@ -748,5 +709,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Cihazınızdaki uygulama izleyicileri engelleyin</string>
     <string name="atp_SettingsDeviceShieldEnabled">Etkin</string>
     <string name="atp_SettingsDeviceShieldDisabled">Devre Dışı</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Görünüşe göre bu sitede çerez izni için açılır pencere var 👇</string>
+    <string name="autoconsentDialogDescription">Bunları sizin yerinize halletmemizi ister misiniz? Çerezleri en aza indirmeyi, gizliliği en üst düzeye çıkarmayı ve bunun gibi açılır pencereleri gizlemeyi deneyebiliriz.</string>
+    <string name="autoconsentPrimaryCta">Çerez Açılır Pencerelerini Yönetin</string>
+    <string name="autoconsentSecondaryCta">Hayır Teşekkürler</string>
+
+    <string name="autoconsentSetting">Çerez Açılır Pencerelerini Yönetin</string>
+    <string name="autoconsentAnimationText">Yönetilen Çerezler</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Site İzinleri</string>
+    <string name="sitePermissionsSettingsDescription">Ziyaret ettiğiniz siteler cihazınızın konumuna, kamerasına veya mikrofonuna erişim isteyebilir. Siz açıkça izin vermediğiniz sürece bunlara erişemezler.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Tüm sitelerin şunları istemesine izin ver:</string>
+    <string name="sitePermissionsSettingsLocation">Konum</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Siteleri Yönet</string>
+    <string name="sitePermissionsSettingsEmptyText">Henüz site yok</string>
+    <string name="permissionPerWebsiteText">\"%1$s\" için izinler </string>
+    <string name="permissionsPerWebsiteAskSetting">Sor</string>
+    <string name="permissionsPerWebsiteDenySetting">Reddet</string>
+    <string name="permissionsPerWebsiteAllowSetting">İzin ver</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%2$s için %1$s izni</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Otomatik Doldurma</string>
 
 </resources>

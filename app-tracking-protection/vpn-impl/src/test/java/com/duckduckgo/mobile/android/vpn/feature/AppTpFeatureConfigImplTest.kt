@@ -61,11 +61,11 @@ class AppTpFeatureConfigImplTest {
                 AppTpSetting.BadHealthMitigation -> assertTrue(config.isEnabled(setting))
                 AppTpSetting.Ipv6Support -> assertFalse(config.isEnabled(setting))
                 AppTpSetting.PrivateDnsSupport -> assertFalse(config.isEnabled(setting))
-                AppTpSetting.NetworkSwitchHandling -> assertFalse(config.isEnabled(setting))
-                AppTpSetting.SetActiveNetworkDns -> assertFalse(config.isEnabled(setting))
+                AppTpSetting.InterceptDnsTraffic -> assertFalse(config.isEnabled(setting))
                 AppTpSetting.AlwaysSetDNS -> assertFalse(config.isEnabled(setting))
-                AppTpSetting.VpnDdgBrowserTraffic -> assertFalse(config.isEnabled(setting))
+                AppTpSetting.CPUMonitoring -> assertFalse(config.isEnabled(setting))
                 AppTpSetting.ConnectivityChecks -> assertFalse(config.isEnabled(setting))
+                AppTpSetting.ProtectGames -> assertFalse(config.isEnabled(setting))
             }
         }
     }
@@ -129,8 +129,8 @@ class AppTpFeatureConfigImplTest {
     fun whenInternalBuildThenProperlyHandleManualOverrides() {
         whenever(appBuildConfig.flavor).thenReturn(BuildFlavor.INTERNAL)
 
-        config.setEnabled(AppTpSetting.NetworkSwitchHandling, true, isManualOverride = true)
-        config.setEnabled(AppTpSetting.NetworkSwitchHandling, false, isManualOverride = true)
+        config.setEnabled(AppTpSetting.InterceptDnsTraffic, true, isManualOverride = true)
+        config.setEnabled(AppTpSetting.InterceptDnsTraffic, false, isManualOverride = true)
 
         config.setEnabled(AppTpSetting.BadHealthMitigation, true, isManualOverride = true)
         config.setEnabled(AppTpSetting.BadHealthMitigation, false, isManualOverride = false)
@@ -141,7 +141,7 @@ class AppTpFeatureConfigImplTest {
         config.setEnabled(AppTpSetting.PrivateDnsSupport, true, isManualOverride = false)
         config.setEnabled(AppTpSetting.PrivateDnsSupport, false, isManualOverride = false)
 
-        assertFalse(config.isEnabled(AppTpSetting.NetworkSwitchHandling))
+        assertFalse(config.isEnabled(AppTpSetting.InterceptDnsTraffic))
         assertTrue(config.isEnabled(AppTpSetting.BadHealthMitigation))
         assertFalse(config.isEnabled(AppTpSetting.Ipv6Support))
         assertFalse(config.isEnabled(AppTpSetting.PrivateDnsSupport))
@@ -151,8 +151,8 @@ class AppTpFeatureConfigImplTest {
     fun whenNotInternalBuildThenAlwaysOverride() {
         whenever(appBuildConfig.flavor).thenReturn(BuildFlavor.PLAY)
 
-        config.setEnabled(AppTpSetting.NetworkSwitchHandling, true, isManualOverride = true)
-        config.setEnabled(AppTpSetting.NetworkSwitchHandling, false, isManualOverride = true)
+        config.setEnabled(AppTpSetting.InterceptDnsTraffic, true, isManualOverride = true)
+        config.setEnabled(AppTpSetting.InterceptDnsTraffic, false, isManualOverride = true)
 
         config.setEnabled(AppTpSetting.BadHealthMitigation, true, isManualOverride = true)
         config.setEnabled(AppTpSetting.BadHealthMitigation, false, isManualOverride = false)
@@ -163,21 +163,9 @@ class AppTpFeatureConfigImplTest {
         config.setEnabled(AppTpSetting.PrivateDnsSupport, true, isManualOverride = false)
         config.setEnabled(AppTpSetting.PrivateDnsSupport, false, isManualOverride = false)
 
-        assertFalse(config.isEnabled(AppTpSetting.NetworkSwitchHandling))
+        assertFalse(config.isEnabled(AppTpSetting.InterceptDnsTraffic))
         assertFalse(config.isEnabled(AppTpSetting.BadHealthMitigation))
         assertFalse(config.isEnabled(AppTpSetting.Ipv6Support))
         assertFalse(config.isEnabled(AppTpSetting.PrivateDnsSupport))
-    }
-
-    inner class FakeToggleConfigDao : VpnConfigTogglesDao {
-        private var cache = HashMap<String, VpnConfigToggle>()
-        override suspend fun insert(toggle: VpnConfigToggle) {
-            cache[toggle.name] = toggle
-        }
-
-        override fun getConfigToggles(): List<VpnConfigToggle> {
-            return cache.values.toList()
-        }
-
     }
 }

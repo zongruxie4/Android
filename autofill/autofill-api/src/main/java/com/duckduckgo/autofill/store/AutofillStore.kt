@@ -42,6 +42,18 @@ interface AutofillStore {
     var showOnboardingWhenOfferingToSaveLogin: Boolean
 
     /**
+     * Whether to monitor autofill decline counts or not
+     * Used to determine whether we should actively detect when a user new to autofill doesn't appear to want it enabled
+     */
+    var monitorDeclineCounts: Boolean
+
+    /**
+     * A count of the number of autofill declines the user has made, persisted across all sessions.
+     * Used to determine whether we should prompt a user new to autofill to disable it if they don't appear to want it enabled
+     */
+    var autofillDeclineCount: Int
+
+    /**
      * Find saved credentials for the given URL, returning an empty list where no matches are found
      * @param rawUrl Can be a full, unmodified URL taken from the URL bar (containing subdomains, query params etc...)
      */
@@ -57,16 +69,17 @@ interface AutofillStore {
      * Save the given credentials for the given URL
      * @param rawUrl Can be a full, unmodified URL taken from the URL bar (containing subdomains, query params etc...)
      * @param credentials The credentials to be saved. The ID can be null.
-     * @return The ID of the saved credential if it saved successfully, otherwise null
+     * @return The saved credential if it saved successfully, otherwise null
      */
-    suspend fun saveCredentials(rawUrl: String, credentials: LoginCredentials): Long?
+    suspend fun saveCredentials(rawUrl: String, credentials: LoginCredentials): LoginCredentials?
 
     /**
      * Updates the credentials saved for the given URL
      * @param rawUrl Can be a full, unmodified URL taken from the URL bar (containing subdomains, query params etc...)
      * @param credentials The credentials to be updated. The ID can be null.
+     * @return The saved credential if it saved successfully, otherwise null
      */
-    suspend fun updateCredentials(rawUrl: String, credentials: LoginCredentials)
+    suspend fun updateCredentials(rawUrl: String, credentials: LoginCredentials): LoginCredentials?
 
     /**
      * Returns the full list of stored login credentials
@@ -81,8 +94,9 @@ interface AutofillStore {
     /**
      * Updates the given login credentials, replacing what was saved before for the credentials with the specified ID
      * @param credentials The ID of the given credentials must match a saved credential for it to be updated.
+     * @return The saved credential if it saved successfully, otherwise null
      */
-    suspend fun updateCredentials(credentials: LoginCredentials)
+    suspend fun updateCredentials(credentials: LoginCredentials): LoginCredentials?
 
     /**
      * Searches the saved login credentials for a match to the given URL, username and password

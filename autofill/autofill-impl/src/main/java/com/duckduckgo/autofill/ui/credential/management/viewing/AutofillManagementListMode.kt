@@ -17,9 +17,7 @@
 package com.duckduckgo.autofill.ui.credential.management.viewing
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -30,19 +28,23 @@ import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.global.DuckDuckGoFragment
 import com.duckduckgo.app.global.FragmentViewModelFactory
 import com.duckduckgo.autofill.domain.app.LoginCredentials
+import com.duckduckgo.autofill.impl.R
 import com.duckduckgo.autofill.impl.databinding.FragmentAutofillManagementListModeBinding
 import com.duckduckgo.autofill.ui.credential.management.AutofillManagementRecyclerAdapter
+import com.duckduckgo.autofill.ui.credential.management.AutofillManagementRecyclerAdapter.ContextMenuAction.Delete
+import com.duckduckgo.autofill.ui.credential.management.AutofillManagementRecyclerAdapter.ContextMenuAction.Edit
 import com.duckduckgo.autofill.ui.credential.management.AutofillSettingsViewModel
 import com.duckduckgo.autofill.ui.credential.management.sorting.CredentialGrouper
 import com.duckduckgo.autofill.ui.credential.management.LoginCredentialTitleExtractor
 import com.duckduckgo.di.scopes.FragmentScope
 import com.duckduckgo.mobile.android.ui.view.quietlySetIsChecked
+import com.duckduckgo.mobile.android.ui.viewbinding.viewBinding
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @InjectWith(FragmentScope::class)
-class AutofillManagementListMode : DuckDuckGoFragment() {
+class AutofillManagementListMode : DuckDuckGoFragment(R.layout.fragment_autofill_management_list_mode) {
 
     @Inject
     lateinit var faviconManager: FaviconManager
@@ -60,21 +62,12 @@ class AutofillManagementListMode : DuckDuckGoFragment() {
         ViewModelProvider(requireActivity(), viewModelFactory)[AutofillSettingsViewModel::class.java]
     }
 
-    private lateinit var binding: FragmentAutofillManagementListModeBinding
+    private val binding: FragmentAutofillManagementListModeBinding by viewBinding()
     private lateinit var adapter: AutofillManagementRecyclerAdapter
 
-    private val globalAutofillToggleListener = object : CompoundButton.OnCheckedChangeListener {
-
-        override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
-            if (isChecked) viewModel.onEnableAutofill() else viewModel.onDisableAutofill()
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = FragmentAutofillManagementListModeBinding.inflate(inflater, container, false)
-        configureToggle()
-        configureRecyclerView()
-        return binding.root
+    private val globalAutofillToggleListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@OnCheckedChangeListener
+        if (isChecked) viewModel.onEnableAutofill() else viewModel.onDisableAutofill()
     }
 
     private fun configureToggle() {
@@ -83,6 +76,8 @@ class AutofillManagementListMode : DuckDuckGoFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        configureToggle()
+        configureRecyclerView()
         observeViewModel()
     }
 
@@ -130,6 +125,12 @@ class AutofillManagementListMode : DuckDuckGoFragment() {
             onCredentialSelected = this::onCredentialsSelected,
             onCopyUsername = this::onCopyUsername,
             onCopyPassword = this::onCopyPassword,
+            onContextMenuItemClicked = {
+                when (it) {
+                    is Edit -> viewModel.onEditCredentials(it.credentials, false)
+                    is Delete -> viewModel.onDeleteCredentials(it.credentials)
+                }
+            }
         )
 
         binding.logins.adapter = adapter

@@ -187,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Nastavenia</string>
     <string name="settingsMenuItemTitle">Nastavenia</string>
-    <string name="settingsHeadingGeneral">Všeobecné</string>
-    <string name="settingsHeadingOther">Iné</string>
     <string name="settingsHeadingPrivacy">Súkromie</string>
     <string name="settingsAboutDuckduckgo">Informácie o DuckDuckGo</string>
     <string name="settingsVersion">Verzia</string>
@@ -206,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Vždy sa opýtať</string>
     <string name="settingsAppLinksAlways">Vždy</string>
     <string name="settingsAppLinksNever">Nikdy</string>
+    <string name="settingsHeadingAppearance">Vzhľad</string>
+    <string name="settingsHeadingCustomize">Prispôsobiť</string>
+    <string name="settingsHeadingAbout">O</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Uložiť</string>
@@ -595,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Iba pre túto reláciu</string>
     <string name="preciseLocationSiteDialogDenyAlways">Vždy odmietnuť</string>
     <string name="preciseLocationSiteDialogDenyOnce">Odmietnuť pre túto reláciu</string>
-    <string name="settingsPreciseLocation">Miesto</string>
     <string name="preciseLocationFeatureDescription">Stránky, ktoré navštívite, môžu požadovať informácie o polohe vášho zariadenia. Nebudú k nim mať prístup, kým im výslovne neudelíte povolenie. Prehliadač DuckDuckGo používa vašu polohu iba anonymne na doručenie miestnych výsledkov vyhľadávania.</string>
     <string name="preciseLocationToggleText">Lokality môžu požiadať o moju polohu</string>
     <string name="preciseLocationEmptyListHint">Žiadne webové stránky nemajú povolenie na prístup k polohe</string>
@@ -639,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokuje e mailové trackery a skryje vašu adresu</string>
     <string name="newEmailAliasMenuTitle">Vytvoriť adresu Duck</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Odstrániť ochranu e‑mailu?</string>
-    <string name="emailSignOutDialogText">Poznámka: Odstránením ochrany e‑mailu z tohto zariadenia sa neodstráni vaša adresa Duck.</string>
-    <string name="emailSignOutDialogCancel">Zrušiť</string>
-    <string name="emailSignOutDialogDisable">Odstrániť</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Zoznam čakateľov na ochranu e‑mailu</string>
-    <string name="waitlistNotificationTitle">Ochrana e‑mailov je pripravená!</string>
-    <string name="waitlistNotificationDescription">Otvorte svoju pozvánku</string>
-
     <string name="waitlistNotificationDialogDescription">Chcete, aby sme vám poslali upozornenie, keď na vás príde rad?</string>
     <string name="waitlistNotificationDialogNoThanks">Nie, ďakujem</string>
     <string name="waitlistNotificationDialogNotifyMe">UPOZORNITE MA</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Ochrana e‑mailu (beta)</string>
     <string name="emailProtectionActivityTitle">Ochrana e‑mailu (beta)</string>
-    <string name="emailProtectionFooterDescription">Na zaradenie do poradovníka nemusíte zdieľať žiadne osobné údaje. Svoje miesto si zabezpečíte časovou pečiatkou, ktorá existuje výlučne vo vašom zariadení, aby sme vás mohli upozorniť, keď budete na rade.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Počas pridávania na zoznam čakateľov došlo k chybe. Skúste to znova neskôr.</string>
-    <string name="emailProtectionDuckAddressCta">Už mám adresu Duck</string>
-    <string name="emailProtectionInviteCodeCta">Mám pozývací kód</string>
-    <string name="emailProtectionWaitlistCta">Pridajte sa do súkromného zoznamu čakateľov</string>
-    <string name="emailProtectionGetStartedCta">Začnite</string>
     <string name="emailNotSupported">Nepodporované zariadenia</string>
     <string name="emailNotSupportedExplanation">Ochrana e‑mailov vám umožňuje vytvárať súkromné e‑mailové adresy, ktoré odstraňujú nástroje na sledovanie e‑mailov. Tieto adresy, ktoré vytvárate, musíme šifrovať a ukladať lokálne vo vašom zariadení. Keďže vaše zariadenie nepodporuje šifrované úložisko, ochrana e‑mailov nie je k dispozícii.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Zjednodušená ochrana súkromia v e‑mailoch.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Zablokujte nástroje na sledovanie e‑mailov bez zmeny poskytovateľa e‑mailu.<b><a href=\"\">Zistite viac</a></b>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Ste na zozname!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Keď budete mať pripravenú ochranu e‑mailu,<br/>pošleme vám upozornenie. <b><a href=\"\">Zistite viac</a></b>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Tu sa zobrazí vaša pozvánka, keď budeme na vás pripravení. Chcete <a href=\"\"><b>dostať upozornenie</b></a>, keď dorazí?<br/><a href=\"\"><b>Zistite viac</b></a> o ochrane e‑mailu.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Dostali ste pozvánku!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Zablokujte nástroje na sledovanie e‑mailov bez zmeny poskytovateľa e‑mailu.<b><a href=\"\">Zistite viac</a></b>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Osobná adresa Duck</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Odstránením ochrany e‑mailu z tohto zariadenia stratíte možnosť vyplniť svoju osobnú adresu Duck alebo novovygenerovanú súkromnú adresu Duck do e‑mailových polí pri prehliadaní webu.<br/><br/>Ak si chcete úplne odstrániť adresy Duck alebo ak máte iné otázky či pripomienky, obráťte sa na nás na adrese <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Odstrániť zo zariadenia</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Upraviť záložku</string>
@@ -729,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Prezerajte súkromne stránky s našou aplikáciou pre Mac</string>
-    <string name="macos_settings_description_list">Ste na zozname!</string>
-    <string name="macos_settings_description_ready">K dispozícii na stiahnutie pre Mac</string>
     <string name="macos_settings_title">Aplikácia DuckDuckGo pre počítač</string>
 
     <!-- Downloads -->
@@ -756,5 +717,32 @@
     <string name="atp_SettingsDeviceShieldNeverEnabled">Blokovanie sledovacích nástrojov aplikácií vo vašom zariadení</string>
     <string name="atp_SettingsDeviceShieldEnabled">Povolené</string>
     <string name="atp_SettingsDeviceShieldDisabled">Zakázané</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Zdá sa, že táto stránka má kontextové okno týkajúce sa súhlasu so súbormi cookie 👇</string>
+    <string name="autoconsentDialogDescription">Chceš, aby som to riešil za teba? Môžem sa pokúsiť minimalizovať súbory cookie, maximalizovať ochranu súkromia a skryť kontextové okná, ako sú tieto.</string>
+    <string name="autoconsentPrimaryCta">Správa kontextových okien súborov cookie</string>
+    <string name="autoconsentSecondaryCta">Nie, ďakujem</string>
+
+    <string name="autoconsentSetting">Správa kontextových okien súborov cookie</string>
+    <string name="autoconsentAnimationText">Spravované súbory cookie</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Oprávnenia na lokalitu</string>
+    <string name="sitePermissionsSettingsDescription">Lokality, ktoré navštívite, môžu žiadať o prístup k polohe, fotoaparátu alebo mikrofónu vášho zariadenia. Nebudú mať k nim prístup, pokiaľ im to výslovne nepovolíte.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Povoliť všetkým lokalitám žiadať o:</string>
+    <string name="sitePermissionsSettingsLocation">Poloha</string>
+    <string name="sitePermissionsSettingsCamera">Kamera</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofón</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Správa lokalít</string>
+    <string name="sitePermissionsSettingsEmptyText">Zatiaľ žiadne lokality</string>
+    <string name="permissionPerWebsiteText">Povolenia pre „%1$s” </string>
+    <string name="permissionsPerWebsiteAskSetting">Opýtať sa</string>
+    <string name="permissionsPerWebsiteDenySetting">Odmietnuť</string>
+    <string name="permissionsPerWebsiteAllowSetting">Povoliť</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s povolenie pre %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automatické vypĺňanie</string>
 
 </resources>

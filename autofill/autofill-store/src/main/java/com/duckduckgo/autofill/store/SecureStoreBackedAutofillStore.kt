@@ -16,6 +16,8 @@
 
 package com.duckduckgo.autofill.store
 
+import com.duckduckgo.app.global.DefaultDispatcherProvider
+import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.extractSchemeAndDomain
 import com.duckduckgo.autofill.InternalTestUserChecker
 import com.duckduckgo.autofill.domain.app.LoginCredentials
@@ -27,13 +29,15 @@ import com.duckduckgo.securestorage.api.WebsiteLoginDetailsWithCredentials
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class SecureStoreBackedAutofillStore(
     private val secureStorage: SecureStorage,
     private val internalTestUserChecker: InternalTestUserChecker,
     private val lastUpdatedTimeProvider: LastUpdatedTimeProvider,
-    private val autofillPrefsStore: AutofillPrefsStore
+    private val autofillPrefsStore: AutofillPrefsStore,
+    private val dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider()
 ) : AutofillStore {
 
     override val autofillAvailable: Boolean
@@ -51,17 +55,31 @@ class SecureStoreBackedAutofillStore(
             autofillPrefsStore.showOnboardingWhenOfferingToSaveLogin = value
         }
 
+    override var autofillDeclineCount: Int
+        get() = autofillPrefsStore.autofillDeclineCount
+        set(value) {
+            autofillPrefsStore.autofillDeclineCount = value
+        }
+
+    override var monitorDeclineCounts: Boolean
+        get() = autofillPrefsStore.monitorDeclineCounts
+        set(value) {
+            autofillPrefsStore.monitorDeclineCounts = value
+        }
+
     override suspend fun getCredentials(rawUrl: String): List<LoginCredentials> {
-        return if (autofillEnabled && autofillAvailable) {
-            Timber.i("Querying secure store for stored credentials. rawUrl: %s, extractedDomain:%s", rawUrl, rawUrl.extractSchemeAndDomain())
-            val url = rawUrl.extractSchemeAndDomain() ?: return emptyList()
+        return withContext(dispatcherProvider.io()) {
+            return@withContext if (autofillEnabled && autofillAvailable) {
+                Timber.i("Querying secure store for stored credentials. rawUrl: %s, extractedDomain:%s", rawUrl, rawUrl.extractSchemeAndDomain())
+                val url = rawUrl.extractSchemeAndDomain() ?: return@withContext emptyList()
 
-            val storedCredentials = secureStorage.websiteLoginDetailsWithCredentialsForDomain(url).firstOrNull() ?: emptyList()
-            Timber.v("Found %d credentials for %s", storedCredentials.size, url)
+                val storedCredentials = secureStorage.websiteLoginDetailsWithCredentialsForDomain(url).firstOrNull() ?: emptyList()
+                Timber.v("Found %d credentials for %s", storedCredentials.size, url)
 
-            storedCredentials.map { it.toLoginCredentials() }
-        } else {
-            emptyList()
+                storedCredentials.map { it.toLoginCredentials() }
+            } else {
+                emptyList()
+            }
         }
     }
 
@@ -71,7 +89,7 @@ class SecureStoreBackedAutofillStore(
     override suspend fun saveCredentials(
         rawUrl: String,
         credentials: LoginCredentials
-    ): Long? {
+    ): LoginCredentials? {
         val url = rawUrl.extractSchemeAndDomain()
         if (url == null) {
             Timber.w("Cannot save credentials as given url was in an unexpected format. Original url: %s", rawUrl)
@@ -84,42 +102,42 @@ class SecureStoreBackedAutofillStore(
             domain = url,
             username = credentials.username,
             domainTitle = credentials.domainTitle,
-            notes = credentials.notes,
             lastUpdatedMillis = lastUpdatedTimeProvider.getInMillis()
         )
         val webSiteLoginCredentials = WebsiteLoginDetailsWithCredentials(loginDetails, password = credentials.password)
 
-        val newId = secureStorage.addWebsiteLoginDetailsWithCredentials(webSiteLoginCredentials)
-
-        showOnboardingWhenOfferingToSaveLogin = false
-
-        return newId
+        return withContext(dispatcherProvider.io()) {
+            secureStorage.addWebsiteLoginDetailsWithCredentials(webSiteLoginCredentials)?.toLoginCredentials().also {
+                showOnboardingWhenOfferingToSaveLogin = false
+            }
+        }
     }
 
-    override suspend fun updateCredentials(
-        rawUrl: String,
-        credentials: LoginCredentials
-    ) {
+    override suspend fun updateCredentials(rawUrl: String, credentials: LoginCredentials): LoginCredentials? {
         val url = rawUrl.extractSchemeAndDomain()
         if (url == null) {
             Timber.w("Cannot update credentials as given url was in an unexpected format. Original url: %s", rawUrl)
-            return
+            return null
         }
 
         val matchingCredentials =
             secureStorage.websiteLoginDetailsWithCredentialsForDomain(url).firstOrNull()?.filter { it.details.username == credentials.username }
         if (matchingCredentials.isNullOrEmpty()) {
             Timber.w("Cannot update credentials as no credentials were found for %s", url)
-            return
+            return null
         }
 
         Timber.i("Updating %d saved login credentials for %s. username=%s", matchingCredentials.size, url, credentials.username)
 
+        var updatedCredentials: WebsiteLoginDetailsWithCredentials? = null
+
         matchingCredentials.forEach {
             val modifiedDetails = it.details.copy(username = credentials.username, lastUpdatedMillis = lastUpdatedTimeProvider.getInMillis())
             val modified = it.copy(password = credentials.password, details = modifiedDetails)
-            secureStorage.updateWebsiteLoginDetailsWithCredentials(modified)
+            updatedCredentials = secureStorage.updateWebsiteLoginDetailsWithCredentials(modified)
         }
+
+        return updatedCredentials?.toLoginCredentials()
     }
 
     override suspend fun getAllCredentials(): Flow<List<LoginCredentials>> {
@@ -133,11 +151,11 @@ class SecureStoreBackedAutofillStore(
         secureStorage.deleteWebsiteLoginDetailsWithCredentials(id)
     }
 
-    override suspend fun updateCredentials(credentials: LoginCredentials) {
-        secureStorage.updateWebsiteLoginDetailsWithCredentials(
+    override suspend fun updateCredentials(credentials: LoginCredentials): LoginCredentials? {
+        return secureStorage.updateWebsiteLoginDetailsWithCredentials(
             credentials.copy(lastUpdatedMillis = lastUpdatedTimeProvider.getInMillis())
                 .toWebsiteLoginCredentials()
-        )
+        )?.toLoginCredentials()
     }
 
     override suspend fun containsCredentials(
@@ -181,7 +199,7 @@ class SecureStoreBackedAutofillStore(
             username = details.username,
             password = password,
             domainTitle = details.domainTitle,
-            notes = details.notes,
+            notes = notes,
             lastUpdatedMillis = details.lastUpdatedMillis
         )
     }
@@ -193,10 +211,10 @@ class SecureStoreBackedAutofillStore(
                 username = username,
                 id = id,
                 domainTitle = domainTitle,
-                notes = notes,
                 lastUpdatedMillis = lastUpdatedMillis
             ),
-            password = password
+            password = password,
+            notes = notes
         )
     }
 }

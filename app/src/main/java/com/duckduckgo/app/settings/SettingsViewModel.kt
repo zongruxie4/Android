@@ -36,11 +36,10 @@ import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.pixels.Pixel.PixelName
 import com.duckduckgo.app.statistics.pixels.Pixel.PixelParameter.FIRE_ANIMATION
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.autoconsent.api.Autoconsent
 import com.duckduckgo.autofill.store.AutofillStore
 import com.duckduckgo.di.scopes.ActivityScope
 import com.duckduckgo.feature.toggles.api.FeatureToggle
-import com.duckduckgo.macos_api.MacOsWaitlist
-import com.duckduckgo.macos_api.MacWaitlistState
 import com.duckduckgo.mobile.android.ui.DuckDuckGoTheme
 import com.duckduckgo.mobile.android.ui.store.ThemingDataStore
 import com.duckduckgo.mobile.android.vpn.AppTpVpnFeature
@@ -50,6 +49,7 @@ import com.duckduckgo.mobile.android.vpn.waitlist.store.AtpWaitlistStateReposito
 import com.duckduckgo.mobile.android.vpn.waitlist.store.WaitlistState
 import com.duckduckgo.privacy.config.api.Gpc
 import com.duckduckgo.privacy.config.api.PrivacyFeatureName
+import com.duckduckgo.site.permissions.impl.pixels.SitePermissionsPixel.SitePermissionsPixelName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -77,9 +77,9 @@ class SettingsViewModel @Inject constructor(
     private val pixel: Pixel,
     private val appBuildConfig: AppBuildConfig,
     private val emailManager: EmailManager,
-    private val macOsWaitlist: MacOsWaitlist,
     private val autofillStore: AutofillStore,
     private val vpnFeaturesRegistry: VpnFeaturesRegistry,
+    private val autoconsent: Autoconsent,
 ) : ViewModel(), DefaultLifecycleObserver {
 
     private var deviceShieldStatePollingJob: Job? = null
@@ -99,8 +99,8 @@ class SettingsViewModel @Inject constructor(
         val appTrackingProtectionWaitlistState: WaitlistState = WaitlistState.NotJoinedQueue,
         val appTrackingProtectionEnabled: Boolean = false,
         val emailAddress: String? = null,
-        val macOsWaitlistState: MacWaitlistState = MacWaitlistState.NotJoinedQueue,
-        val showAutofill: Boolean = false
+        val showAutofill: Boolean = false,
+        val autoconsentEnabled: Boolean = false,
     )
 
     data class AutomaticallyClearData(
@@ -111,7 +111,8 @@ class SettingsViewModel @Inject constructor(
 
     sealed class Command {
         object LaunchDefaultBrowser : Command()
-        object LaunchEmailProtection : Command()
+        data class LaunchEmailProtection(val url: String) : Command()
+        object LaunchEmailProtectionNotSUpported : Command()
         object LaunchFeedback : Command()
         object LaunchFireproofWebsites : Command()
         object LaunchAutofillSettings : Command()
@@ -124,6 +125,7 @@ class SettingsViewModel @Inject constructor(
         data class LaunchThemeSettings(val theme: DuckDuckGoTheme) : Command()
         data class LaunchAppLinkSettings(val appLinksSettingType: AppLinkSettingType) : Command()
         object LaunchGlobalPrivacyControl : Command()
+        object LaunchAutoconsent : Command()
         object LaunchAppTPTrackersScreen : Command()
         object LaunchAppTPWaitlist : Command()
         object LaunchAppTPOnboarding : Command()
@@ -166,8 +168,8 @@ class SettingsViewModel @Inject constructor(
                     appTrackingProtectionEnabled = vpnFeaturesRegistry.isFeatureRegistered(AppTpVpnFeature.APPTP_VPN),
                     appTrackingProtectionWaitlistState = atpRepository.getState(),
                     emailAddress = emailManager.getEmailAddress(),
-                    macOsWaitlistState = macOsWaitlist.getWaitlistState(),
-                    showAutofill = autofillStore.autofillAvailable
+                    showAutofill = autofillStore.autofillAvailable,
+                    autoconsentEnabled = autoconsent.isSettingEnabled(),
                 )
             )
         }
@@ -240,10 +242,12 @@ class SettingsViewModel @Inject constructor(
 
     fun onAutofillSettingsClick() {
         viewModelScope.launch { command.send(Command.LaunchAutofillSettings) }
+        pixel.fire(SETTINGS_AUTOFILL_MANAGEMENT_OPENED)
     }
 
-    fun onLocationClicked() {
+    fun onSitePermissionsClicked() {
         viewModelScope.launch { command.send(Command.LaunchLocation) }
+        pixel.fire(SitePermissionsPixelName.SITE_PERMISSIONS_SETTINGS_VISITED)
     }
 
     fun onAutomaticallyClearWhatClicked() {
@@ -258,8 +262,19 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { command.send(Command.LaunchGlobalPrivacyControl) }
     }
 
+    fun onAutoconsentClicked() {
+        viewModelScope.launch { command.send(Command.LaunchAutoconsent) }
+    }
+
     fun onEmailProtectionSettingClicked() {
-        viewModelScope.launch { command.send(Command.LaunchEmailProtection) }
+        viewModelScope.launch {
+            val com = if (emailManager.isEmailFeatureSupported()) {
+                Command.LaunchEmailProtection(EMAIL_PROTECTION_URL)
+            } else {
+                Command.LaunchEmailProtectionNotSUpported
+            }
+            command.send(com)
+        }
     }
 
     fun onMacOsSettingClicked() {
@@ -450,6 +465,10 @@ class SettingsViewModel @Inject constructor(
             ClearWhenOption.APP_EXIT_OR_60_MINS -> AUTOMATIC_CLEAR_DATA_WHEN_OPTION_APP_EXIT_OR_60_MINS
             else -> null
         }
+    }
+
+    companion object {
+        const val EMAIL_PROTECTION_URL = "https://duckduckgo.com/email"
     }
 }
 

@@ -14,79 +14,61 @@
   ~ limitations under the License.
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/settingsSectionPrivacy"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <TextView
+    <com.duckduckgo.mobile.android.ui.view.divider.HorizontalDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.duckduckgo.mobile.android.ui.view.text.SectionHeaderTextView
         android:id="@+id/settingsPrivacyTitle"
-        style="@style/SettingsSectionTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/settingsHeadingPrivacy"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:text="@string/settingsHeadingPrivacy"/>
 
-    <com.duckduckgo.app.settings.SettingsOptionWithSubtitle
+    <com.duckduckgo.mobile.android.ui.view.listitem.TwoLineListItem
         android:id="@+id/globalPrivacyControlSetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:subtitle="test test test"
-        app:title="@string/globalPrivacyControlSetting"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settingsPrivacyTitle" />
+        app:primaryText="@string/globalPrivacyControlSetting"
+        tools:secondaryText="test test test" />
 
-    <TextView
+    <com.duckduckgo.mobile.android.ui.view.listitem.TwoLineListItem
+        android:id="@+id/autoconsentSetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:primaryText="@string/autoconsentSetting" />
+
+    <com.duckduckgo.mobile.android.ui.view.listitem.OneLineListItem
+        android:id="@+id/whitelist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:primaryText="@string/settingsPrivacyProtectionWhitelist"/>
+
+    <com.duckduckgo.mobile.android.ui.view.listitem.OneLineListItem
         android:id="@+id/fireproofWebsites"
-        style="@style/SettingsItemClickable"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/settingsFireproofWebsites"
-        app:layout_constraintTop_toBottomOf="@id/globalPrivacyControlSetting" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:primaryText="@string/settingsFireproofWebsites"/>
 
-    <TextView
-        android:id="@+id/locationPermissions"
-        style="@style/SettingsItemClickable"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/settingsPreciseLocation"
-        app:layout_constraintTop_toBottomOf="@id/fireproofWebsites" />
-
-    <com.duckduckgo.app.settings.SettingsOptionWithSubtitle
+    <com.duckduckgo.mobile.android.ui.view.listitem.TwoLineListItem
         android:id="@+id/automaticallyClearWhatSetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/locationPermissions"
-        app:subtitle="test test test"
-        app:title="@string/settingsAutomaticallyClearWhat" />
+        app:primaryText="@string/settingsAutomaticallyClearWhat"
+        tools:secondaryText="test test test" />
 
-    <com.duckduckgo.app.settings.SettingsOptionWithSubtitle
+    <com.duckduckgo.mobile.android.ui.view.listitem.TwoLineListItem
         android:id="@+id/automaticallyClearWhenSetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/automaticallyClearWhatSetting"
-        app:subtitle="test test test"
-        app:title="@string/settingsAutomaticallyClearWhen" />
+        app:primaryText="@string/settingsAutomaticallyClearWhen"
+        tools:secondaryText="test test test" />
 
-    <TextView
-        android:id="@+id/whitelist"
-        style="@style/SettingsItemClickable"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/settingsPrivacyProtectionWhitelist"
-        app:layout_constraintTop_toBottomOf="@id/automaticallyClearWhenSetting" />
-
-    <com.duckduckgo.app.settings.SettingsOptionWithSubtitle
-        android:id="@+id/appLinksSetting"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/whitelist"
-        app:title="@string/settingsTitleAppLinks" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

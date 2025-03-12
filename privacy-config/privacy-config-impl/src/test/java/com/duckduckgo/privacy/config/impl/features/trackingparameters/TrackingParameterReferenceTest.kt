@@ -22,7 +22,7 @@ import com.duckduckgo.feature.toggles.api.FeatureToggle
 import com.duckduckgo.privacy.config.api.PrivacyFeatureName
 import com.duckduckgo.privacy.config.api.TrackingParameterException
 import com.duckduckgo.privacy.config.api.TrackingParameters
-import com.duckduckgo.privacy.config.impl.features.unprotectedtemporary.UnprotectedTemporary
+import com.duckduckgo.privacy.config.api.UnprotectedTemporary
 import com.duckduckgo.privacy.config.store.features.trackingparameters.TrackingParametersRepository
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -52,7 +52,7 @@ class TrackingParameterReferenceTest(private val testCase: TestCase) {
         mockTrackingParameters()
         testee = RealTrackingParameters(mockRepository, mockFeatureToggle, mockUnprotectedTemporary, mockUserWhiteListRepository)
         whenever(mockUnprotectedTemporary.isAnException(any())).thenReturn(false)
-        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.TrackingParametersFeatureName, true)).thenReturn(true)
+        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.TrackingParametersFeatureName.value, true)).thenReturn(true)
     }
 
     companion object {
@@ -65,7 +65,7 @@ class TrackingParameterReferenceTest(private val testCase: TestCase) {
             val test = adapter.fromJson(
                 FileUtilities.loadText(
                     TrackingParameterReferenceTest::class.java.classLoader!!,
-                    "reference_tests/trackingparameters/tracking_parameters_matching_tests.json"
+                    "reference_tests/trackingparameters/tests.json"
                 )
             )
             return test?.trackingParameters?.tests ?: emptyList()
@@ -74,7 +74,7 @@ class TrackingParameterReferenceTest(private val testCase: TestCase) {
 
     @Test
     fun whenReferenceTestRunsItReturnsTheExpectedResult() {
-        val cleanedUrl = testee.cleanTrackingParameters(testCase.testURL)
+        val cleanedUrl = testee.cleanTrackingParameters(initiatingUrl = testCase.initiatorURL, url = testCase.testURL)
         if (cleanedUrl != null) {
             assertEquals(testCase.expectURL, cleanedUrl)
         } else {
@@ -88,13 +88,15 @@ class TrackingParameterReferenceTest(private val testCase: TestCase) {
         val trackingParameters = CopyOnWriteArrayList<Regex>()
         val jsonObject: JSONObject = FileUtilities.getJsonObjectFromFile(
             TrackingParameterReferenceTest::class.java.classLoader!!,
-            "reference_tests/trackingparameters/tracking_parameters_reference.json"
+            "reference_tests/trackingparameters/config_reference.json"
         )
 
-        jsonObject.keys().forEach { key ->
-            val trackingParametersFeature: TrackingParametersFeature? = jsonAdapter.fromJson(jsonObject.get(key).toString())
+        val features: JSONObject = jsonObject.getJSONObject("features")
+
+        features.keys().forEach { key ->
+            val trackingParametersFeature: TrackingParametersFeature? = jsonAdapter.fromJson(features.get(key).toString())
             exceptions.addAll(trackingParametersFeature!!.exceptions)
-            trackingParameters.addAll(trackingParametersFeature.settings.parameters.map { it.toRegex(RegexOption.IGNORE_CASE) })
+            trackingParameters.addAll(trackingParametersFeature.settings.parameters.map { it.toRegex() })
         }
         whenever(mockRepository.exceptions).thenReturn(exceptions)
         whenever(mockRepository.parameters).thenReturn(trackingParameters)
@@ -103,6 +105,7 @@ class TrackingParameterReferenceTest(private val testCase: TestCase) {
     data class TestCase(
         val name: String,
         val testURL: String,
+        val initiatorURL: String,
         val expectURL: String,
         val exceptPlatforms: List<String>
     )

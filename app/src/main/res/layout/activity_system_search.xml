@@ -25,7 +25,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:theme="@style/AppTheme.Dark.AppBarOverlay">
+        android:theme="@style/Widget.DuckDuckGo.ToolbarTheme">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/toolbarContainer"
@@ -45,7 +45,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_scrollFlags="scroll|enterAlways"
-                app:popupTheme="@style/AppTheme.Dark.PopupOverlay">
+                app:popupTheme="@style/Widget.DuckDuckGo.PopUpOverflowMenu">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/omniBarContainer"
@@ -95,7 +95,7 @@
 
                     </androidx.appcompat.widget.AppCompatEditText>
 
-                    <com.duckduckgo.mobile.android.ui.view.IconButton
+                    <com.duckduckgo.mobile.android.ui.view.button.IconButton
                         android:id="@+id/voiceSearchButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

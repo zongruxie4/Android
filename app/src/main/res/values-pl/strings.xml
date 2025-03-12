@@ -121,38 +121,6 @@
     <string name="httpsMixed">Połączenie częściowo zaszyfrowane</string>
     <string name="httpsBad">Połączenie niezaszyfrowane</string>
 
-    <string name="networksActivityTitle">Sieci skryptów śledzących</string>
-    <string name="networksContentDescription">Sieci skryptów śledzących</string>
-    <string name="networksOverview">Sieci skryptów śledzących tworzą historię wyszukiwania w formie profilu informacyjnego na Twój temat. Największe sieci skryptów śledzących są bardziej szkodliwe, ponieważ mogą śledzić i namierzać Cię na większym obszarze Internetu.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">%1$s Znaleziono tracker</item>
-        <item quantity="few">%1$s Znaleziono trackery</item>
-        <item quantity="many">%1$s Znaleziono trackerów</item>
-        <item quantity="other">%1$s Znaleziono trackery</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">%1$s Zablokowany tracker</item>
-        <item quantity="few">%1$s Zablokowane trackery</item>
-        <item quantity="many">%1$s Zablokowanych trackerów</item>
-        <item quantity="other">%1$s Zablokowane trackery</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">%1$s Znaleziono główną sieć śledzenia</item>
-        <item quantity="few">%1$s Znaleziono główne sieci śledzenia</item>
-        <item quantity="many">%1$s Znaleziono główne sieci śledzenia</item>
-        <item quantity="other">%1$s Znaleziono główne sieci śledzenia</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">%1$s Zablokowana główna sieć śledząca</item>
-        <item quantity="few">%1$s Zablokowano główne sieci śledzenia</item>
-        <item quantity="many">%1$s Zablokowano główne sieci śledzenia</item>
-        <item quantity="other">%1$s Zablokowano główne sieci śledzenia</item>
-    </plurals>
-
     <string name="scorecardActivityTitle">Poziom prywatności</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">Strona stanowi główną sieć skryptów śledzących</string>
     <string name="scorecardPrivacyGrade">Poziom prywatności</string>
@@ -171,6 +139,45 @@
     <string name="networkTrackerSummaryHeader">SIECI SKRYPTÓW ŚLEDZĄCYCH – NAJWIĘKSI ZŁOCZYŃCY</string>
     <string name="networkTrackerSummaryNotReady">Nadal gromadzimy dane, aby pokazać, jak wiele skryptów śledzących zablokowaliśmy.</string>
 
+    <string name="trackersActivityTitle">Zablokowane żądania śledzenia</string>
+    <string name="trackersContentDescription">Zablokowane żądania śledzenia</string>
+    <string name="trackersOverview">Następujące żądania domen innych firm zostały zablokowane przed załadowaniem, ponieważ zostały zidentyfikowane jako żądania śledzenia. Załadowanie żądań firmy może umożliwić jej profilowanie użytkownika.</string>
+    <string name="trackersOverviewProtectionsOff">Żadne żądania śledzenia nie zostały zablokowane przed załadowaniem, ponieważ zabezpieczenia są wyłączone dla tej witryny. Załadowanie żądań firmy może umożliwić jej profilowanie użytkownika.</string>
+
+    <string name="domainsLoadedActivityTitle">Załadowano żądania innych firm</string>
+    <string name="domainsLoadedContentDescription">Załadowano żądania innych firm</string>
+    <string name="domainsLoadedOverview">Załadowano następujące żądania domen innych firm. Załadowanie żądań firmy może umożliwić jej profilowanie użytkownika, choć nadal mają zastosowanie nasze pozostałe zabezpieczenia dotyczące śledzenia w sieci.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">Żadne żądania innych firm nie zostały zablokowane przed załadowaniem, ponieważ zabezpieczenia są wyłączone dla tej witryny. Załadowanie żądań firmy może umożliwić jej profilowanie użytkownika.</string>
+    <string name="domainsLoadedOverviewEmpty">Nie wykryliśmy żądań z żadnych domen innych firm.</string>
+    <string name="domainsLoadedHeadingText">Brak załadowanych domen innych firm</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">Informacje o zabezpieczeniach przed śledzeniem w sieci</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">Załadowano żądania następującej domeny.</string>
+
+    <string name="adLoadedSectionDescription">Następujące żądania domeny zostały załadowane, ponieważ niedawno została kliknięta reklama %1$s na DuckDuckGo. Te żądania pomagają ocenić skuteczność reklam. Wszystkie reklamy na DuckDuckGo są nieprofilowane.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">Jak reklamy w wyszukiwarce wpływają na zabezpieczenia</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">Załadowano również żądania następującej domeny.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">Załadowano żądania śledzenia następujących domen.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">Nie wykryliśmy żądań z żadnych domen innych firm.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">Następujące żądania domeny zostały załadowane, aby zapobiec uszkodzeniu witryny.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">Następujące żądania domeny zostały załadowane, ponieważ są powiązane z %1$s.</string>
+
+    <string name="trackersBlockedText">Żądania zablokowane przed załadowaniem</string>
+    <string name="trackersNotBlockedText">Brak zablokowanych żądań śledzenia</string>
+    <string name="trackersNoFoundText">Nie znaleziono żądań śledzenia</string>
+    <string name="trackersFoundText">Znaleziono żądania śledzenia</string>
+
+    <string name="domainsLoadedText">Załadowano żądania innych firm</string>
+    <string name="domainsNotLoadedText">Brak załadowanych żądań innych firm</string>
+
+    <string name="majorNetworksNoFound">Nie znaleziono dużych sieci skryptów śledzących</string>
+    <string name="majorNetworksFound">Znaleziono duże sieci skryptów śledzących</string>
+
     <!-- Fire -->
     <string name="fireMenu">Wyczyść dane</string>
     <string name="fireClearAll">Wyczyść wszystkie karty i dane</string>
@@ -180,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Ustawienia</string>
     <string name="settingsMenuItemTitle">Ustawienia</string>
-    <string name="settingsHeadingGeneral">Ogólne</string>
-    <string name="settingsHeadingOther">Inne</string>
     <string name="settingsHeadingPrivacy">Prywatność</string>
     <string name="settingsAboutDuckduckgo">O DuckDuckGo</string>
     <string name="settingsVersion">Wersja</string>
@@ -199,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Pytaj za każdym razem</string>
     <string name="settingsAppLinksAlways">Zawsze</string>
     <string name="settingsAppLinksNever">Nigdy</string>
+    <string name="settingsHeadingAppearance">Wygląd</string>
+    <string name="settingsHeadingCustomize">Spersonalizuj</string>
+    <string name="settingsHeadingAbout">Informacje</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Zapisz</string>
@@ -474,7 +482,7 @@
     <string name="onboardingLetsDoItButton">Zróbmy to!</string>
     <string name="daxIntroCtaText"><![CDATA[Spróbuj teraz odwiedzić jedną z twoich ulubionych stron! <br/><br/>Zablokuję cię, aby nie mogły cię szpiegować. Jeśli to możliwe, poprawię również bezpieczeństwo twojego połączenia. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[Udało się!<br/><br/>Pamiętaj: za każdym razem, gdy przeglądasz ze mną Internet, jakaś wścibska reklama przestaje działać. 👍]]></string>
-    <string name="daxSerpCtaText">Twoje wyszukiwania w DuckDuckGo są anonimowe, a ja nigdy nie przechowuję Twojej historii wyszukiwania. Przenigdy. 🙌</string>
+    <string name="daxSerpCtaText">Twoje wyszukiwania w DuckDuckGo są anonimowe. Zawsze. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[ i <b>%1$d inny</b> próbowali Cię tutaj śledzić. <br/><br/>Zablokowałem je!<br/><br/> ☝️ Możesz sprawdzić pasek adresu, aby zobaczyć, kto próbuje Cię śledzić, gdy odwiedzasz nową witrynę.️]]></item>
         <item quantity="few"><![CDATA[ i <b>%1$d innych</b> próbowało Cię tutaj śledzić. <br/><br/>Zablokowałem je!<br/><br/> ☝️ Możesz sprawdzić pasek adresu, aby zobaczyć, kto próbuje Cię śledzić, gdy odwiedzasz nową witrynę.️]]></item>
@@ -575,11 +583,6 @@
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Połączenie nie powiodło się. Ta strona może być szkodliwa dla Twojego urządzenia.</string>
 
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">Wyłączono Menedżera pobierania</string>
-    <string name="downloadManagerIncompatible">Menedżer pobierania nie jest dostępny na tym urządzeniu</string>
-    <string name="enable">Włącz</string>
-
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">Udostępnić lokalizację urządzenia przeglądarce prywatności DuckDuckGo?</string>
     <string name="preciseLocationSystemDialogSubtitle">%1$s prosi o dostęp do lokalizacji Twojego urządzenia. Najpierw musisz zezwolić aplikacji na wysyłanie lokalizacji urządzenia, a następnie %2$s może poprosić o pozwolenie.</string>
@@ -593,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Tylko dla tej sesji</string>
     <string name="preciseLocationSiteDialogDenyAlways">Zawsze odmawiaj</string>
     <string name="preciseLocationSiteDialogDenyOnce">Odmów w tej sesji</string>
-    <string name="settingsPreciseLocation">Lokalizacja</string>
     <string name="preciseLocationFeatureDescription">Odwiedzane witryny mogą prosić o dostęp do danych lokalizacji Twojego urządzenia. Nie będą mogły uzyskać do niej dostępu, dopóki wyraźnie nie udzielisz zgody. DuckDuckGo wykorzystuje Twoją lokalizację wyłącznie anonimowo do dostarczania lokalnych wyników wyszukiwania.</string>
     <string name="preciseLocationToggleText">Witryny mogą prosić o podanie mojej lokalizacji</string>
     <string name="preciseLocationEmptyListHint">Żadna witryna nie może uzyskać dostępu do mojej lokalizacji</string>
@@ -611,7 +613,7 @@
     <!--  Global Privacy Control-->
     <string name="globalPrivacyControlActivityTitle">Globalna Kontrola Prywatności (GPC)</string>
     <string name="globalPrivacyControlDescription">
-        <![CDATA[DuckDuckGo automatycznie blokuje wiele skryptów śledzących. Dzięki Globalnej kontroli prywatności (Global Privacy Control – GPC) możesz również poprosić uczestniczące witryny internetowe o zablokowanie sprzedaży lub udostępniania Twoich danych osobowych innym firmom. <u><a href="">Dowiedz się więcej</a><u/>]]>
+        <![CDATA[DuckDuckGo automatycznie blokuje wiele skryptów śledzących. Dzięki Globalnej kontroli prywatności (Global Privacy Control – GPC) możesz również poprosić uczestniczące witryny internetowe o zablokowanie sprzedaży lub udostępniania Twoich danych osobowych innym firmom. <u><a href=\"\">Dowiedz się więcej</a><u/>]]>
     </string>
     <string name="globalPrivacyControlSetting">Globalna Kontrola Prywatności (GPC)</string>
     <string name="globalPrivacyControlToggle">Globalna Kontrola Prywatności (GPC)</string>
@@ -637,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokuje skrypty śledzące wiadomości e-mail i ukrywa Twój adres e-mail</string>
     <string name="newEmailAliasMenuTitle">Utwórz adres Duck</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Usunąć ochronę poczty e-mail?</string>
-    <string name="emailSignOutDialogText">Uwaga: usunięcie ochrony poczty e-mail z tego urządzenia nie spowoduje usunięcia Twojego adresu Duck.</string>
-    <string name="emailSignOutDialogCancel">Anuluj</string>
-    <string name="emailSignOutDialogDisable">Usuń</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Lista oczekujących na ochronę poczty e-mail</string>
-    <string name="waitlistNotificationTitle">Ochrona poczty e-mail jest gotowa!</string>
-    <string name="waitlistNotificationDescription">Otwórz zaproszenie</string>
-
     <string name="waitlistNotificationDialogDescription">Czy chcesz, abyśmy wysłali Ci powiadomienie, gdy nadejdzie Twoja kolej?</string>
     <string name="waitlistNotificationDialogNoThanks">Nie, dziękuję</string>
     <string name="waitlistNotificationDialogNotifyMe">POWIADOM MNIE</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Ochrona poczty e-mail (wersja beta)</string>
     <string name="emailProtectionActivityTitle">Ochrona poczty e-mail (wersja beta)</string>
-    <string name="emailProtectionFooterDescription">Nie musisz udostępniać żadnych danych osobowych, aby dołączyć do listy oczekujących. Miejsce w kolejce zostanie zarezerwowane zgodnie z sygnaturą czasową przechowywaną wyłącznie na Twoim urządzeniu, aby umożliwić nam powiadomienie, gdy nadejdzie Twoja kolej.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Wystąpił błąd podczas dołączania do listy oczekujących, spróbuj ponownie później</string>
-    <string name="emailProtectionDuckAddressCta">Mam już adres Duck</string>
-    <string name="emailProtectionInviteCodeCta">Mam kod zaproszenia</string>
-    <string name="emailProtectionWaitlistCta">Dołącz do prywatnej listy oczekujących</string>
-    <string name="emailProtectionGetStartedCta">Rozpocznij</string>
     <string name="emailNotSupported">Urządzenie nie jest obsługiwane</string>
     <string name="emailNotSupportedExplanation">Ochrona poczty e-mail umożliwia tworzenie prywatnych adresów e-mail, które usuwają skrypty śledzące wiadomości e-mail. Musimy szyfrować i przechowywać tworzone adresy lokalnie na Twoim urządzeniu. Ponieważ Twoje urządzenie nie obsługuje szyfrowanego przechowywania, ochrona poczty e-mail jest niedostępna.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Uproszczona prywatność poczty e-mail.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Zablokuj skrypty śledzące pocztę e-mail i ukryj swój adres bez zmiany dostawcy poczty e-mail.<a href=""><b>Dowiedz się więcej</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Jesteś na liście!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Wyślemy Ci powiadomienie, gdy<br/> ochrona poczty e-mail będzie gotowa. <a href=""><b>Dowiedz się więcej</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Twoje zaproszenie pojawi się tutaj, gdy będzie już gotowe. Chcesz <a href=""><b>otrzymać powiadomienie</b></a>, gdy będzie gotowe?<br/><a href=""><b>Dowiedz się więcej</b></a> o ochronie poczty e-mail.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Masz już zaproszenie!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Zablokuj skrypty śledzące pocztę e-mail i ukryj swój adres bez zmiany dostawcy poczty e-mail.<a href=""><b>Dowiedz się więcej</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Osobisty adres Duck</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Usunięcie ochrony poczty e-mail z tego urządzenia usuwa opcję wpisywania osobistego adresu Duck lub nowo wygenerowanego prywatnego adresu Duck w polach adresu e-mail podczas przeglądania sieci.<br/><br/>Aby całkowicie usunąć swoje adresy Duck bądź przesłać jakiekolwiek pytania lub opinie, skontaktuj się z nami pod adresem <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Usuń z urządzenia</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Edytuj zakładkę</string>
@@ -727,8 +692,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Przeglądaj prywatnie za pomocą aplikacji dla komputerów Mac</string>
-    <string name="macos_settings_description_list">Jesteś na liście!</string>
-    <string name="macos_settings_description_ready">Dostępne do pobrania na Mac</string>
     <string name="macos_settings_title">Aplikacja komputerowa DuckDuckGo</string>
 
     <!-- Downloads -->
@@ -748,5 +711,38 @@
     <string name="downloadsMoreOptionsContentDescription">Więcej opcji dla %1$s</string>
     <string name="downloadsUndoActionName">Cofnij</string>
     <string name="downloadsStateInProgress">W trakcie…</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">Ochrona przed śledzeniem przez aplikacje</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Blokowanie skryptów śledzących aplikacji na urządzeniu</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Włączone</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Wyłączone</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Wygląda na to, że na tej stronie pojawia się okienko z prośbą o zgodę na używanie plików cookie 👇</string>
+    <string name="autoconsentDialogDescription">Mamy się tym za Ciebie zająć? Możemy spróbować zminimalizować liczbę plików cookie, zmaksymalizować prywatność i ukryć takie wyskakujące okienka.</string>
+    <string name="autoconsentPrimaryCta">Zarządzaj wyskakującymi okienkami z prośbą o używanie plików cookie</string>
+    <string name="autoconsentSecondaryCta">Nie, dziękuję</string>
+
+    <string name="autoconsentSetting">Zarządzaj wyskakującymi okienkami z prośbą o używanie plików cookie</string>
+    <string name="autoconsentAnimationText">Zarządzane pliki cookie</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Uprawnienia witryny</string>
+    <string name="sitePermissionsSettingsDescription">Strony, które odwiedzasz, mogą prosić o dostęp do lokalizacji Twojego urządzenia, kamery lub mikrofonu. Nie będą miały do nich dostępu, jeśli nie udzielisz im zgody.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Pozwól wszystkim stronom prosić o:</string>
+    <string name="sitePermissionsSettingsLocation">Lokalizacja</string>
+    <string name="sitePermissionsSettingsCamera">Aparat</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofon</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Zarządzaj witrynami</string>
+    <string name="sitePermissionsSettingsEmptyText">Nie masz jeszcze witryn</string>
+    <string name="permissionPerWebsiteText">Uprawnienia dla: „%1$s” </string>
+    <string name="permissionsPerWebsiteAskSetting">Poproś</string>
+    <string name="permissionsPerWebsiteDenySetting">Odmów</string>
+    <string name="permissionsPerWebsiteAllowSetting">Zezwól</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">Pozwolenie dla witryny %2$s na dostęp do urządzenia: %1$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Autouzupełnianie</string>
 
 </resources>

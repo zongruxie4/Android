@@ -16,7 +16,6 @@
 
 package com.duckduckgo.app.settings
 
-import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.cash.turbine.test
 import com.duckduckgo.app.CoroutineTestRule
@@ -27,6 +26,7 @@ import com.duckduckgo.app.fire.FireAnimationLoader
 import com.duckduckgo.app.icon.api.AppIcon
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.settings.SettingsViewModel.Command
+import com.duckduckgo.app.settings.SettingsViewModel.Companion.EMAIL_PROTECTION_URL
 import com.duckduckgo.app.settings.clear.ClearWhatOption.CLEAR_NONE
 import com.duckduckgo.app.settings.clear.ClearWhenOption.APP_EXIT_ONLY
 import com.duckduckgo.app.settings.clear.FireAnimation
@@ -35,11 +35,12 @@ import com.duckduckgo.app.statistics.Variant
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.autoconsent.api.Autoconsent
+import com.duckduckgo.autofill.store.AutofillStore
 import com.duckduckgo.feature.toggles.api.FeatureToggle
-import com.duckduckgo.macos_api.MacOsWaitlist
-import com.duckduckgo.macos_api.MacWaitlistState
 import com.duckduckgo.mobile.android.ui.DuckDuckGoTheme
 import com.duckduckgo.mobile.android.ui.store.ThemingDataStore
+import com.duckduckgo.mobile.android.vpn.VpnFeaturesRegistry
 import com.duckduckgo.mobile.android.vpn.ui.onboarding.VpnStore
 import com.duckduckgo.mobile.android.vpn.waitlist.AppTrackingProtectionWaitlistDataStore
 import com.duckduckgo.mobile.android.vpn.waitlist.store.AtpWaitlistStateRepository
@@ -84,9 +85,6 @@ class SettingsViewModelTest {
     @Mock
     private lateinit var mockFireAnimationLoader: FireAnimationLoader
 
-    @Mock
-    lateinit var mockContext: Context
-
     private lateinit var appTPRepository: AtpWaitlistStateRepository
 
     @Mock
@@ -105,7 +103,13 @@ class SettingsViewModelTest {
     private lateinit var mockEmailManager: EmailManager
 
     @Mock
-    private lateinit var mockMacOsWaitlist: MacOsWaitlist
+    private lateinit var autofillStore: AutofillStore
+
+    @Mock
+    private lateinit var vpnFeaturesRegistry: VpnFeaturesRegistry
+
+    @Mock
+    private lateinit var autoconsent: Autoconsent
 
     private lateinit var appTrackingProtectionWaitlistDataStore: FakeAppTrackingProtectionWaitlistDataStore
 
@@ -117,10 +121,18 @@ class SettingsViewModelTest {
         MockitoAnnotations.openMocks(this)
 
         appTrackingProtectionWaitlistDataStore = FakeAppTrackingProtectionWaitlistDataStore()
-        appTPRepository = WaitlistStateRepository(appTrackingProtectionWaitlistDataStore, mockVariantManager)
+        appTPRepository = WaitlistStateRepository(appTrackingProtectionWaitlistDataStore)
+
+        whenever(mockAppSettingsDataStore.automaticallyClearWhenOption).thenReturn(APP_EXIT_ONLY)
+        whenever(mockAppSettingsDataStore.automaticallyClearWhatOption).thenReturn(CLEAR_NONE)
+        whenever(mockAppSettingsDataStore.appIcon).thenReturn(AppIcon.DEFAULT)
+        whenever(mockThemeSettingsDataStore.theme).thenReturn(DuckDuckGoTheme.LIGHT)
+        whenever(mockAppSettingsDataStore.selectedFireAnimation).thenReturn(FireAnimation.HeroFire)
+        whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.DEFAULT_VARIANT)
+        whenever(mockAppBuildConfig.versionName).thenReturn("name")
+        whenever(mockAppBuildConfig.versionCode).thenReturn(1)
 
         testee = SettingsViewModel(
-            mockContext,
             mockThemeSettingsDataStore,
             mockAppSettingsDataStore,
             mockDefaultBrowserDetector,
@@ -133,18 +145,10 @@ class SettingsViewModelTest {
             mockPixel,
             mockAppBuildConfig,
             mockEmailManager,
-            mockMacOsWaitlist
+            autofillStore,
+            vpnFeaturesRegistry,
+            autoconsent,
         )
-
-        whenever(mockAppSettingsDataStore.automaticallyClearWhenOption).thenReturn(APP_EXIT_ONLY)
-        whenever(mockAppSettingsDataStore.automaticallyClearWhatOption).thenReturn(CLEAR_NONE)
-        whenever(mockAppSettingsDataStore.appIcon).thenReturn(AppIcon.DEFAULT)
-        whenever(mockThemeSettingsDataStore.theme).thenReturn(DuckDuckGoTheme.LIGHT)
-        whenever(mockAppSettingsDataStore.selectedFireAnimation).thenReturn(FireAnimation.HeroFire)
-        whenever(mockMacOsWaitlist.getWaitlistState()).thenReturn(MacWaitlistState.NotJoinedQueue)
-        whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.DEFAULT_VARIANT)
-        whenever(mockAppBuildConfig.versionName).thenReturn("name")
-        whenever(mockAppBuildConfig.versionCode).thenReturn(1)
     }
 
     @Test
@@ -155,7 +159,7 @@ class SettingsViewModelTest {
 
     @Test
     fun whenStartIfGpcToggleDisabledAndGpcEnabledThenGpgDisabled() = runTest {
-        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName), any())).thenReturn(false)
+        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName.value), any())).thenReturn(false)
         whenever(mockGpc.isEnabled()).thenReturn(true)
 
         testee.start()
@@ -168,7 +172,7 @@ class SettingsViewModelTest {
 
     @Test
     fun whenStartIfGpcToggleEnabledAndGpcDisabledThenGpgDisabled() = runTest {
-        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName), any())).thenReturn(true)
+        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName.value), any())).thenReturn(true)
         whenever(mockGpc.isEnabled()).thenReturn(false)
         testee.start()
 
@@ -180,7 +184,7 @@ class SettingsViewModelTest {
 
     @Test
     fun whenStartIfGpcToggleEnabledAndGpcEnabledThenGpgEnabled() = runTest {
-        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName), any())).thenReturn(true)
+        whenever(mockFeatureToggle.isFeatureEnabled(eq(PrivacyFeatureName.GpcFeatureName.value), any())).thenReturn(true)
         whenever(mockGpc.isEnabled()).thenReturn(true)
         testee.start()
 
@@ -595,111 +599,24 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun whenNotInAppTPRetentionStudyAndUserDidJoinBetaBetaAndOnboardingDidShowThenClickingOnSettingOpensTrackersScreen() = runTest {
-        testee.commands().test {
-            appTrackingProtectionWaitlistDataStore.inviteCode = "inviteCode"
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "na" })
-            whenever(mockDeviceShieldOnboarding.didShowOnboarding()).thenReturn(true)
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPTrackersScreen, expectMostRecentItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenNotInAppTPRetentionStudyAndUserDidJoinBetaAndOnboardingDidNotShowThenClickingOnSettingOpensTrackersScreen() = runTest {
-        testee.commands().test {
-            appTrackingProtectionWaitlistDataStore.inviteCode = "inviteCode"
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "na" })
-            whenever(mockDeviceShieldOnboarding.didShowOnboarding()).thenReturn(false)
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPOnboarding, expectMostRecentItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenNotInAppTPRetentionStudyAndUserDidNotJoinBetaThenClickingOnSettingLaunchAppTPWaitlist() = runTest {
-        testee.commands().test {
-
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "na" })
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPWaitlist, expectMostRecentItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenNotInAppTPRetentionStudyAndUserNotJoinedQueueForAppTPBetaThenClickingOnSettingOpensWaitlistScreen() = runTest {
-        testee.commands().test {
-
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "na" })
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPWaitlist, awaitItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenNotInAppTPRetentionStudyAndUserJoinedQueueAppTPBetaThenClickingOnSettingOpensWaitlistScreen() = runTest {
-        testee.commands().test {
-
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "na" })
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPWaitlist, awaitItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenInAppTPRetentionStudyAndOnboardingDidShowThenClickingOnSettingOpensTrackersScreen() = runTest {
-        testee.commands().test {
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "nb" })
-            whenever(mockDeviceShieldOnboarding.didShowOnboarding()).thenReturn(true)
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPTrackersScreen, expectMostRecentItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenInAppTPRetentionStudyAndOnboardingDidNotShowThenClickingOnSettingOpensTrackersScreen() = runTest {
-        testee.commands().test {
-            whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.ACTIVE_VARIANTS.first { it.key == "nb" })
-            whenever(mockDeviceShieldOnboarding.didShowOnboarding()).thenReturn(false)
-
-            testee.onAppTPSettingClicked()
-
-            assertEquals(Command.LaunchAppTPOnboarding, expectMostRecentItem())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun whenOnEmailProtectionSettingClickedThenEmitCommandLaunchEmailProtection() = runTest {
+    fun whenOnEmailProtectionSettingClickedAndEmailIsSupportedThenEmitCommandLaunchEmailProtection() = runTest {
+        whenever(mockEmailManager.isEmailFeatureSupported()).thenReturn(true)
         testee.commands().test {
             testee.onEmailProtectionSettingClicked()
 
-            assertEquals(Command.LaunchEmailProtection, awaitItem())
+            assertEquals(Command.LaunchEmailProtection(EMAIL_PROTECTION_URL), awaitItem())
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun whenOnEmailProtectionSettingClickedAndEmailIsNotSupportedThenEmitCommandLaunchEmailProtectionNotSupported() = runTest {
+        whenever(mockEmailManager.isEmailFeatureSupported()).thenReturn(false)
+        testee.commands().test {
+            testee.onEmailProtectionSettingClicked()
+
+            assertEquals(Command.LaunchEmailProtectionNotSUpported, awaitItem())
 
             cancelAndConsumeRemainingEvents()
         }
@@ -724,6 +641,57 @@ class SettingsViewModelTest {
             assertEquals(Command.LaunchMacOs, awaitItem())
 
             cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun whenAutofillIsAvailableTheShowAutofillTrue() = runTest {
+        whenever(autofillStore.autofillAvailable).thenReturn(true)
+        testee.start()
+
+        testee.viewState().test {
+            assertTrue(awaitItem().showAutofill)
+        }
+    }
+
+    @Test
+    fun whenAutofillIsNotAvailableTheShowAutofillFalse() = runTest {
+        whenever(autofillStore.autofillAvailable).thenReturn(false)
+        testee.start()
+
+        testee.viewState().test {
+            assertFalse(awaitItem().showAutofill)
+        }
+    }
+
+    @Test
+    fun whenOnAutoconsentClickedThenEmitCommandLaunchAutoconsent() = runTest {
+        testee.commands().test {
+            testee.onAutoconsentClicked()
+
+            assertEquals(Command.LaunchAutoconsent, awaitItem())
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun whenAutoconsentEnabledThenAutoconsentEnabledIsTrue() = runTest {
+        whenever(autoconsent.isSettingEnabled()).thenReturn(true)
+        testee.start()
+
+        testee.viewState().test {
+            assertTrue(awaitItem().autoconsentEnabled)
+        }
+    }
+
+    @Test
+    fun whenAutoconsentDisabledThenAutoconsentEnabledIsFalse() = runTest {
+        whenever(autoconsent.isSettingEnabled()).thenReturn(false)
+        testee.start()
+
+        testee.viewState().test {
+            assertFalse(awaitItem().autoconsentEnabled)
         }
     }
 

@@ -52,6 +52,7 @@ import com.duckduckgo.privacy.config.store.HttpsExceptionEntity
 import com.duckduckgo.privacy.config.store.features.https.HttpsRepository
 import com.duckduckgo.privacy.config.store.features.unprotectedtemporary.UnprotectedTemporaryRepository
 import com.duckduckgo.privacy.config.store.toHttpsException
+import com.duckduckgo.privacy.config.store.toUnprotectedTemporaryException
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -167,9 +168,11 @@ class HttpsReferenceTest(private val testCase: TestCase) {
         }
 
         val isEnabled = httpsFeature?.state == "enabled"
-        val exceptionsUnprotectedTemporary = CopyOnWriteArrayList(config?.unprotectedTemporary ?: emptyList())
+        val exceptionsUnprotectedTemporary = CopyOnWriteArrayList(
+            config?.unprotectedTemporary?.map { it.toUnprotectedTemporaryException() } ?: emptyList()
+        )
 
-        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.HttpsFeatureName, isEnabled)).thenReturn(isEnabled)
+        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.HttpsFeatureName.value, isEnabled)).thenReturn(isEnabled)
         whenever(mockHttpsRepository.exceptions).thenReturn(CopyOnWriteArrayList(httpsExceptions))
         whenever(mockUnprotectedTemporaryRepository.exceptions).thenReturn(exceptionsUnprotectedTemporary)
 
@@ -201,7 +204,8 @@ class HttpsReferenceTest(private val testCase: TestCase) {
             binaryDataStore,
             embeddedDataPersister,
             httpsDataPersister,
-            mockPixel
+            mockPixel,
+            InstrumentationRegistry.getInstrumentation().targetContext,
         )
     }
 

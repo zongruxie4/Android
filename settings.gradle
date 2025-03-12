@@ -1,91 +1,36 @@
 plugins {
-    id("de.fayard.refreshVersions") version "0.40.1"
+    id("de.fayard.refreshVersions") version "0.40.2"
 }
 
-include ':browser-api'
-include ':vpn'
-include ':vpn-store'
-include ':vpn-api'
-include ':vpn-internal'
-include ':di'
-include ':app'
-include ':statistics'
-include ':common'
-include ':common-ui'
-include ':app-store'
-include ':appbuildconfig-api'
+rootDir.eachFile(groovy.io.FileType.DIRECTORIES) { File parent ->
 
-include ':feature-toggles-api'
-include ':feature-toggles-impl'
-
-include ':privacy-config-api'
-include ':privacy-config-impl'
-include ':privacy-config-store'
-
-include ':traces-api'
-include ':traces-impl'
-
-include ':anrs-api'
-include ':anrs-impl'
-include ':anrs-store'
-
-include ':remote-messaging-api'
-include ':remote-messaging-impl'
-include ':remote-messaging-store'
-
-include ':macos-api'
-include ':macos-impl'
-include ':macos-store'
-
-include ':bandwidth-impl'
-include ':bandwidth-store'
-
-include ':downloads-api'
-include ':downloads-impl'
-include ':downloads-store'
-
-include ':common-test'
-
-include ':anvil-compiler'
-include ':anvil-annotations'
-
-include ':voice-search-api'
-include ':voice-search-impl'
-include ':voice-search-store'
-
-project(':feature-toggles-api').projectDir = new File('feature-toggles/feature-toggles-api')
-project(':feature-toggles-impl').projectDir = new File('feature-toggles/feature-toggles-impl')
-project(':privacy-config-api').projectDir = new File('privacy-config/privacy-config-api')
-project(':privacy-config-impl').projectDir = new File('privacy-config/privacy-config-impl')
-project(':privacy-config-store').projectDir = new File('privacy-config/privacy-config-store')
-project(':remote-messaging-api').projectDir = new File('remote-messaging/remote-messaging-api')
-project(':remote-messaging-impl').projectDir = new File('remote-messaging/remote-messaging-impl')
-project(':remote-messaging-store').projectDir = new File('remote-messaging/remote-messaging-store')
-
-project(':voice-search-api').projectDir = new File('voice-search/voice-search-api')
-project(':voice-search-impl').projectDir = new File('voice-search/voice-search-impl')
-project(':voice-search-store').projectDir = new File('voice-search/voice-search-store')
-
-project(':downloads-api').projectDir = new File('downloads/downloads-api')
-project(':downloads-impl').projectDir = new File('downloads/downloads-impl')
-project(':downloads-store').projectDir = new File('downloads/downloads-store')
-
-project(':traces-api').projectDir = new File('traces/traces-api')
-project(':traces-impl').projectDir = new File('traces/traces-impl')
-
-project(':anrs-api').projectDir = new File('anrs/anrs-api')
-project(':anrs-impl').projectDir = new File('anrs/anrs-impl')
-project(':anrs-store').projectDir = new File('anrs/anrs-store')
-
-project(':macos-api').projectDir = new File('macos/macos-api')
-project(':macos-impl').projectDir = new File('macos/macos-impl')
-project(':macos-store').projectDir = new File('macos/macos-store')
-
-project(':bandwidth-impl').projectDir = new File('bandwidth/bandwidth-impl')
-project(':bandwidth-store').projectDir = new File('bandwidth/bandwidth-store')
-
-project(':anvil-compiler').projectDir = new File('anvil/anvil-compiler')
-project(':anvil-annotations').projectDir = new File('anvil/anvil-annotations')
+    String[] ignoreFolders = ["buildSrc", "fastlane", "submodules", "node_modules", "gradle", "build"]
+    if (!parent.name.startsWith(".") && !ignoreFolders.contains(parent.name)) {
+        Boolean shouldAddProject = false
+        parent.eachFile {
+            if (it.name.contains("build.gradle")) {
+                shouldAddProject = true
+                return
+            }
+        }
+        if (shouldAddProject) {
+            include ":${parent.name}"
+        } else {
+            parent.eachFile(groovy.io.FileType.DIRECTORIES) { child -> // We only one level deep
+                Boolean shouldAddSubProject = false
+                child.eachFile {
+                    if (it.name.contains("build.gradle")) {
+                        shouldAddSubProject = true
+                        return
+                    }
+                }
+                if (shouldAddSubProject) {
+                    include ":${child.name}"; project(":${child.name}").projectDir = new File("${parent.name}/${child.name}")
+                }
+            }
+        }
+    }
+}
 
 rootProject.children.each { subproject ->
 

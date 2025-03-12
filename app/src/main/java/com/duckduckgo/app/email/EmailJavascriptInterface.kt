@@ -24,6 +24,7 @@ import com.duckduckgo.feature.toggles.api.FeatureToggle
 import com.duckduckgo.privacy.config.api.Autofill
 import com.duckduckgo.privacy.config.api.PrivacyFeatureName
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 
 class EmailJavascriptInterface(
     private val emailManager: EmailManager,
@@ -46,7 +47,7 @@ class EmailJavascriptInterface(
         return (url != null && urlDetector.isDuckDuckGoEmailUrl(url))
     }
 
-    private fun isFeatureEnabled() = featureToggle.isFeatureEnabled(PrivacyFeatureName.AutofillFeatureName, defaultValue = true)
+    private fun isFeatureEnabled() = featureToggle.isFeatureEnabled(PrivacyFeatureName.AutofillFeatureName.value, defaultValue = true)
 
     @JavascriptInterface
     fun isSignedIn(): String {
@@ -67,6 +68,19 @@ class EmailJavascriptInterface(
     }
 
     @JavascriptInterface
+    fun getDeviceCapabilities(): String {
+        return if (isUrlFromDuckDuckGoEmail()) {
+            JSONObject().apply {
+                put("addUserData", true)
+                put("getUserData", true)
+                put("removeUserData", true)
+            }.toString()
+        } else {
+            ""
+        }
+    }
+
+    @JavascriptInterface
     fun storeCredentials(
         token: String,
         username: String,
@@ -74,6 +88,13 @@ class EmailJavascriptInterface(
     ) {
         if (isUrlFromDuckDuckGoEmail()) {
             emailManager.storeCredentials(token, username, cohort)
+        }
+    }
+
+    @JavascriptInterface
+    fun removeCredentials() {
+        if (isUrlFromDuckDuckGoEmail()) {
+            emailManager.signOut()
         }
     }
 

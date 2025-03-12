@@ -63,8 +63,12 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <View style="@style/OverflowMenuFullDivider"
-        android:layout_marginBottom="0dp"/>
+    <com.duckduckgo.mobile.android.ui.view.divider.HorizontalDivider
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        app:defaultPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="0dp"/>
 
     <View
         android:id="@+id/dividerShadow"
@@ -92,9 +96,15 @@
                 app:labelText="@string/newTabMenuItem"
                 app:iconDrawable="@drawable/ic_add_16" />
 
-            <View
+            <com.duckduckgo.mobile.android.ui.view.divider.HorizontalDivider
                 android:id="@+id/siteOptionsMenuDivider"
-                style="@style/OverflowMenuDivider" />
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                app:defaultPadding="false"
+                android:layout_marginTop="@dimen/keyline_empty"
+                android:layout_marginBottom="@dimen/keyline_empty"
+                android:layout_marginStart="@dimen/keyline_5"
+                android:layout_marginEnd="@dimen/keyline_5"/>
 
             <com.duckduckgo.mobile.android.ui.view.MenuItemView
                 android:id="@+id/sharePageMenuItem"
@@ -124,9 +134,15 @@
                 app:labelText="@string/bookmarksMenuTitle"
                 app:iconDrawable="@drawable/ic_library_16" />
 
-            <View
+            <com.duckduckgo.mobile.android.ui.view.divider.HorizontalDivider
                 android:id="@+id/browserOptionsMenuDivider"
-                style="@style/OverflowMenuDivider" />
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                app:defaultPadding="false"
+                android:layout_marginStart="@dimen/keyline_5"
+                android:layout_marginEnd="@dimen/keyline_5"/>
 
             <com.duckduckgo.mobile.android.ui.view.MenuItemView
                 android:id="@+id/fireproofWebsiteMenuItem"
@@ -157,6 +173,13 @@
                 app:iconDrawable="@drawable/ic_find_search_16" />
 
             <com.duckduckgo.mobile.android.ui.view.MenuItemView
+                    android:id="@+id/printPageMenuItem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:labelText="@string/printMenuTitle"
+                    app:iconDrawable="@drawable/ic_print_16" />
+
+            <com.duckduckgo.mobile.android.ui.view.MenuItemView
                 android:id="@+id/openInAppMenuItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -185,9 +208,22 @@
                 app:labelText="@string/brokenSiteReportBrokenSiteMenuItem"
                 app:iconDrawable="@drawable/ic_feedback_16" />
 
-            <View
+            <com.duckduckgo.mobile.android.ui.view.divider.HorizontalDivider
                 android:id="@+id/settingsMenuDivider"
-                style="@style/OverflowMenuDivider" />
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                app:defaultPadding="false"
+                android:layout_marginStart="@dimen/keyline_5"
+                android:layout_marginEnd="@dimen/keyline_5"/>
+
+            <com.duckduckgo.mobile.android.ui.view.MenuItemView
+                android:id="@+id/autofillMenuItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:iconDrawable="@drawable/ic_key_16"
+                app:labelText="@string/managementScreenTitle" />
 
             <com.duckduckgo.mobile.android.ui.view.MenuItemView
                 android:id="@+id/downloadsMenuItem"

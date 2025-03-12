@@ -30,6 +30,12 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
+    lint {
+        abortOnError true
+        ignoreTestSources true
+        ignoreTestSources true
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -44,6 +50,9 @@ android {
         viewBinding = true
     }
 }
+dependencies {
+    lintChecks project(':lint-rules')
+}
 
 tasks.register('checks') {
     dependsOn 'jvm_checks', 'android_checks'
@@ -54,5 +63,17 @@ tasks.register('android_checks') {
 }
 
 tasks.register('jvm_checks') {
-    dependsOn 'spotlessCheck', 'testDebugUnitTest'
+    dependsOn 'spotlessCheck', 'lint', 'testDebugUnitTest'
+}
+
+tasks.register('jvm_tests') {
+    dependsOn 'testDebugUnitTest'
+}
+
+tasks.register('spotless') {
+    dependsOn 'spotlessCheck'
+}
+
+tasks.register('lint_check') {
+    dependsOn 'lint'
 }

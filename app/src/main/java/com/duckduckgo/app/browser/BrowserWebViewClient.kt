@@ -26,23 +26,26 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.net.toUri
+import com.duckduckgo.adclick.api.AdClickManager
 import com.duckduckgo.app.accessibility.AccessibilityManager
-import com.duckduckgo.app.browser.SpecialUrlDetector.UrlType.TrackingParameterLink
 import com.duckduckgo.app.browser.certificates.rootstore.CertificateValidationState
 import com.duckduckgo.app.browser.certificates.rootstore.TrustedCertificateStore
-import com.duckduckgo.app.browser.cookies.CookieManagerProvider
 import com.duckduckgo.app.browser.cookies.ThirdPartyCookieManager
 import com.duckduckgo.app.browser.httpauth.WebViewHttpAuthStore
 import com.duckduckgo.app.browser.logindetection.DOMLoginDetector
 import com.duckduckgo.app.browser.logindetection.WebNavigationEvent
 import com.duckduckgo.app.browser.model.BasicAuthenticationRequest
 import com.duckduckgo.app.browser.navigation.safeCopyBackForwardList
-import com.duckduckgo.app.email.EmailInjector
+import com.duckduckgo.app.browser.print.PrintInjector
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.exception.UncaughtExceptionRepository
 import com.duckduckgo.app.global.exception.UncaughtExceptionSource.*
 import com.duckduckgo.app.statistics.store.OfflinePixelCountDataStore
-import com.duckduckgo.privacy.config.api.Gpc
+import com.duckduckgo.autofill.BrowserAutofill
+import com.duckduckgo.autofill.InternalTestUserChecker
+import com.duckduckgo.autoconsent.api.Autoconsent
+import com.duckduckgo.cookies.api.CookieManagerProvider
+import com.duckduckgo.contentscopescripts.api.ContentScopeScripts
 import com.duckduckgo.privacy.config.api.AmpLinks
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -59,13 +62,17 @@ class BrowserWebViewClient(
     private val cookieManagerProvider: CookieManagerProvider,
     private val loginDetector: DOMLoginDetector,
     private val dosDetector: DosDetector,
-    private val gpc: Gpc,
     private val thirdPartyCookieManager: ThirdPartyCookieManager,
     private val appCoroutineScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
-    private val emailInjector: EmailInjector,
+    private val browserAutofillConfigurator: BrowserAutofill.Configurator,
     private val accessibilityManager: AccessibilityManager,
-    private val ampLinks: AmpLinks
+    private val ampLinks: AmpLinks,
+    private val printInjector: PrintInjector,
+    private val internalTestUserChecker: InternalTestUserChecker,
+    private val adClickManager: AdClickManager,
+    private val autoconsent: Autoconsent,
+    private val contentScopeScripts: ContentScopeScripts
 ) : WebViewClient() {
 
     var webViewClientListener: WebViewClientListener? = null
@@ -112,7 +119,7 @@ class BrowserWebViewClient(
                 return false
             }
 
-            return when (val urlType = specialUrlDetector.determineType(url)) {
+            return when (val urlType = specialUrlDetector.determineType(initiatingUrl = webView.originalUrl, uri = url)) {
                 is SpecialUrlDetector.UrlType.Email -> {
                     webViewClientListener?.sendEmailRequested(urlType.emailAddress)
                     true
@@ -134,8 +141,10 @@ class BrowserWebViewClient(
                 }
                 is SpecialUrlDetector.UrlType.NonHttpAppLink -> {
                     Timber.i("Found non-http app link for ${urlType.uriString}")
-                    webViewClientListener?.let { listener ->
-                        return listener.handleNonHttpAppLink(urlType)
+                    if (isForMainFrame) {
+                        webViewClientListener?.let { listener ->
+                            return listener.handleNonHttpAppLink(urlType)
+                        }
                     }
                     true
                 }
@@ -160,10 +169,12 @@ class BrowserWebViewClient(
                 }
                 is SpecialUrlDetector.UrlType.ExtractedAmpLink -> {
                     if (isForMainFrame) {
-                        webViewClientListener?.startProcessingTrackingLink()
-                        Timber.d("AMP link detection: Loading extracted URL: ${urlType.extractedUrl}")
-                        webView.loadUrl(urlType.extractedUrl)
-                        return true
+                        webViewClientListener?.let { listener ->
+                            listener.startProcessingTrackingLink()
+                            Timber.d("AMP link detection: Loading extracted URL: ${urlType.extractedUrl}")
+                            loadUrl(listener, webView, urlType.extractedUrl)
+                            return true
+                        }
                     }
                     false
                 }
@@ -179,21 +190,28 @@ class BrowserWebViewClient(
                 }
                 is SpecialUrlDetector.UrlType.TrackingParameterLink -> {
                     if (isForMainFrame) {
-                        webViewClientListener?.startProcessingTrackingLink()
-                        Timber.d("Loading parameter cleaned URL: ${urlType.cleanedUrl}")
+                        webViewClientListener?.let { listener ->
+                            listener.startProcessingTrackingLink()
+                            Timber.d("Loading parameter cleaned URL: ${urlType.cleanedUrl}")
 
-                        val parameterStrippedType = specialUrlDetector.processUrl(urlType.cleanedUrl)
-
-                        if (parameterStrippedType is SpecialUrlDetector.UrlType.AppLink) {
-                            webViewClientListener?.let { listener ->
-                                loadCleanedUrl(listener, webView, urlType)
-                                return listener.handleAppLink(parameterStrippedType, isForMainFrame)
+                            return when (
+                                val parameterStrippedType =
+                                    specialUrlDetector.processUrl(initiatingUrl = webView.originalUrl, uriString = urlType.cleanedUrl)
+                            ) {
+                                is SpecialUrlDetector.UrlType.AppLink -> {
+                                    loadUrl(listener, webView, urlType.cleanedUrl)
+                                    listener.handleAppLink(parameterStrippedType, isForMainFrame)
+                                }
+                                is SpecialUrlDetector.UrlType.ExtractedAmpLink -> {
+                                    Timber.d("AMP link detection: Loading extracted URL: ${parameterStrippedType.extractedUrl}")
+                                    loadUrl(listener, webView, parameterStrippedType.extractedUrl)
+                                    true
+                                }
+                                else -> {
+                                    loadUrl(listener, webView, urlType.cleanedUrl)
+                                    true
+                                }
                             }
-                        } else {
-                            webViewClientListener?.let { listener ->
-                                loadCleanedUrl(listener, webView, urlType)
-                            }
-                            return true
                         }
                     }
                     false
@@ -208,17 +226,17 @@ class BrowserWebViewClient(
         }
     }
 
-    private fun loadCleanedUrl(
+    private fun loadUrl(
         listener: WebViewClientListener,
         webView: WebView,
-        urlType: TrackingParameterLink
+        url: String
     ) {
         if (listener.linkOpenedInNewTab()) {
             webView.post {
-                webView.loadUrl(urlType.cleanedUrl)
+                webView.loadUrl(url)
             }
         } else {
-            webView.loadUrl(urlType.cleanedUrl)
+            webView.loadUrl(url)
         }
     }
 
@@ -230,7 +248,10 @@ class BrowserWebViewClient(
     ) {
         try {
             Timber.v("onPageStarted webViewUrl: ${webView.url} URL: $url")
+
             url?.let {
+                autoconsent.injectAutoconsent(webView, url)
+                adClickManager.detectAdDomain(url)
                 appCoroutineScope.launch(dispatcherProvider.default()) {
                     thirdPartyCookieManager.processUriForThirdPartyCookies(webView, url.toUri())
                 }
@@ -241,8 +262,8 @@ class BrowserWebViewClient(
                 webViewClientListener?.pageRefreshed(url)
             }
             lastPageStarted = url
-            emailInjector.injectEmailAutofillJs(webView, url) // Needs to be injected onPageStarted
-            injectGpcToDom(webView, url)
+            browserAutofillConfigurator.configureAutofillForCurrentPage(webView, url)
+            webView.evaluateJavascript("javascript:${contentScopeScripts.getScript()}", null)
             loginDetector.onEvent(WebNavigationEvent.OnPageStarted(webView))
         } catch (e: Throwable) {
             appCoroutineScope.launch(dispatcherProvider.default()) {
@@ -259,6 +280,10 @@ class BrowserWebViewClient(
     ) {
         try {
             accessibilityManager.onPageFinished(webView, url)
+            url?.let {
+                // We call this for any url but it will only be processed for an internal tester verification url
+                internalTestUserChecker.verifyVerificationCompleted(it)
+            }
             Timber.v("onPageFinished webViewUrl: ${webView.url} URL: $url")
             val navigationList = webView.safeCopyBackForwardList() ?: return
             webViewClientListener?.run {
@@ -266,21 +291,11 @@ class BrowserWebViewClient(
                 url?.let { prefetchFavicon(url) }
             }
             flushCookies()
+            printInjector.injectPrint(webView)
         } catch (e: Throwable) {
             appCoroutineScope.launch(dispatcherProvider.default()) {
                 uncaughtExceptionRepository.recordUncaughtException(e, ON_PAGE_FINISHED)
                 throw e
-            }
-        }
-    }
-
-    private fun injectGpcToDom(
-        webView: WebView,
-        url: String?
-    ) {
-        url?.let {
-            if (gpc.canGpcBeUsedByUrl(url)) {
-                webView.evaluateJavascript("javascript:${gpc.getGpcJs()}", null)
             }
         }
     }
@@ -399,6 +414,18 @@ class BrowserWebViewClient(
             )
 
             it.requiresAuthentication(request)
+        }
+    }
+
+    override fun onReceivedHttpError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        errorResponse: WebResourceResponse?
+    ) {
+        super.onReceivedHttpError(view, request, errorResponse)
+        view?.url?.let {
+            // We call this for any url but it will only be processed for an internal tester verification url
+            internalTestUserChecker.verifyVerificationErrorReceived(it)
         }
     }
 }

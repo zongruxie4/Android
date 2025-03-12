@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~ Copyright (c) 2019 DuckDuckGo
+  ~ Copyright (c) 2022 DuckDuckGo
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -120,30 +120,6 @@
     <string name="httpsMixed">Mixed Encryption Connection</string>
     <string name="httpsBad">Unencrypted Connection</string>
 
-    <string name="networksActivityTitle">Tracker Networks</string>
-    <string name="networksContentDescription">Tracker Networks</string>
-    <string name="networksOverview">Tracker networks aggregate your web history into a data profile about you. Major tracker networks are more harmful because they can track and target you across more of the Internet.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">%s Tracker Found</item>
-        <item quantity="other">%s Trackers Found</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">%s Tracker Blocked</item>
-        <item quantity="other">%s Trackers Blocked</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">%s Major Tracker Network Found</item>
-        <item quantity="other">%s Major Tracker Networks Found</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">%s Major Tracker Network Blocked</item>
-        <item quantity="other">%s Major Tracker Networks Blocked</item>
-    </plurals>
-
     <string name="scorecardActivityTitle">Privacy Grade</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">Site Is a Major Tracker Network</string>
     <string name="scorecardPrivacyGrade">Privacy Grade</string>
@@ -162,6 +138,45 @@
     <string name="networkTrackerSummaryHeader">TRACKER NETWORK TOP OFFENDERS</string>
     <string name="networkTrackerSummaryNotReady">We\'re still collecting data to show how many trackers we\'ve blocked.</string>
 
+    <string name="trackersActivityTitle">Tracking Requests Blocked</string>
+    <string name="trackersContentDescription">Tracking Requests Blocked</string>
+    <string name="trackersOverview">The following third-party domains\' requests were blocked from loading because they were identified as tracking requests. If a company\'s requests are loaded, it can allow them to profile you.</string>
+    <string name="trackersOverviewProtectionsOff">No tracking requests were blocked from loading because Protections are turned off for this site. If a company\'s requests are loaded, it can allow them to profile you.</string>
+
+    <string name="domainsLoadedActivityTitle">Third-Party Requests Loaded</string>
+    <string name="domainsLoadedContentDescription">Third-Party Requests Loaded</string>
+    <string name="domainsLoadedOverview">The following third-party domains\' requests were loaded. If a company\'s requests are loaded, it can allow them to profile you, though our other web tracking protections still apply.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">No third-party requests were blocked from loading because Protections are turned off for this site. If a company\'s requests are loaded, it can allow them to profile you.</string>
+    <string name="domainsLoadedOverviewEmpty">We did not detect requests from any third-party domains.</string>
+    <string name="domainsLoadedHeadingText">No third-party domains loaded</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">About our Web Tracking Protections</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">The following domains\' requests were loaded.</string>
+
+    <string name="adLoadedSectionDescription">The following domain\'s requests were loaded because a %s ad on DuckDuckGo was recently clicked. These requests help evaluate ad effectiveness. All ads on DuckDuckGo are non-profiling.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">How our search ads impact our protections</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">The following domain\'s requests were also loaded.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">The following domains\' tracking requests were loaded.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">We did not detect requests from any third-party domains.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">The following domain\'s requests were loaded to prevent site breakage.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">The following domain\'s requests were loaded because they\'re associated with %s.</string>
+
+    <string name="trackersBlockedText">Requests Blocked from Loading</string>
+    <string name="trackersNotBlockedText">No Tracking Requests Blocked</string>
+    <string name="trackersNoFoundText">No Tracking Requests Found</string>
+    <string name="trackersFoundText">Tracking Requests Found</string>
+
+    <string name="domainsLoadedText">Third-Party Requests Loaded</string>
+    <string name="domainsNotLoadedText">No Third-Party Requests Loaded</string>
+
+    <string name="majorNetworksNoFound">No Major Tracker Networks Found</string>
+    <string name="majorNetworksFound">Major Tracker Networks Found</string>
+
     <!-- Fire -->
     <string name="fireMenu">Clear Data</string>
     <string name="fireClearAll">Clear All Tabs And Data</string>
@@ -171,9 +186,10 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Settings</string>
     <string name="settingsMenuItemTitle">Settings</string>
-    <string name="settingsHeadingGeneral">General</string>
-    <string name="settingsHeadingOther">Other</string>
     <string name="settingsHeadingPrivacy">Privacy</string>
+    <string name="settingsHeadingAppearance">Appearance</string>
+    <string name="settingsHeadingCustomize">Customize</string>
+    <string name="settingsHeadingAbout">About</string>
     <string name="settingsAboutDuckduckgo">About DuckDuckGo</string>
     <string name="settingsVersion">Version</string>
     <string name="leaveFeedback">Share Feedback</string>
@@ -467,7 +483,7 @@
     <string name="onboardingLetsDoItButton">Let\'s Do It!</string>
     <string name="daxIntroCtaText"><![CDATA[Next, try visiting one of your favorite sites!<br/><br/>I\'ll block trackers so they can\'t spy on you. I\'ll also upgrade the security of your connection if possible. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[You\'ve got this!<br/><br/>Remember: Every time you browse with me, a creepy ad loses its wings. 👍]]></string>
-    <string name="daxSerpCtaText">Your DuckDuckGo searches are anonymous and I never save your search history. Ever. 🙌</string>
+    <string name="daxSerpCtaText">Your DuckDuckGo searches are anonymous. Always. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[&#160;and <b>%d other</b> were trying to track you here. <br/><br/>I blocked them!<br/><br/> ☝️You can check the address bar to see who is trying to track you when you visit a new site.️]]></item>
         <item quantity="other"><![CDATA[&#160;and <b>%d others</b> were trying to track you here. <br/><br/>I blocked them!<br/><br/> ☝️You can check the address bar to see who is trying to track you when you visit a new site.️]]></item>
@@ -564,11 +580,6 @@
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Connection aborted. This website could be harmful to your device.</string>
 
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">Download Manager is disabled</string>
-    <string name="downloadManagerIncompatible">Download Manager not available on this device</string>
-    <string name="enable">Enable</string>
-
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">Enable device location for DuckDuckGo Privacy Browser?</string>
     <string name="preciseLocationSystemDialogSubtitle">%s is requesting your device location. You\'ll first need to allow the app to send your device location, then %s can ask permission.</string>
@@ -582,7 +593,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Only for This Session</string>
     <string name="preciseLocationSiteDialogDenyAlways">Deny Always</string>
     <string name="preciseLocationSiteDialogDenyOnce">Deny for This Session</string>
-    <string name="settingsPreciseLocation">Location</string>
     <string name="preciseLocationFeatureDescription">Sites you visit may ask to know your device location. They won\'t be able to access it until you explicitly grant permission. DuckDuckGo only uses your location anonymously to deliver local search results.</string>
     <string name="preciseLocationToggleText">Sites Can Ask for My Location</string>
     <string name="preciseLocationEmptyListHint">No websites granted permission to access location</string>
@@ -622,56 +632,19 @@
     <string name="aliasToClipboardMessage">New address copied to your clipboard</string>
     <string name="autofillTooltipUseYourAlias">Use %1$s</string>
     <string name="autofillTooltipUseYourAliasDescription">Blocks email trackers</string>
-    <string name="autofillTooltipGenerateAddress">Generate a Private Address</string>
+    <string name="autofillTooltipGenerateAddress">Generate Private Duck Address</string>
     <string name="autofillTooltipGenerateAddressDescription">Blocks email trackers and hides your address</string>
-    <string name="newEmailAliasMenuTitle">Create Duck Address</string>
-
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Remove Email Protections?</string>
-    <string name="emailSignOutDialogText">Note: Removing Email Protections from this device will not delete your Duck Address.</string>
-    <string name="emailSignOutDialogCancel">Cancel</string>
-    <string name="emailSignOutDialogDisable">Remove</string>
+    <string name="newEmailAliasMenuTitle">Generate Duck Address</string>
 
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Email waitlist</string>
-    <string name="waitlistNotificationTitle">Email Protection is ready!</string>
-    <string name="waitlistNotificationDescription">Open your invite</string>
-
     <string name="waitlistNotificationDialogDescription">Would you like us to send you a notification when it\'s your turn?</string>
     <string name="waitlistNotificationDialogNoThanks">No Thanks</string>
     <string name="waitlistNotificationDialogNotifyMe">Notify Me</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Email Protection (Beta)</string>
     <string name="emailProtectionActivityTitle">Email Protection (Beta)</string>
-    <string name="emailProtectionFooterDescription">You won\'t need to share any personal information to join the waitlist. You\'ll secure your place in line with a timestamp that exists solely on your device so we can notify you when it\'s your turn.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">An error happened while joining the Waitlist, please try again later</string>
-    <string name="emailProtectionDuckAddressCta">I already have a Duck Address</string>
-    <string name="emailProtectionInviteCodeCta">I have an Invite Code</string>
-    <string name="emailProtectionWaitlistCta">Join the Private Waitlist</string>
-    <string name="emailProtectionGetStartedCta">Get Started</string>
     <string name="emailNotSupported">Device not supported</string>
     <string name="emailNotSupportedExplanation">Email Protection allows you to create private email addresses that remove email trackers. We need to encrypt and store these addresses you create locally on your device. Because your device does not support encrypted storage, Email Protection is unavailable.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Email privacy, simplified.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Block email trackers and hide your address, without switching your email provider.<br/><a href=""><b>Learn more</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">You\'re on the list!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[We\'ll send you a notification when<br/> Email Protection is ready for you. <a href=""><b>Learn more</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Your invite will show up here when we\'re ready for you. Want to <a href=""><b>get a notification</b></a> when it arrives?<br/><a href=""><b>Learn more</b></a> about Email Protection.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">You\'re Invited!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Block email trackers and hide your address,<br/>without switching your email provider.<br/><a href=""><b>Learn more</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Personal Duck Address</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Removing Email Protection from this device removes the option to fill in your Personal Duck Address or a newly generated Private Duck Address into email fields as you browse the web.<br/><br/>To delete your Duck Addresses entirely, or for any other questions or feedback, reach out to us at <a href="mailto:support@duck.com">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Remove from Device</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Edit Bookmark</string>
@@ -712,8 +685,6 @@
 
     <!-- MacOs Settings -->
     <string name="macos_settings_description">Browse privately with our app for Mac</string>
-    <string name="macos_settings_description_list">You\'re on the list!</string>
-    <string name="macos_settings_description_ready">Available for download on Mac</string>
     <string name="macos_settings_title">DuckDuckGo Desktop App</string>
 
     <!-- Downloads -->
@@ -733,5 +704,39 @@
     <string name="downloadsMoreOptionsContentDescription">More options for %s</string>
     <string name="downloadsUndoActionName">Undo</string>
     <string name="downloadsStateInProgress">In progress…</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">App Tracking Protection</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Block app trackers on your device</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Enabled</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Disabled</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Looks like this site has a cookie consent pop-up 👇</string>
+    <string name="autoconsentDialogDescription">Want me to handle these for you? I can try to minimize cookies, maximize privacy, and hide pop-ups like these.</string>
+    <string name="autoconsentPrimaryCta">Manage Cookie Pop-ups</string>
+    <string name="autoconsentSecondaryCta">No Thanks</string>
+
+    <string name="autoconsentSetting">Manage Cookie Pop-ups</string>
+    <string name="autoconsentAnimationText">Cookies Managed</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Site Permissions</string>
+    <string name="sitePermissionsSettingsDescription">Sites you visit may ask for access to your device’s location, camera, or microphone. They won’t be able to access these unless you explicitly give them permission.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Allow all sites to ask for:</string>
+    <string name="sitePermissionsSettingsLocation">Location</string>
+    <string name="sitePermissionsSettingsCamera">Camera</string>
+    <string name="sitePermissionsSettingsMicrophone">Microphone</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Manage Sites</string>
+    <string name="sitePermissionsSettingsEmptyText">No sites yet</string>
+    <string name="permissionPerWebsiteText">Permissions for \"%s\" </string>
+    <string name="permissionsPerWebsiteAskSetting">Ask</string>
+    <string name="permissionsPerWebsiteDenySetting">Deny</string>
+    <string name="permissionsPerWebsiteAllowSetting">Allow</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%s permission for %s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Autofill</string>
+
 
 </resources>

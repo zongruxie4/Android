@@ -17,10 +17,10 @@
 package com.duckduckgo.privacy.config.impl.features.gpc
 
 import com.duckduckgo.di.scopes.AppScope
-import com.duckduckgo.feature.toggles.api.FeatureName
 import com.duckduckgo.privacy.config.api.PrivacyFeatureName
 import com.duckduckgo.privacy.config.impl.features.privacyFeatureValueOf
 import com.duckduckgo.privacy.config.api.PrivacyFeaturePlugin
+import com.duckduckgo.privacy.config.store.GpcContentScopeConfigEntity
 import com.duckduckgo.privacy.config.store.GpcExceptionEntity
 import com.duckduckgo.privacy.config.store.GpcHeaderEnabledSiteEntity
 import com.duckduckgo.privacy.config.store.PrivacyFeatureToggles
@@ -38,12 +38,12 @@ class GpcPlugin @Inject constructor(
 ) : PrivacyFeaturePlugin {
 
     override fun store(
-        name: FeatureName,
+        featureName: String,
         jsonString: String
     ): Boolean {
         @Suppress("NAME_SHADOWING")
-        val name = privacyFeatureValueOf(name.value)
-        if (name == featureName) {
+        val privacyFeature = privacyFeatureValueOf(featureName) ?: return false
+        if (privacyFeature.value == this.featureName) {
             val gpcExceptions = mutableListOf<GpcExceptionEntity>()
             val gpcHeaders = mutableListOf<GpcHeaderEnabledSiteEntity>()
             val moshi = Moshi.Builder().build()
@@ -57,13 +57,13 @@ class GpcPlugin @Inject constructor(
             gpcFeature?.settings?.gpcHeaderEnabledSites?.map {
                 gpcHeaders.add(GpcHeaderEnabledSiteEntity(it))
             }
-            gpcRepository.updateAll(gpcExceptions, gpcHeaders)
+            gpcRepository.updateAll(gpcExceptions, gpcHeaders, GpcContentScopeConfigEntity(config = jsonString))
             val isEnabled = gpcFeature?.state == "enabled"
-            privacyFeatureTogglesRepository.insert(PrivacyFeatureToggles(name, isEnabled, gpcFeature?.minSupportedVersion))
+            privacyFeatureTogglesRepository.insert(PrivacyFeatureToggles(this.featureName, isEnabled, gpcFeature?.minSupportedVersion))
             return true
         }
         return false
     }
 
-    override val featureName: PrivacyFeatureName = PrivacyFeatureName.GpcFeatureName
+    override val featureName: String = PrivacyFeatureName.GpcFeatureName.value
 }

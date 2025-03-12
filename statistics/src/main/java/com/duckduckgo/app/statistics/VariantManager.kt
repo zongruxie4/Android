@@ -28,9 +28,7 @@ import java.util.*
 interface VariantManager {
 
     // variant-dependant features listed here
-    sealed class VariantFeature {
-        object VpnRetentionStudy : VariantFeature()
-    }
+    sealed class VariantFeature
 
     companion object {
 
@@ -44,13 +42,6 @@ interface VariantManager {
             // the future if we can filter by app version
             Variant(key = "sc", weight = 0.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
             Variant(key = "se", weight = 0.0, features = emptyList(), filterBy = { isSerpRegionToggleCountry() }),
-
-            // AppTP Retention study experiment
-            Variant(key = "na", weight = 1.0, features = emptyList(), filterBy = { config -> config.sdkInt < 31 && isEnglishLocale() }),
-            Variant(
-                key = "nb", weight = 1.0, features = listOf(VariantFeature.VpnRetentionStudy),
-                filterBy = { config -> config.sdkInt < 31 && isEnglishLocale() }
-            ),
         )
 
         val REFERRER_VARIANTS = listOf(
@@ -180,8 +171,6 @@ class ExperimentationVariantManager(
         return activeVariants[randomizedIndex]
     }
 }
-
-fun VariantManager.isVPNRetentionStudyEnabled() = this.getVariant().hasFeature(VariantManager.VariantFeature.VpnRetentionStudy)
 
 /**
  * A variant which can be used for experimentation.

@@ -16,35 +16,42 @@
 
 package com.duckduckgo.app.statistics
 
+import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import com.duckduckgo.app.di.AppCoroutineScope
 import com.duckduckgo.app.statistics.api.StatisticsUpdater
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 
 interface AtbInitializerListener {
 
-    /**
-     * This method will be called before initializing the ATB
-     */
+    /** This method will be called before initializing the ATB */
     suspend fun beforeAtbInit()
 
-    /**
-     * @return the timeout in milliseconds after which [beforeAtbInit]
-     * will be stopped
-     */
+    /** @return the timeout in milliseconds after which [beforeAtbInit] will be stopped */
     fun beforeAtbInitTimeoutMillis(): Long
 }
 
 class AtbInitializer(
+    @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
     private val statisticsDataStore: StatisticsDataStore,
     private val statisticsUpdater: StatisticsUpdater,
     private val listeners: Set<AtbInitializerListener>
-) {
+) : DefaultLifecycleObserver {
 
+    override fun onResume(owner: LifecycleOwner) {
+        appCoroutineScope.launch { initialize() }
+    }
+
+    @VisibleForTesting
     suspend fun initialize() {
+        Timber.v("Initialize ATB")
         listeners.forEach {
-            withTimeoutOrNull(it.beforeAtbInitTimeoutMillis()) {
-                it.beforeAtbInit()
-            }
+            withTimeoutOrNull(it.beforeAtbInitTimeoutMillis()) { it.beforeAtbInit() }
         }
 
         initializeAtb()
@@ -57,5 +64,4 @@ class AtbInitializer(
             statisticsUpdater.initializeAtb()
         }
     }
-
 }

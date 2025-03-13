@@ -16,31 +16,63 @@
 
 package com.duckduckgo.app.bookmarks.ui
 
-import androidx.appcompat.widget.SearchView
-import com.duckduckgo.app.bookmarks.db.BookmarkEntity
+import androidx.lifecycle.viewModelScope
+import com.duckduckgo.app.bookmarks.model.BookmarkFolder
+import com.duckduckgo.app.bookmarks.model.SavedSite
+import com.duckduckgo.app.bookmarks.ui.bookmarkfolders.BookmarkFoldersAdapter
+import com.duckduckgo.app.utils.ConflatedJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.*
 
 class BookmarksEntityQueryListener(
-    val bookmarks: List<BookmarkEntity>?,
-    val adapter: BookmarksActivity.BookmarksAdapter
-) : SearchView.OnQueryTextListener {
+    private val viewModel: BookmarksViewModel,
+    private val bookmarksAdapter: BookmarksAdapter,
+    private val bookmarkFoldersAdapter: BookmarkFoldersAdapter
+) {
 
-    override fun onQueryTextChange(newText: String): Boolean {
-        if (bookmarks != null) {
-            adapter.bookmarks = filter(newText, bookmarks)
-            adapter.notifyDataSetChanged()
+    private var searchJob = ConflatedJob()
+
+    fun onQueryTextChange(newText: String) {
+        searchJob += viewModel.viewModelScope.launch {
+            delay(DEBOUNCE_PERIOD)
+            viewModel.viewState.value?.bookmarks?.let { bookmarks ->
+                viewModel.viewState.value?.bookmarkFolders?.let { bookmarkFolders ->
+                    val filteredFolders = filterBookmarkFolders(newText, bookmarkFolders)
+                    bookmarksAdapter.setItems(filterBookmarks(newText, bookmarks), filteredFolders.isEmpty(), true)
+                    bookmarkFoldersAdapter.bookmarkFolderItems = filteredFolders
+                }
+            }
         }
-        return true
     }
 
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        return false
+    fun cancelSearch() {
+        searchJob.cancel()
     }
 
-    private fun filter(query: String, bookmarks: List<BookmarkEntity>): List<BookmarkEntity> {
-        val lowercaseQuery = query.toLowerCase()
+    private fun filterBookmarks(
+        query: String,
+        bookmarks: List<SavedSite.Bookmark>
+    ): List<BookmarksAdapter.BookmarkItem> {
+        val lowercaseQuery = query.lowercase(Locale.getDefault())
         return bookmarks.filter {
-            val lowercaseTitle = it.title?.toLowerCase()
-            lowercaseTitle?.contains(lowercaseQuery) == true || it.url.contains(lowercaseQuery)
-        }
+            val lowercaseTitle = it.title.lowercase(Locale.getDefault())
+            lowercaseTitle.contains(lowercaseQuery) || it.url.contains(lowercaseQuery)
+        }.map { BookmarksAdapter.BookmarkItem(it) }
+    }
+
+    private fun filterBookmarkFolders(
+        query: String,
+        bookmarkFolders: List<BookmarkFolder>
+    ): List<BookmarkFoldersAdapter.BookmarkFolderItem> {
+        val lowercaseQuery = query.lowercase(Locale.getDefault())
+        return bookmarkFolders.filter {
+            val lowercaseTitle = it.name.lowercase(Locale.getDefault())
+            lowercaseTitle.contains(lowercaseQuery)
+        }.map { BookmarkFoldersAdapter.BookmarkFolderItem(it) }
+    }
+
+    companion object {
+        private const val DEBOUNCE_PERIOD = 400L
     }
 }

@@ -17,34 +17,53 @@
 package com.duckduckgo.app.httpsupgrade
 
 import android.net.Uri
+import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.httpsupgrade.store.HttpsFalsePositivesDao
 import com.duckduckgo.app.privacy.db.UserWhitelistDao
-import com.duckduckgo.app.statistics.pixels.Pixel
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import com.duckduckgo.feature.toggles.api.FeatureToggle
+import com.duckduckgo.privacy.config.api.Https
+import com.duckduckgo.privacy.config.api.PrivacyFeatureName
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import retrofit2.Call
 
 class HttpsUpgraderTest {
 
     lateinit var testee: HttpsUpgrader
 
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
+
     private var mockHttpsBloomFilterFactory: HttpsBloomFilterFactory = mock()
     private var mockBloomFalsePositiveListDao: HttpsFalsePositivesDao = mock()
     private var mockUserAllowlistDao: UserWhitelistDao = mock()
-    private var mockServiceCall: Call<List<String>> = mock()
 
-    private var mockPixel: Pixel = mock()
-    private var bloomFilter = BloomFilter(100, 0.01)
+    private var mockFeatureToggle: FeatureToggle = mock()
+    private var mockHttps: Https = mock()
+    private var bloomFilter = BloomFilter(context, BloomFilter.Config.ProbabilityConfig(100, 0.01))
 
     @Before
     fun before() {
         whenever(mockHttpsBloomFilterFactory.create()).thenReturn(bloomFilter)
-        testee = HttpsUpgraderImpl(mockHttpsBloomFilterFactory, mockBloomFalsePositiveListDao, mockUserAllowlistDao, mockPixel)
+        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.HttpsFeatureName.value)).thenReturn(true)
+        testee = HttpsUpgraderImpl(mockHttpsBloomFilterFactory, mockBloomFalsePositiveListDao, mockUserAllowlistDao, mockFeatureToggle, mockHttps)
         testee.reloadData()
+    }
+
+    @Test
+    fun whenFeatureIsDisableTheShouldNotUpgrade() {
+        whenever(mockFeatureToggle.isFeatureEnabled(PrivacyFeatureName.HttpsFeatureName.value)).thenReturn(false)
+        bloomFilter.add("www.local.url")
+        assertFalse(testee.shouldUpgrade(Uri.parse("http://www.local.url")))
+    }
+
+    @Test
+    fun whenHttpUrlIsInExceptionListThenShouldNotUpgrade() {
+        whenever(mockHttps.isAnException("http://www.local.url")).thenReturn(true)
+        bloomFilter.add("www.local.url")
+        assertFalse(testee.shouldUpgrade(Uri.parse("http://www.local.url")))
     }
 
     @Test

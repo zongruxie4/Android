@@ -17,19 +17,7 @@
 package com.duckduckgo.app.global.plugins.view_model
 
 import androidx.lifecycle.ViewModel
-import com.duckduckgo.app.global.plugins.PluginPoint
-import javax.inject.Inject
-import javax.inject.Singleton
 
 interface ViewModelFactoryPlugin {
     fun <T : ViewModel?> create(modelClass: Class<T>): T?
-}
-
-@Singleton
-class ViewModelFactoryPluginPoint @Inject constructor(
-    private val injectorPlugins: Set<@JvmSuppressWildcards ViewModelFactoryPlugin>
-) : PluginPoint<ViewModelFactoryPlugin> {
-    override fun getPlugins(): List<ViewModelFactoryPlugin> {
-        return injectorPlugins.toList()
-    }
 }

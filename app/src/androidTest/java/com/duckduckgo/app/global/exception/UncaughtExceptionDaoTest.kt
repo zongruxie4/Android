@@ -21,7 +21,9 @@ import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.CoroutineTestRule
 import com.duckduckgo.app.global.db.AppDatabase
-import com.duckduckgo.app.global.exception.UncaughtExceptionSource.*
+import com.duckduckgo.app.global.exception.UncaughtExceptionSource.GLOBAL
+import com.duckduckgo.app.global.exception.UncaughtExceptionSource.ON_PAGE_STARTED
+import com.duckduckgo.app.global.exception.UncaughtExceptionSource.ON_PROGRESS_CHANGED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -113,6 +115,26 @@ class UncaughtExceptionDaoTest {
             assertEquals(exception.version, version)
             assertEquals(exception.timestamp, timestamp)
         }
+    }
+
+    @Test
+    fun whenGetLatestExceptionThenReturnLatestExceptionFromDatabase() {
+        val exception1 = UncaughtExceptionEntity(id = 1, exceptionSource = GLOBAL, message = "foo", "version")
+        val exception2 = UncaughtExceptionEntity(id = 2, exceptionSource = GLOBAL, message = "bar", "version")
+        dao.add(exception1)
+        dao.add(exception2)
+        val latestException = dao.getLatestException()
+        assertEquals(exception2, latestException)
+    }
+
+    @Test
+    fun whenUpdateExceptionThenUpdateExceptionInDatabase() {
+        val exception = UncaughtExceptionEntity(id = 1, exceptionSource = GLOBAL, message = "foo", "version", timestamp = 1000)
+        dao.add(exception)
+        val updatedException = exception.copy(timestamp = 2000)
+        dao.update(updatedException)
+        val latestException = dao.getLatestException()
+        assertEquals(updatedException, latestException)
     }
 
     private fun anUncaughtExceptionEntity(id: Long? = null) =

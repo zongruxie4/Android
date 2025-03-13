@@ -17,11 +17,11 @@
 package com.duckduckgo.app.global.rating
 
 import android.content.Context
-import com.duckduckgo.app.browser.BuildConfig
 import com.duckduckgo.app.global.rating.AppEnjoymentPromptOptions.ShowEnjoymentPrompt
 import com.duckduckgo.app.global.rating.AppEnjoymentPromptOptions.ShowNothing
 import com.duckduckgo.app.playstore.PlayStoreUtils
 import com.duckduckgo.app.usage.search.SearchCountDao
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -35,7 +35,8 @@ class InitialPromptTypeDecider(
     private val searchCountDao: SearchCountDao,
     private val initialPromptDecider: ShowPromptDecider,
     private val secondaryPromptDecider: ShowPromptDecider,
-    private val context: Context
+    private val context: Context,
+    private val appBuildConfig: AppBuildConfig
 ) : PromptTypeDecider {
 
     override suspend fun determineInitialPromptType(): AppEnjoymentPromptOptions {
@@ -72,7 +73,7 @@ class InitialPromptTypeDecider(
         if (!playStoreUtils.installedFromPlayStore()) {
             Timber.i("DuckDuckGo was not installed from Play Store")
 
-            return if (BuildConfig.DEBUG) {
+            return if (appBuildConfig.isDebug) {
                 Timber.i("Running in DEBUG mode so will allow this; would normally enforce this check")
                 true
             } else {

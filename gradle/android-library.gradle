@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/spotless.gradle"
+
 android {
     compileSdkVersion compile_sdk
-    buildToolsVersion tools_build_version
 
     defaultConfig {
-        minSdkVersion min_sdk
-        targetSdkVersion target_sdk
+        minSdk min_sdk
+        targetSdk target_sdk
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    lint {
+        abortOnError true
+        ignoreTestSources true
+        ignoreTestSources true
     }
 
     buildTypes {
@@ -38,7 +46,34 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = '1.8'
+    buildFeatures {
+        viewBinding = true
     }
+}
+dependencies {
+    lintChecks project(':lint-rules')
+}
+
+tasks.register('checks') {
+    dependsOn 'jvm_checks', 'android_checks'
+}
+
+tasks.register('android_checks') {
+    dependsOn 'connectedDebugAndroidTest'
+}
+
+tasks.register('jvm_checks') {
+    dependsOn 'spotlessCheck', 'lint', 'testDebugUnitTest'
+}
+
+tasks.register('jvm_tests') {
+    dependsOn 'testDebugUnitTest'
+}
+
+tasks.register('spotless') {
+    dependsOn 'spotlessCheck'
+}
+
+tasks.register('lint_check') {
+    dependsOn 'lint'
 }

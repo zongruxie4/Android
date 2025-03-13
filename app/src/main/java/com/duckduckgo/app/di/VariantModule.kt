@@ -16,29 +16,29 @@
 
 package com.duckduckgo.app.di
 
-import com.duckduckgo.app.global.useourapp.UseOurAppMigrationManager
 import com.duckduckgo.app.statistics.ExperimentationVariantManager
+import com.duckduckgo.app.statistics.IndexRandomizer
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.WeightedRandomizer
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
 
 @Module
-class VariantModule {
+object VariantModule {
 
     @Provides
-    @Singleton
-    fun variantManager(statisticsDataStore: StatisticsDataStore, weightedRandomizer: WeightedRandomizer): VariantManager =
-        ExperimentationVariantManager(statisticsDataStore, weightedRandomizer)
+    @SingleInstanceIn(AppScope::class)
+    fun variantManager(
+        statisticsDataStore: StatisticsDataStore,
+        weightedRandomizer: IndexRandomizer,
+        appBuildConfig: AppBuildConfig,
+    ): VariantManager =
+        ExperimentationVariantManager(statisticsDataStore, weightedRandomizer, appBuildConfig)
 
     @Provides
-    fun weightedRandomizer() = WeightedRandomizer()
-
-    @Provides
-    @Singleton
-    fun useOurAppMigrationManager(weightedRandomizer: WeightedRandomizer): UseOurAppMigrationManager {
-        return UseOurAppMigrationManager(weightedRandomizer)
-    }
+    fun weightedRandomizer(): IndexRandomizer = WeightedRandomizer()
 }

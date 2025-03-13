@@ -20,22 +20,25 @@ import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.app.brokensite.api.BrokenSiteSender
 import com.duckduckgo.app.brokensite.model.BrokenSite
 import com.duckduckgo.app.brokensite.model.BrokenSiteCategory
 import com.duckduckgo.app.brokensite.model.BrokenSiteCategory.*
 import com.duckduckgo.app.global.SingleLiveEvent
-import com.duckduckgo.app.global.absoluteString
 import com.duckduckgo.app.global.isMobileSite
-import com.duckduckgo.app.global.plugins.view_model.ViewModelFactoryPlugin
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.statistics.pixels.Pixel
-import com.duckduckgo.di.scopes.AppObjectGraph
-import com.squareup.anvil.annotations.ContributesMultibinding
+import com.duckduckgo.di.scopes.ActivityScope
+import com.duckduckgo.privacy.config.api.AmpLinks
 import javax.inject.Inject
-import javax.inject.Provider
 
-class BrokenSiteViewModel(private val pixel: Pixel, private val brokenSiteSender: BrokenSiteSender) : ViewModel() {
+@ContributesViewModel(ActivityScope::class)
+class BrokenSiteViewModel @Inject constructor(
+    private val pixel: Pixel,
+    private val brokenSiteSender: BrokenSiteSender,
+    private val ampLinks: AmpLinks
+) : ViewModel() {
 
     data class ViewState(
         val indexSelected: Int = -1,
@@ -66,16 +69,33 @@ class BrokenSiteViewModel(private val pixel: Pixel, private val brokenSiteSender
     private var url: String = ""
     private var upgradedHttps: Boolean = false
     private val viewValue: ViewState get() = viewState.value!!
+    private var urlParametersRemoved: Boolean = false
+    private var consentManaged: Boolean = false
+    private var consentOptOutFailed: Boolean = false
+    private var consentSelfTestFailed: Boolean = false
 
     init {
         viewState.value = ViewState()
     }
 
-    fun setInitialBrokenSite(url: String, blockedTrackers: String, surrogates: String, upgradedHttps: Boolean) {
+    fun setInitialBrokenSite(
+        url: String,
+        blockedTrackers: String,
+        surrogates: String,
+        upgradedHttps: Boolean,
+        urlParametersRemoved: Boolean,
+        consentManaged: Boolean,
+        consentOptOutFailed: Boolean,
+        consentSelfTestFailed: Boolean,
+    ) {
         this.url = url
         this.blockedTrackers = blockedTrackers
         this.upgradedHttps = upgradedHttps
         this.surrogates = surrogates
+        this.urlParametersRemoved = urlParametersRemoved
+        this.consentManaged = consentManaged
+        this.consentOptOutFailed = consentOptOutFailed
+        this.consentSelfTestFailed = consentSelfTestFailed
     }
 
     fun onCategoryIndexChanged(newIndex: Int) {
@@ -95,47 +115,50 @@ class BrokenSiteViewModel(private val pixel: Pixel, private val brokenSiteSender
     }
 
     fun onSubmitPressed(webViewVersion: String) {
-        val brokenSite = getBrokenSite(url, webViewVersion)
-        brokenSiteSender.submitBrokenSiteFeedback(brokenSite)
-        pixel.fire(AppPixelName.BROKEN_SITE_REPORTED, mapOf(Pixel.PixelParameter.URL to brokenSite.siteUrl))
+        if (url.isNotEmpty()) {
+
+            val lastAmpLinkInfo = ampLinks.lastAmpLinkInfo
+
+            val brokenSite = if (lastAmpLinkInfo?.destinationUrl == url) {
+                getBrokenSite(lastAmpLinkInfo.ampLink, webViewVersion)
+            } else {
+                getBrokenSite(url, webViewVersion)
+            }
+
+            brokenSiteSender.submitBrokenSiteFeedback(brokenSite)
+            pixel.fire(
+                AppPixelName.BROKEN_SITE_REPORTED,
+                mapOf(Pixel.PixelParameter.URL to brokenSite.siteUrl)
+            )
+        }
         command.value = Command.ConfirmAndFinish
     }
 
     @VisibleForTesting
-    fun getBrokenSite(url: String, webViewVersion: String): BrokenSite {
+    fun getBrokenSite(
+        urlString: String,
+        webViewVersion: String
+    ): BrokenSite {
         val category = categories[viewValue.indexSelected]
-        val absoluteUrl = Uri.parse(url).absoluteString
         return BrokenSite(
             category = category.key,
-            siteUrl = absoluteUrl,
+            siteUrl = urlString,
             upgradeHttps = upgradedHttps,
             blockedTrackers = blockedTrackers,
             surrogates = surrogates,
             webViewVersion = webViewVersion,
-            siteType = if (Uri.parse(url).isMobileSite) MOBILE_SITE else DESKTOP_SITE
+            siteType = if (Uri.parse(url).isMobileSite) MOBILE_SITE else DESKTOP_SITE,
+            urlParametersRemoved = urlParametersRemoved,
+            consentManaged = consentManaged,
+            consentOptOutFailed = consentOptOutFailed,
+            consentSelfTestFailed = consentSelfTestFailed,
         )
     }
 
     private fun canSubmit(): Boolean = categories.elementAtOrNull(indexSelected) != null
 
     companion object {
-        const val WEBVIEW_UNKNOWN_VERSION = "unknown"
         const val MOBILE_SITE = "mobile"
         const val DESKTOP_SITE = "desktop"
-    }
-}
-
-@ContributesMultibinding(AppObjectGraph::class)
-class BrokenSiteViewModelFactory @Inject constructor(
-    private val pixel: Provider<Pixel>,
-    private val brokenSiteSender: Provider<BrokenSiteSender>
-) : ViewModelFactoryPlugin {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T? {
-        with(modelClass) {
-            return when {
-                isAssignableFrom(BrokenSiteViewModel::class.java) -> (BrokenSiteViewModel(pixel.get(), brokenSiteSender.get()) as T)
-                else -> null
-            }
-        }
     }
 }

@@ -19,28 +19,36 @@ package com.duckduckgo.app.cta.ui
 import android.content.Context
 import android.net.Uri
 import android.view.View
-import androidx.annotation.AnyRes
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.fragment.app.FragmentActivity
+import androidx.annotation.VisibleForTesting
+import androidx.fragment.app.DialogFragment
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.cta.model.CtaId
 import com.duckduckgo.app.cta.ui.DaxCta.Companion.MAX_DAYS_ALLOWED
 import com.duckduckgo.app.global.baseHost
 import com.duckduckgo.app.global.install.AppInstallStore
 import com.duckduckgo.app.global.install.daysInstalled
-import com.duckduckgo.app.global.view.*
+import com.duckduckgo.mobile.android.ui.view.TypewriterDaxDialog
+import com.duckduckgo.app.global.extensions.html
 import com.duckduckgo.app.onboarding.store.OnboardingStore
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.pixels.Pixel.PixelValues.DAX_FIRE_DIALOG_CTA
 import com.duckduckgo.app.trackerdetection.model.Entity
+import com.duckduckgo.mobile.android.ui.store.AppTheme
+import com.duckduckgo.mobile.android.ui.view.DaxDialogListener
+import com.duckduckgo.mobile.android.ui.view.LottieDaxDialog
+import com.duckduckgo.mobile.android.ui.view.gone
+import com.duckduckgo.mobile.android.ui.view.hide
+import com.duckduckgo.mobile.android.ui.view.show
 import kotlinx.android.synthetic.main.include_cta_buttons.view.*
 import kotlinx.android.synthetic.main.include_cta_content.view.*
 import kotlinx.android.synthetic.main.include_dax_dialog_cta.view.*
 
 interface DialogCta {
-    fun createCta(activity: FragmentActivity): DaxDialog
+    fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment
 }
 
 interface ViewCta {
@@ -68,60 +76,8 @@ interface Cta {
     fun pixelOkParameters(): Map<String, String>
 }
 
-class UseOurAppCta(
-    @StringRes val text: Int = R.string.useOurAppDialogText,
-    @StringRes val okButton: Int = R.string.useOurAppDialogButtonText,
-    @StringRes val cancelButton: Int = R.string.useOurAppDialogCancelButtonText,
-    override val ctaId: CtaId = CtaId.USE_OUR_APP,
-    override val shownPixel: Pixel.PixelName? = null,
-    override val okPixel: Pixel.PixelName? = AppPixelName.USE_OUR_APP_DIALOG_OK,
-    override val cancelPixel: Pixel.PixelName? = null
-) : Cta, DialogCta {
-
-    override fun createCta(activity: FragmentActivity): DaxDialog =
-        TypewriterDaxDialog.newInstance(
-            daxText = activity.resources.getString(text),
-            primaryButtonText = activity.resources.getString(okButton),
-            secondaryButtonText = activity.resources.getString(cancelButton),
-            dismissible = false,
-            showHideButton = false
-        )
-
-    override fun pixelCancelParameters(): Map<String, String> = emptyMap()
-
-    override fun pixelOkParameters(): Map<String, String> = emptyMap()
-
-    override fun pixelShownParameters(): Map<String, String> = emptyMap()
-}
-
-class UseOurAppDeletionCta(
-    @StringRes val text: Int = R.string.useOurAppDeletionDialogText,
-    @StringRes val okButton: Int = R.string.daxDialogGotIt,
-    override val ctaId: CtaId = CtaId.USE_OUR_APP_DELETION,
-    override val shownPixel: Pixel.PixelName? = AppPixelName.USE_OUR_APP_DIALOG_DELETE_SHOWN,
-    override val okPixel: Pixel.PixelName? = null,
-    override val cancelPixel: Pixel.PixelName? = null
-) : Cta, DialogCta {
-
-    override fun createCta(activity: FragmentActivity): DaxDialog =
-        TypewriterDaxDialog.newInstance(
-            daxText = activity.resources.getString(text),
-            primaryButtonText = activity.resources.getString(okButton),
-            dismissible = false,
-            showHideButton = false
-        )
-
-    override fun pixelCancelParameters(): Map<String, String> = emptyMap()
-
-    override fun pixelOkParameters(): Map<String, String> = emptyMap()
-
-    override fun pixelShownParameters(): Map<String, String> = emptyMap()
-}
-
 sealed class DaxDialogCta(
     override val ctaId: CtaId,
-    @AnyRes open val description: Int,
-    @StringRes open val okButton: Int,
     override val shownPixel: Pixel.PixelName?,
     override val okPixel: Pixel.PixelName?,
     override val cancelPixel: Pixel.PixelName?,
@@ -130,8 +86,13 @@ sealed class DaxDialogCta(
     override val appInstallStore: AppInstallStore
 ) : Cta, DialogCta, DaxCta {
 
-    override fun createCta(activity: FragmentActivity): DaxDialog =
-        TypewriterDaxDialog.newInstance(daxText = getDaxText(activity), primaryButtonText = activity.resources.getString(okButton))
+    // This is not an empty CTA. We pass empty values because they actual implementation of DaxDialogCta will take care of them
+    override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment =
+        TypewriterDaxDialog.newInstance(
+            daxText = "",
+            primaryButtonText = "",
+            hideButtonText = "",
+        )
 
     override fun pixelCancelParameters(): Map<String, String> = mapOf(Pixel.PixelParameter.CTA_SHOWN to ctaPixelParam)
 
@@ -139,19 +100,29 @@ sealed class DaxDialogCta(
 
     override fun pixelShownParameters(): Map<String, String> = mapOf(Pixel.PixelParameter.CTA_SHOWN to addCtaToHistory(ctaPixelParam))
 
-    open fun getDaxText(context: Context): String = context.getString(description)
-
-    class DaxSerpCta(override val onboardingStore: OnboardingStore, override val appInstallStore: AppInstallStore) : DaxDialogCta(
+    class DaxSerpCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore
+    ) : DaxDialogCta(
         CtaId.DAX_DIALOG_SERP,
-        R.string.daxSerpCtaText,
-        R.string.daxDialogPhew,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
         AppPixelName.ONBOARDING_DAX_CTA_OK_BUTTON,
         null,
         Pixel.PixelValues.DAX_SERP_CTA,
         onboardingStore,
         appInstallStore
-    )
+    ) {
+        override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment {
+            val dialog = TypewriterDaxDialog.newInstance(
+                daxText = context.getString(R.string.daxSerpCtaText),
+                primaryButtonText = context.getString(R.string.daxDialogPhew),
+                toolbarDimmed = false,
+                hideButtonText = context.getString(R.string.daxDialogHideButton),
+            )
+            dialog.setDaxDialogListener(daxDialogListener)
+            return dialog
+        }
+    }
 
     class DaxTrackersBlockedCta(
         override val onboardingStore: OnboardingStore,
@@ -160,8 +131,6 @@ sealed class DaxDialogCta(
         val host: String
     ) : DaxDialogCta(
         CtaId.DAX_DIALOG_TRACKERS_FOUND,
-        R.plurals.daxTrackersBlockedCtaText,
-        R.string.daxDialogHighFive,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
         AppPixelName.ONBOARDING_DAX_CTA_OK_BUTTON,
         null,
@@ -170,14 +139,19 @@ sealed class DaxDialogCta(
         appInstallStore
     ) {
 
-        override fun createCta(activity: FragmentActivity): DaxDialog =
-            TypewriterDaxDialog.newInstance(
-                daxText = getDaxText(activity),
-                primaryButtonText = activity.resources.getString(okButton),
-                toolbarDimmed = false
+        override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment {
+            val dialog = TypewriterDaxDialog.newInstance(
+                daxText = getDaxText(context),
+                primaryButtonText = context.getString(R.string.daxDialogHighFive),
+                toolbarDimmed = false,
+                hideButtonText = context.getString(R.string.daxDialogHideButton),
             )
+            dialog.setDaxDialogListener(daxDialogListener)
+            return dialog
+        }
 
-        override fun getDaxText(context: Context): String {
+        @VisibleForTesting
+        fun getDaxText(context: Context): String {
             val trackers = trackers
                 .map { it.displayName }
                 .distinct()
@@ -189,7 +163,7 @@ sealed class DaxDialogCta(
                 if (size == 0) {
                     context.resources.getQuantityString(R.plurals.daxTrackersBlockedCtaZeroText, trackersFiltered.size)
                 } else {
-                    context.resources.getQuantityString(description, size, size)
+                    context.resources.getQuantityString(R.plurals.daxTrackersBlockedCtaText, size, size)
                 }
             return "<b>$trackersText</b>$quantityString"
         }
@@ -202,8 +176,6 @@ sealed class DaxDialogCta(
         private val siteHost: String
     ) : DaxDialogCta(
         CtaId.DAX_DIALOG_NETWORK,
-        R.string.daxMainNetworkCtaText,
-        R.string.daxDialogGotIt,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
         AppPixelName.ONBOARDING_DAX_CTA_OK_BUTTON,
         null,
@@ -211,7 +183,19 @@ sealed class DaxDialogCta(
         onboardingStore,
         appInstallStore
     ) {
-        override fun getDaxText(context: Context): String {
+
+        override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment {
+            val dialog = TypewriterDaxDialog.newInstance(
+                daxText = getDaxText(context),
+                primaryButtonText = context.getString(R.string.daxDialogGotIt),
+                hideButtonText = context.getString(R.string.daxDialogHideButton),
+            )
+            dialog.setDaxDialogListener(daxDialogListener)
+            return dialog
+        }
+
+        @VisibleForTesting
+        fun getDaxText(context: Context): String {
             return if (isFromSameNetworkDomain()) {
                 context.resources.getString(
                     R.string.daxMainNetworkCtaText,
@@ -229,16 +213,14 @@ sealed class DaxDialogCta(
             }
         }
 
-        override fun createCta(activity: FragmentActivity): DaxDialog =
-            TypewriterDaxDialog.newInstance(daxText = getDaxText(activity), primaryButtonText = activity.resources.getString(okButton))
-
         private fun isFromSameNetworkDomain(): Boolean = mainTrackerDomains.any { siteHost.contains(it) }
     }
 
-    class DaxNoSerpCta(override val onboardingStore: OnboardingStore, override val appInstallStore: AppInstallStore) : DaxDialogCta(
+    class DaxNoSerpCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore
+    ) : DaxDialogCta(
         CtaId.DAX_DIALOG_OTHER,
-        R.string.daxNonSerpCtaText,
-        R.string.daxDialogGotIt,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
         AppPixelName.ONBOARDING_DAX_CTA_OK_BUTTON,
         null,
@@ -246,8 +228,44 @@ sealed class DaxDialogCta(
         onboardingStore,
         appInstallStore
     ) {
-        override fun createCta(activity: FragmentActivity): DaxDialog =
-            TypewriterDaxDialog.newInstance(daxText = getDaxText(activity), primaryButtonText = activity.resources.getString(okButton))
+        override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment {
+            val dialog = TypewriterDaxDialog.newInstance(
+                daxText = context.getString(R.string.daxNonSerpCtaText),
+                primaryButtonText = context.getString(R.string.daxDialogGotIt),
+                hideButtonText = context.getString(R.string.daxDialogHideButton),
+            )
+            dialog.setDaxDialogListener(daxDialogListener)
+            return dialog
+        }
+    }
+
+    class DaxAutoconsentCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore,
+        private val appTheme: AppTheme,
+    ) : DaxDialogCta(
+        CtaId.DAX_DIALOG_AUTOCONSENT,
+        AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
+        AppPixelName.ONBOARDING_DAX_CTA_OK_BUTTON,
+        null,
+        Pixel.PixelValues.DAX_AUTOCONSENT_CTA,
+        onboardingStore,
+        appInstallStore
+    ) {
+        override fun createCta(context: Context, daxDialogListener: DaxDialogListener): DialogFragment {
+            val lottieRes = if (appTheme.isLightModeEnabled()) R.raw.cookie_banner_light else R.raw.cookie_banner_dark
+            val dialog = LottieDaxDialog.newInstance(
+                titleText = context.getString(R.string.autoconsentDialogTitle),
+                descriptionText = context.getString(R.string.autoconsentDialogDescription),
+                lottieRes = lottieRes,
+                primaryButtonText = context.getString(R.string.autoconsentPrimaryCta),
+                secondaryButtonText = context.getString(R.string.autoconsentSecondaryCta),
+                hideButtonText = context.getString(R.string.daxDialogHideButton),
+                showHideButton = false,
+            )
+            dialog.setDaxDialogListener(daxDialogListener)
+            return dialog
+        }
     }
 
     companion object {
@@ -284,7 +302,10 @@ sealed class DaxBubbleCta(
 
     override fun pixelShownParameters(): Map<String, String> = mapOf(Pixel.PixelParameter.CTA_SHOWN to addCtaToHistory(ctaPixelParam))
 
-    class DaxIntroCta(override val onboardingStore: OnboardingStore, override val appInstallStore: AppInstallStore) : DaxBubbleCta(
+    class DaxIntroCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore
+    ) : DaxBubbleCta(
         CtaId.DAX_INTRO,
         R.string.daxIntroCtaText,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
@@ -295,7 +316,10 @@ sealed class DaxBubbleCta(
         appInstallStore
     )
 
-    class DaxEndCta(override val onboardingStore: OnboardingStore, override val appInstallStore: AppInstallStore) : DaxBubbleCta(
+    class DaxEndCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore
+    ) : DaxBubbleCta(
         CtaId.DAX_END,
         R.string.daxEndCtaText,
         AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
@@ -305,6 +329,51 @@ sealed class DaxBubbleCta(
         onboardingStore,
         appInstallStore
     )
+}
+
+sealed class BubbleCta(
+    override val ctaId: CtaId,
+    @StringRes open val description: Int,
+    override val shownPixel: Pixel.PixelName?,
+    override val okPixel: Pixel.PixelName?,
+    override val cancelPixel: Pixel.PixelName?,
+) : Cta, ViewCta {
+
+    override fun showCta(view: View) {
+        val daxText = view.context.getString(description)
+        view.show()
+        view.alpha = 1f
+        view.hiddenTextCta.text = daxText.html(view.context)
+        view.primaryCta.hide()
+        view.dialogTextCta.startTypingAnimation(daxText, true)
+    }
+
+    override fun pixelCancelParameters(): Map<String, String> = emptyMap()
+
+    override fun pixelOkParameters(): Map<String, String> = emptyMap()
+
+    override fun pixelShownParameters(): Map<String, String> = emptyMap()
+
+    class DaxFavoritesOnboardingCta : BubbleCta(
+        CtaId.DAX_FAVORITES_ONBOARDING,
+        R.string.daxFavoritesOnboardingCtaText,
+        AppPixelName.FAVORITES_ONBOARDING_CTA_SHOWN,
+        null,
+        null
+    ) {
+        override fun showCta(view: View) {
+            super.showCta(view)
+            val accessibilityDelegate: View.AccessibilityDelegate =
+                object : View.AccessibilityDelegate() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfo) {
+                        super.onInitializeAccessibilityNodeInfo(host, info)
+                        info.text = host.context?.getString(R.string.daxFavoritesOnboardingCtaContentDescription)
+                    }
+                }
+            // Using braille unicode inside textview (to simulate the overflow icon), override description for accessibility
+            view.dialogTextCta.accessibilityDelegate = accessibilityDelegate
+        }
+    }
 }
 
 sealed class DaxFireDialogCta(
@@ -333,7 +402,10 @@ sealed class DaxFireDialogCta(
 
     override fun pixelShownParameters(): Map<String, String> = mapOf(Pixel.PixelParameter.CTA_SHOWN to addCtaToHistory(ctaPixelParam))
 
-    class TryClearDataCta(override val onboardingStore: OnboardingStore, override val appInstallStore: AppInstallStore) : DaxFireDialogCta(
+    class TryClearDataCta(
+        override val onboardingStore: OnboardingStore,
+        override val appInstallStore: AppInstallStore
+    ) : DaxFireDialogCta(
         ctaId = CtaId.DAX_FIRE_BUTTON,
         description = R.string.daxClearDataCtaText,
         shownPixel = AppPixelName.ONBOARDING_DAX_CTA_SHOWN,
@@ -384,6 +456,18 @@ sealed class HomePanelCta(
         AppPixelName.SURVEY_CTA_DISMISSED
     )
 
+    object DeviceShieldCta : HomePanelCta(
+        CtaId.DEVICE_SHIELD_CTA,
+        R.drawable.add_widget_cta_icon,
+        R.string.addWidgetCtaTitle,
+        R.string.addWidgetCtaDescription,
+        R.string.addWidgetCtaAutoLaunchButton,
+        R.string.addWidgetCtaDismissButton,
+        null,
+        null,
+        null
+    )
+
     object AddWidgetAuto : HomePanelCta(
         CtaId.ADD_WIDGET,
         R.drawable.add_widget_cta_icon,
@@ -420,5 +504,5 @@ fun DaxCta.addCtaToHistory(newCta: String): String {
 
 fun DaxCta.canSendShownPixel(): Boolean {
     val param = onboardingStore.onboardingDialogJourney?.split("-").orEmpty().toMutableList()
-    return !(param.isNotEmpty() && param.any { it.contains(ctaPixelParam) })
+    return !(param.isNotEmpty() && param.any { it.split(":").firstOrNull().orEmpty() == ctaPixelParam })
 }

@@ -18,32 +18,52 @@ package com.duckduckgo.app.trackerdetection
 
 import android.content.Context
 import androidx.annotation.WorkerThread
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.duckduckgo.app.browser.R
+import com.duckduckgo.app.di.AppCoroutineScope
 import com.duckduckgo.app.global.db.AppDatabase
 import com.duckduckgo.app.trackerdetection.api.TdsJson
-import com.duckduckgo.app.trackerdetection.db.*
+import com.duckduckgo.app.trackerdetection.db.TdsCnameEntityDao
+import com.duckduckgo.app.trackerdetection.db.TdsDomainEntityDao
+import com.duckduckgo.app.trackerdetection.db.TdsEntityDao
+import com.duckduckgo.app.trackerdetection.db.TdsMetadataDao
+import com.duckduckgo.app.trackerdetection.db.TdsTrackerDao
 import com.duckduckgo.app.trackerdetection.model.TdsMetadata
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesMultibinding
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @WorkerThread
+@ContributesMultibinding(
+    scope = AppScope::class,
+    boundType = LifecycleObserver::class
+)
 class TrackerDataLoader @Inject constructor(
+    @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
     private val trackerDetector: TrackerDetector,
     private val tdsTrackerDao: TdsTrackerDao,
     private val tdsEntityDao: TdsEntityDao,
     private val tdsDomainEntityDao: TdsDomainEntityDao,
-    private val tempWhitelistDao: TemporaryTrackingWhitelistDao,
+    private val tdsCnameEntityDao: TdsCnameEntityDao,
     private val tdsMetadataDao: TdsMetadataDao,
     private val context: Context,
     private val appDatabase: AppDatabase,
     private val moshi: Moshi
-) {
+) : DefaultLifecycleObserver {
 
-    fun loadData() {
+    override fun onCreate(owner: LifecycleOwner) {
+        appCoroutineScope.launch { loadData() }
+    }
+
+    private fun loadData() {
         Timber.d("Loading tracker data")
         loadTds()
-        loadTemporaryWhitelist()
     }
 
     private fun loadTds() {
@@ -61,12 +81,16 @@ class TrackerDataLoader @Inject constructor(
         persistTds(DEFAULT_ETAG, adapter.fromJson(json)!!)
     }
 
-    fun persistTds(eTag: String, tdsJson: TdsJson) {
+    fun persistTds(
+        eTag: String,
+        tdsJson: TdsJson
+    ) {
         appDatabase.runInTransaction {
             tdsMetadataDao.tdsDownloadSuccessful(TdsMetadata(eTag = eTag))
             tdsEntityDao.updateAll(tdsJson.jsonToEntities())
             tdsDomainEntityDao.updateAll(tdsJson.jsonToDomainEntities())
             tdsTrackerDao.updateAll(tdsJson.jsonToTrackers().values)
+            tdsCnameEntityDao.updateAll(tdsJson.jsonToCnameEntities())
         }
     }
 
@@ -77,15 +101,7 @@ class TrackerDataLoader @Inject constructor(
         trackerDetector.addClient(client)
     }
 
-    fun loadTemporaryWhitelist() {
-        val whitelist = tempWhitelistDao.getAll()
-        Timber.d("Loaded ${whitelist.size} temporarily whitelisted domains from DB")
-
-        val client = DocumentDomainClient(Client.ClientName.TEMPORARY_WHITELIST, whitelist)
-        trackerDetector.addClient(client)
-    }
-
     companion object {
-        const val DEFAULT_ETAG = "5c5dda7f1873f3183b141c0739a187ca"
+        const val DEFAULT_ETAG = "961c7d692c985496126cad2d64231243"
     }
 }

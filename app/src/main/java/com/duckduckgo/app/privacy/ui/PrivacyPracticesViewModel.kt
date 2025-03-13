@@ -16,63 +16,44 @@
 
 package com.duckduckgo.app.privacy.ui
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.duckduckgo.app.global.model.Site
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
+import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.app.global.model.domain
-import com.duckduckgo.app.global.plugins.view_model.ViewModelFactoryPlugin
 import com.duckduckgo.app.privacy.model.PrivacyPractices
 import com.duckduckgo.app.privacy.model.PrivacyPractices.Summary.UNKNOWN
-import com.duckduckgo.di.scopes.AppObjectGraph
-import com.squareup.anvil.annotations.ContributesMultibinding
+import com.duckduckgo.app.tabs.model.TabRepository
+import com.duckduckgo.di.scopes.ActivityScope
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
-class PrivacyPracticesViewModel : ViewModel() {
+@ContributesViewModel(ActivityScope::class)
+class PrivacyPracticesViewModel @Inject constructor(
+    private val tabRepository: TabRepository
+) : ViewModel() {
 
     data class ViewState(
-        val domain: String,
-        val practices: PrivacyPractices.Summary,
-        val goodTerms: List<String>,
-        val badTerms: List<String>
+        val domain: String = "",
+        val practices: PrivacyPractices.Summary = UNKNOWN,
+        val goodTerms: List<String> = emptyList(),
+        val badTerms: List<String> = emptyList()
     )
 
-    val viewState: MutableLiveData<ViewState> = MutableLiveData()
-
-    init {
-        resetViewState()
-    }
-
-    private fun resetViewState() {
-        viewState.value = ViewState(
-            domain = "",
-            practices = UNKNOWN,
-            goodTerms = ArrayList(),
-            badTerms = ArrayList()
-        )
-    }
-
-    fun onSiteChanged(site: Site?) {
-        if (site == null) {
-            resetViewState()
-            return
-        }
-        viewState.value = viewState.value?.copy(
-            domain = site.domain ?: "",
-            practices = site.privacyPractices.summary,
-            goodTerms = site.privacyPractices.goodReasons,
-            badTerms = site.privacyPractices.badReasons
-        )
-    }
-}
-
-@ContributesMultibinding(AppObjectGraph::class)
-class PrivacyPracticesViewModelFactory @Inject constructor() : ViewModelFactoryPlugin {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T? {
-        with(modelClass) {
-            return when {
-                isAssignableFrom(PrivacyPracticesViewModel::class.java) -> (PrivacyPracticesViewModel() as T)
-                else -> null
+    @OptIn(InternalCoroutinesApi::class)
+    fun privacyPractices(tabId: String): StateFlow<ViewState> = flow {
+        tabRepository.retrieveSiteData(tabId).asFlow().collect(
+            FlowCollector { site ->
+                emit(
+                    ViewState(
+                        domain = site.domain ?: "",
+                        practices = site.privacyPractices.summary,
+                        goodTerms = site.privacyPractices.goodReasons,
+                        badTerms = site.privacyPractices.badReasons
+                    )
+                )
             }
-        }
-    }
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ViewState())
 }

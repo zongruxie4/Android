@@ -17,6 +17,7 @@
 package com.duckduckgo.app.statistics.api
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LifecycleOwner
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.InstantSchedulersRule
@@ -27,9 +28,10 @@ import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.model.Atb
 import com.duckduckgo.app.statistics.model.PixelEntity
 import com.duckduckgo.app.pixels.AppPixelName.PRIVACY_DASHBOARD_OPENED
+import com.duckduckgo.app.statistics.config.StatisticsLibraryConfig
 import com.duckduckgo.app.statistics.store.PendingPixelDao
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -65,6 +67,7 @@ class RxPixelSenderTest {
     private lateinit var db: AppDatabase
     private lateinit var pendingPixelDao: PendingPixelDao
     private lateinit var testee: RxPixelSender
+    private val mockLifecycleOwner: LifecycleOwner = mock()
 
     @Before
     fun before() {
@@ -73,7 +76,12 @@ class RxPixelSenderTest {
             .build()
         pendingPixelDao = db.pixelDao()
 
-        testee = RxPixelSender(api, pendingPixelDao, mockStatisticsDataStore, mockVariantManager, mockDeviceInfo)
+        testee = RxPixelSender(
+            api, pendingPixelDao, mockStatisticsDataStore, mockVariantManager, mockDeviceInfo,
+            object : StatisticsLibraryConfig {
+                override fun shouldFirePixelsAsDev() = true
+            }
+        )
     }
 
     @After
@@ -201,7 +209,7 @@ class RxPixelSenderTest {
         pendingPixelDao.insert(pixelEntity)
         givenFormFactor(DeviceInfo.FormFactor.PHONE)
 
-        testee.onAppForegrounded()
+        testee.onStart(mockLifecycleOwner)
 
         verify(api).fire(
             pixelEntity.pixelName, "phone", pixelEntity.atb, pixelEntity.additionalQueryParams, pixelEntity.encodedQueryParams
@@ -220,7 +228,7 @@ class RxPixelSenderTest {
         pendingPixelDao.insert(pixelEntity)
         givenFormFactor(DeviceInfo.FormFactor.PHONE)
 
-        testee.onAppForegrounded()
+        testee.onStart(mockLifecycleOwner)
 
         val pixels = pendingPixelDao.pixels().test().assertNoErrors().values().last()
         assertTrue(pixels.isEmpty())
@@ -238,7 +246,7 @@ class RxPixelSenderTest {
         pendingPixelDao.insert(pixelEntity)
         givenFormFactor(DeviceInfo.FormFactor.PHONE)
 
-        testee.onAppForegrounded()
+        testee.onStart(mockLifecycleOwner)
 
         val testObserver = pendingPixelDao.pixels().test()
         val pixels = testObserver.assertNoErrors().values().last()
@@ -257,14 +265,17 @@ class RxPixelSenderTest {
         pendingPixelDao.insert(pixelEntity, times = 5)
         givenFormFactor(DeviceInfo.FormFactor.PHONE)
 
-        testee.onAppForegrounded()
+        testee.onStart(mockLifecycleOwner)
 
         verify(api, times(5)).fire(
             pixelEntity.pixelName, "phone", pixelEntity.atb, pixelEntity.additionalQueryParams, pixelEntity.encodedQueryParams
         )
     }
 
-    private fun assertPixelEntity(expectedEntity: PixelEntity, pixelEntity: PixelEntity) {
+    private fun assertPixelEntity(
+        expectedEntity: PixelEntity,
+        pixelEntity: PixelEntity
+    ) {
         assertEquals(expectedEntity.pixelName, pixelEntity.pixelName)
         assertEquals(expectedEntity.atb, pixelEntity.atb)
         assertEquals(expectedEntity.additionalQueryParams, pixelEntity.additionalQueryParams)
@@ -300,7 +311,10 @@ class RxPixelSenderTest {
         whenever(api.fire(any(), any(), any(), anyOrNull(), any(), any())).thenReturn(Completable.error(TimeoutException()))
     }
 
-    private fun PendingPixelDao.insert(pixel: PixelEntity, times: Int) {
+    private fun PendingPixelDao.insert(
+        pixel: PixelEntity,
+        times: Int
+    ) {
         for (x in 1..times) {
             this.insert(pixel)
         }

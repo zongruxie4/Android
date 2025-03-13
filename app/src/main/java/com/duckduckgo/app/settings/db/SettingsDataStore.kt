@@ -19,28 +19,37 @@ package com.duckduckgo.app.settings.db
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.duckduckgo.app.browser.BuildConfig
-import com.duckduckgo.app.global.DuckDuckGoTheme
+import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.icon.api.AppIcon
 import com.duckduckgo.app.settings.clear.ClearWhatOption
 import com.duckduckgo.app.settings.clear.ClearWhenOption
 import com.duckduckgo.app.settings.clear.FireAnimation
-import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.app.settings.db.SettingsSharedPreferences.LoginDetectorPrefsMapper.AutomaticFireproofSetting
+import com.duckduckgo.app.settings.db.SettingsSharedPreferences.LoginDetectorPrefsMapper.AutomaticFireproofSetting.ASK_EVERY_TIME
+import com.duckduckgo.app.settings.db.SettingsSharedPreferences.LoginDetectorPrefsMapper.AutomaticFireproofSetting.NEVER
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesBinding
+import javax.inject.Inject
 
 interface SettingsDataStore {
 
     var lastExecutedJobId: String?
-    var theme: DuckDuckGoTheme?
     var hideTips: Boolean
     var autoCompleteSuggestionsEnabled: Boolean
     var appIcon: AppIcon
     var selectedFireAnimation: FireAnimation
     val fireAnimationEnabled: Boolean
     var appIconChanged: Boolean
+    @Deprecated(message = "Not used anymore after adding automatic fireproof", replaceWith = ReplaceWith(expression = "automaticFireproofSetting"))
     var appLoginDetection: Boolean
+    var automaticFireproofSetting: AutomaticFireproofSetting
     var appLocationPermission: Boolean
     var appLocationPermissionDeniedForever: Boolean
     var globalPrivacyControlEnabled: Boolean
+    var appLinksEnabled: Boolean
+    var showAppLinksPrompt: Boolean
+    var showAutomaticFireproofDialog: Boolean
 
     /**
      * This will be checked upon app startup and used to decide whether it should perform a clear or not.
@@ -61,7 +70,11 @@ interface SettingsDataStore {
     fun clearAppBackgroundTimestamp()
 }
 
-class SettingsSharedPreferences constructor(private val context: Context, private val variantManager: VariantManager) : SettingsDataStore {
+@ContributesBinding(AppScope::class)
+class SettingsSharedPreferences @Inject constructor(
+    private val context: Context,
+    private val appBuildConfig: AppBuildConfig
+) : SettingsDataStore {
 
     private val fireAnimationMapper = FireAnimationPrefsMapper()
 
@@ -74,13 +87,6 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
             }
         }
 
-    override var theme: DuckDuckGoTheme?
-        get() {
-            val themeName = preferences.getString(KEY_THEME, null) ?: return null
-            return DuckDuckGoTheme.valueOf(themeName)
-        }
-        set(theme) = preferences.edit { putString(KEY_THEME, theme.toString()) }
-
     override var hideTips: Boolean
         get() = preferences.getBoolean(KEY_HIDE_TIPS, false)
         set(enabled) = preferences.edit { putBoolean(KEY_HIDE_TIPS, enabled) }
@@ -90,8 +96,12 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
         set(enabled) = preferences.edit { putBoolean(KEY_AUTOCOMPLETE_ENABLED, enabled) }
 
     override var appLoginDetection: Boolean
-        get() = preferences.getBoolean(KEY_LOGIN_DETECTION_ENABLED, true)
-        set(enabled) = preferences.edit { putBoolean(KEY_LOGIN_DETECTION_ENABLED, enabled) }
+        get() = preferences.getBoolean("KEY_LOGIN_DETECTION_ENABLED", true)
+        set(enabled) = preferences.edit { putBoolean("KEY_LOGIN_DETECTION_ENABLED", enabled) }
+
+    override var automaticFireproofSetting: AutomaticFireproofSetting
+        get() = AutomaticFireproofSetting.valueOf(preferences.getString(KEY_AUTOMATIC_FIREPROOF_SETTING, ASK_EVERY_TIME.name) ?: ASK_EVERY_TIME.name)
+        set(loginDetectionSetting) = preferences.edit { putString(KEY_AUTOMATIC_FIREPROOF_SETTING, loginDetectionSetting.name) }
 
     override var appLocationPermission: Boolean
         get() = preferences.getBoolean(KEY_SITE_LOCATION_PERMISSION_ENABLED, true)
@@ -103,7 +113,7 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
 
     override var appIcon: AppIcon
         get() {
-            val componentName = preferences.getString(KEY_APP_ICON, DEFAULT_ICON.componentName) ?: return DEFAULT_ICON
+            val componentName = preferences.getString(KEY_APP_ICON, defaultIcon().componentName) ?: return defaultIcon()
             return AppIcon.from(componentName)
         }
         set(appIcon) = preferences.edit(commit = true) { putString(KEY_APP_ICON, appIcon.componentName) }
@@ -146,6 +156,18 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
         get() = preferences.getBoolean(KEY_DO_NOT_SELL_ENABLED, true)
         set(enabled) = preferences.edit { putBoolean(KEY_DO_NOT_SELL_ENABLED, enabled) }
 
+    override var appLinksEnabled: Boolean
+        get() = preferences.getBoolean(APP_LINKS_ENABLED, true)
+        set(enabled) = preferences.edit { putBoolean(APP_LINKS_ENABLED, enabled) }
+
+    override var showAppLinksPrompt: Boolean
+        get() = preferences.getBoolean(SHOW_APP_LINKS_PROMPT, true)
+        set(enabled) = preferences.edit { putBoolean(SHOW_APP_LINKS_PROMPT, enabled) }
+
+    override var showAutomaticFireproofDialog: Boolean
+        get() = preferences.getBoolean(SHOW_AUTOMATIC_FIREPROOF_DIALOG, true)
+        set(enabled) = preferences.edit { putBoolean(SHOW_AUTOMATIC_FIREPROOF_DIALOG, enabled) }
+
     override fun hasBackgroundTimestampRecorded(): Boolean = preferences.contains(KEY_APP_BACKGROUNDED_TIMESTAMP)
     override fun clearAppBackgroundTimestamp() = preferences.edit { remove(KEY_APP_BACKGROUNDED_TIMESTAMP) }
 
@@ -181,12 +203,19 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
     private val preferences: SharedPreferences
         get() = context.getSharedPreferences(FILENAME, Context.MODE_PRIVATE)
 
+    private fun defaultIcon(): AppIcon {
+        return if (appBuildConfig.isDebug) {
+            AppIcon.BLUE
+        } else {
+            AppIcon.DEFAULT
+        }
+    }
+
     companion object {
         const val FILENAME = "com.duckduckgo.app.settings_activity.settings"
         const val KEY_BACKGROUND_JOB_ID = "BACKGROUND_JOB_ID"
-        const val KEY_THEME = "THEME"
         const val KEY_AUTOCOMPLETE_ENABLED = "AUTOCOMPLETE_ENABLED"
-        const val KEY_LOGIN_DETECTION_ENABLED = "KEY_LOGIN_DETECTION_ENABLED"
+        const val KEY_AUTOMATIC_FIREPROOF_SETTING = "KEY_AUTOMATIC_FIREPROOF_SETTING"
         const val KEY_AUTOMATICALLY_CLEAR_WHAT_OPTION = "AUTOMATICALLY_CLEAR_WHAT_OPTION"
         const val KEY_AUTOMATICALLY_CLEAR_WHEN_OPTION = "AUTOMATICALLY_CLEAR_WHEN_OPTION"
         const val KEY_APP_BACKGROUNDED_TIMESTAMP = "APP_BACKGROUNDED_TIMESTAMP"
@@ -199,13 +228,9 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
         const val KEY_SITE_LOCATION_PERMISSION_ENABLED = "KEY_SITE_LOCATION_PERMISSION_ENABLED"
         const val KEY_SYSTEM_LOCATION_PERMISSION_DENIED_FOREVER = "KEY_SYSTEM_LOCATION_PERMISSION_DENIED_FOREVER"
         const val KEY_DO_NOT_SELL_ENABLED = "KEY_DO_NOT_SELL_ENABLED"
-
-        private val DEFAULT_ICON = if (BuildConfig.DEBUG) {
-            AppIcon.BLUE
-        } else {
-            AppIcon.DEFAULT
-        }
-        const val KEY_SEARCH_NOTIFICATION = "SEARCH_NOTIFICATION"
+        const val APP_LINKS_ENABLED = "APP_LINKS_ENABLED"
+        const val SHOW_APP_LINKS_PROMPT = "SHOW_APP_LINKS_PROMPT"
+        const val SHOW_AUTOMATIC_FIREPROOF_DIALOG = "SHOW_AUTOMATIC_FIREPROOF_DIALOG"
     }
 
     private class FireAnimationPrefsMapper {
@@ -223,12 +248,30 @@ class SettingsSharedPreferences constructor(private val context: Context, privat
             FireAnimation.None -> NONE_PREFS_VALUE
         }
 
-        fun fireAnimationFrom(value: String?, defValue: FireAnimation) = when (value) {
+        fun fireAnimationFrom(
+            value: String?,
+            defValue: FireAnimation
+        ) = when (value) {
             HERO_FIRE_PREFS_VALUE -> FireAnimation.HeroFire
             HERO_WATER_PREFS_VALUE -> FireAnimation.HeroWater
             HERO_ABSTRACT_PREFS_VALUE -> FireAnimation.HeroAbstract
             NONE_PREFS_VALUE -> FireAnimation.None
             else -> defValue
+        }
+    }
+
+    class LoginDetectorPrefsMapper {
+        enum class AutomaticFireproofSetting(val stringRes: Int) {
+            ASK_EVERY_TIME(R.string.fireproofWebsiteSettingsSelectionDialogAskEveryTime),
+            ALWAYS(R.string.fireproofWebsiteSettingsSelectionDialogAlways),
+            NEVER(R.string.fireproofWebsiteSettingsSelectionDialogNever)
+        }
+
+        fun mapToAutomaticFireproofSetting(oldLoginDetectorValue: Boolean): AutomaticFireproofSetting {
+            return when (oldLoginDetectorValue) {
+                false -> NEVER
+                else -> ASK_EVERY_TIME
+            }
         }
     }
 }

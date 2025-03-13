@@ -16,23 +16,24 @@
 
 package com.duckduckgo.app.notification
 
+import android.app.TaskStackBuilder
 import android.content.Intent
+import android.os.Bundle
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.CoroutineTestRule
+import com.duckduckgo.app.global.plugins.PluginPoint
 import com.duckduckgo.app.notification.NotificationHandlerService.Companion.PIXEL_SUFFIX_EXTRA
 import com.duckduckgo.app.notification.NotificationHandlerService.NotificationEvent.CANCEL
 import com.duckduckgo.app.notification.NotificationHandlerService.NotificationEvent.CLEAR_DATA_LAUNCH
-import com.duckduckgo.app.notification.NotificationHandlerService.NotificationEvent.USE_OUR_APP
-import com.duckduckgo.app.onboarding.store.AppStage
-import com.duckduckgo.app.onboarding.store.UserStageStore
-import com.duckduckgo.app.runBlocking
+import com.duckduckgo.app.notification.model.Channel
+import com.duckduckgo.app.notification.model.NotificationSpec
+import com.duckduckgo.app.notification.model.SchedulableNotification
+import com.duckduckgo.app.notification.model.SchedulableNotificationPlugin
 import com.duckduckgo.app.statistics.pixels.Pixel
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
+import org.mockito.kotlin.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,23 +44,34 @@ class NotificationHandlerServiceTest {
     @get:Rule
     var coroutinesTestRule = CoroutineTestRule()
 
-    private var mockPixel: Pixel = mock()
-    private var mockUserStageStore: UserStageStore = mock()
-    private var testee = NotificationHandlerService()
-    private val context = InstrumentationRegistry.getInstrumentation().targetContext
+    private lateinit var testee: NotificationHandlerService
+    private lateinit var mockPixel: Pixel
+    private val plugin = FakeSchedulablePlugin()
+
+    private val appContext = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
 
     @Before
     fun before() {
-        testee.pixel = mockPixel
-        testee.context = context
-        testee.notificationManager = NotificationManagerCompat.from(context)
-        testee.userStageStore = mockUserStageStore
-        testee.dispatcher = coroutinesTestRule.testDispatcherProvider
+        mockPixel = mock()
+        val mockTaskStackBuilderFactory: TaskStackBuilderFactory = mock()
+        val taskStackBuilder: TaskStackBuilder = mock()
+
+        whenever(taskStackBuilder.addNextIntentWithParentStack(any())).thenReturn(taskStackBuilder)
+        whenever(mockTaskStackBuilderFactory.createTaskBuilder()).thenReturn(taskStackBuilder)
+
+        testee = NotificationHandlerService().apply {
+            pixel = mockPixel
+            this.context = appContext
+            notificationManager = NotificationManagerCompat.from(context)
+            dispatcher = coroutinesTestRule.testDispatcherProvider
+            taskStackBuilderFactory = mockTaskStackBuilderFactory
+            schedulableNotificationPluginPoint = FakeSchedulablePluginPoint(plugin)
+        }
     }
 
     @Test
     fun whenIntentIsClearDataLaunchedThenCorrespondingPixelIsFired() {
-        val intent = Intent(context, NotificationHandlerService::class.java)
+        val intent = Intent(appContext, NotificationHandlerService::class.java)
         intent.type = CLEAR_DATA_LAUNCH
         intent.putExtra(PIXEL_SUFFIX_EXTRA, "abc")
         testee.onHandleIntent(intent)
@@ -68,7 +80,7 @@ class NotificationHandlerServiceTest {
 
     @Test
     fun whenIntentIsClearDataCancelledThenCorrespondingPixelIsFired() {
-        val intent = Intent(context, NotificationHandlerService::class.java)
+        val intent = Intent(appContext, NotificationHandlerService::class.java)
         intent.type = CANCEL
         intent.putExtra(PIXEL_SUFFIX_EXTRA, "abc")
         testee.onHandleIntent(intent)
@@ -76,20 +88,77 @@ class NotificationHandlerServiceTest {
     }
 
     @Test
-    fun whenIntentIsUseOurAppThenCorrespondingPixelIsFired() {
-        val intent = Intent(context, NotificationHandlerService::class.java)
-        intent.type = USE_OUR_APP
-        intent.putExtra(PIXEL_SUFFIX_EXTRA, "abc")
+    fun whenOnHandleIntentInPluginWithCancelTypeThenExecuteOnNotificationCancelled() {
+        val intent = Intent("test").apply {
+            type = "test.cancel"
+            putExtra("PIXEL_SUFFIX_EXTRA", "test")
+        }
         testee.onHandleIntent(intent)
-        verify(mockPixel).fire(eq("mnot_l_abc"), any(), any())
+
+        assertEquals(3, plugin.schedulable)
     }
 
     @Test
-    fun whenIntentIsUseOurAppThenRegisterInUseOurAppOnboardingStage() = coroutinesTestRule.runBlocking {
-        val intent = Intent(context, NotificationHandlerService::class.java)
-        intent.type = USE_OUR_APP
-        intent.putExtra(PIXEL_SUFFIX_EXTRA, "abc")
+    fun whenOnHandleIntentInPluginWithLaunchTypeThenExecuteOnNotificationLaunched() {
+        val intent = Intent("test").apply {
+            type = "test.launch"
+            putExtra("PIXEL_SUFFIX_EXTRA", "test")
+        }
         testee.onHandleIntent(intent)
-        verify(mockUserStageStore).moveToStage(AppStage.USE_OUR_APP_ONBOARDING)
+
+        assertEquals(2, plugin.schedulable)
+    }
+
+    class FakeSchedulablePluginPoint(private val plugin: SchedulableNotificationPlugin) : PluginPoint<SchedulableNotificationPlugin> {
+        override fun getPlugins(): Collection<SchedulableNotificationPlugin> {
+            return listOf(plugin)
+        }
+    }
+
+    class FakeSchedulablePlugin : SchedulableNotificationPlugin {
+        var schedulable = 0
+
+        override fun getSchedulableNotification(): SchedulableNotification {
+            return TestNotification()
+        }
+
+        override fun onNotificationLaunched() {
+            schedulable = 2
+        }
+
+        override fun onNotificationCancelled() {
+            schedulable = 3
+        }
+
+        override fun onNotificationShown() {
+            schedulable = 4
+        }
+
+        override fun getSpecification(): NotificationSpec {
+            return TestSpec()
+        }
+    }
+
+    class TestNotification : SchedulableNotification {
+        override val id: String = "id"
+        override val launchIntent: String = "test.launch"
+        override val cancelIntent: String = "test.cancel"
+        override suspend fun canShow(): Boolean = true
+        override suspend fun buildSpecification(): NotificationSpec = TestSpec()
+    }
+
+    class TestSpec : NotificationSpec {
+        override val channel: Channel = Channel("id", 1, 1)
+        override val systemId: Int = 1
+        override val name: String = "test"
+        override val icon: Int = 1
+        override val title: String = "test"
+        override val description: String = "test"
+        override val launchButton: String = "test"
+        override val closeButton: String = "test"
+        override val pixelSuffix: String = "test"
+        override val autoCancel: Boolean = true
+        override val bundle: Bundle = Bundle()
+        override val color: Int = 1
     }
 }

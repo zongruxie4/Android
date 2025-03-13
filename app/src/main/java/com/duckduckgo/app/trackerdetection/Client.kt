@@ -26,7 +26,6 @@ interface Client {
     enum class ClientName(val type: ClientType) {
         // current clients
         TDS(ClientType.BLOCKING),
-        TEMPORARY_WHITELIST(ClientType.WHITELIST),
 
         // legacy clients
         EASYLIST(ClientType.BLOCKING),
@@ -38,10 +37,14 @@ interface Client {
         val matches: Boolean,
         val entityName: String? = null,
         val categories: List<String>? = null,
-        val surrogate: String? = null
+        val surrogate: String? = null,
+        val isATracker: Boolean
     )
 
     val name: ClientName
 
-    fun matches(url: String, documentUrl: String): Result
+    fun matches(
+        url: String,
+        documentUrl: String
+    ): Result
 }

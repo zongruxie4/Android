@@ -23,17 +23,54 @@ import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.annotation.UiThread
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.duckduckgo.app.bookmarks.ui.BookmarksActivity
 import com.duckduckgo.app.browser.BrowserActivity
 import com.duckduckgo.app.browser.R
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesTo
+import dagger.Module
+import dagger.Provides
+import dagger.SingleInstanceIn
+import dagger.multibindings.IntoSet
+import timber.log.Timber
 import javax.inject.Inject
 
-class AppShortcutCreator @Inject constructor() {
+@Module
+@ContributesTo(AppScope::class)
+class AppShortcutCreatorModule {
+    @Provides
+    @IntoSet
+    fun provideAppShortcutCreatorObserver(appShortcutCreator: AppShortcutCreator, appBuildConfig: AppBuildConfig): LifecycleObserver {
+        return AppShortcutCreatorLifecycleObserver(appShortcutCreator, appBuildConfig)
+    }
+}
+
+class AppShortcutCreatorLifecycleObserver(
+    private val appShortcutCreator: AppShortcutCreator,
+    private val appBuildConfig: AppBuildConfig
+) : DefaultLifecycleObserver {
+    @UiThread
+    @Suppress("NewApi") // we use appBuildConfig
+    override fun onCreate(owner: LifecycleOwner) {
+        Timber.i("Configure app shortcuts")
+        if (appBuildConfig.sdkInt >= Build.VERSION_CODES.N_MR1) {
+            appShortcutCreator.configureAppShortcuts()
+        }
+    }
+}
+
+@SingleInstanceIn(AppScope::class)
+class AppShortcutCreator @Inject constructor(private val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.N_MR1)
-    fun configureAppShortcuts(context: Context) {
+    fun configureAppShortcuts() {
         val shortcutList = mutableListOf<ShortcutInfo>()
 
         shortcutList.add(buildNewTabShortcut(context))
@@ -41,7 +78,7 @@ class AppShortcutCreator @Inject constructor() {
         shortcutList.add(buildBookmarksShortcut(context))
 
         val shortcutManager = context.getSystemService(ShortcutManager::class.java)
-        shortcutManager.dynamicShortcuts = shortcutList
+        kotlin.runCatching { shortcutManager.dynamicShortcuts = shortcutList }
     }
 
     @RequiresApi(Build.VERSION_CODES.N_MR1)
@@ -90,5 +127,4 @@ class AppShortcutCreator @Inject constructor() {
         private const val SHORTCUT_ID_NEW_TAB = "newTab"
         private const val SHORTCUT_ID_SHOW_BOOKMARKS = "showBookmarks"
     }
-
 }

@@ -31,12 +31,13 @@ import com.duckduckgo.app.referral.ParseFailureReason.*
 import com.duckduckgo.app.referral.ParsedReferrerResult.*
 import com.duckduckgo.app.statistics.AtbInitializerListener
 import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.di.scopes.AppScope
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
 
-@Singleton
+@SingleInstanceIn(AppScope::class)
 class PlayStoreAppReferrerStateListener @Inject constructor(
     val context: Context,
     private val packageManager: PackageManager,
@@ -97,11 +98,16 @@ class PlayStoreAppReferrerStateListener @Inject constructor(
         try {
             when (responseCode) {
                 OK -> {
-                    Timber.d("Successfully connected to Referrer service")
-                    val response = referralClient.installReferrer
-                    val referrer = response.installReferrer
-                    val parsedResult = appInstallationReferrerParser.parse(referrer)
-                    referralResultReceived(parsedResult)
+                    kotlin.runCatching {
+                        Timber.d("Successfully connected to Referrer service")
+                        val response = referralClient.installReferrer
+                        val referrer = response.installReferrer
+                        val parsedResult = appInstallationReferrerParser.parse(referrer)
+                        referralResultReceived(parsedResult)
+                    }.onFailure {
+                        Timber.e(it, "Error getting install referrer")
+                        referralResultFailed(UnknownError)
+                    }
                 }
                 FEATURE_NOT_SUPPORTED -> referralResultFailed(FeatureNotSupported)
                 SERVICE_UNAVAILABLE -> referralResultFailed(ServiceUnavailable)
@@ -126,7 +132,7 @@ class PlayStoreAppReferrerStateListener @Inject constructor(
      */
     override suspend fun waitForReferrerCode(): ParsedReferrerResult {
         if (referralResult != ReferrerInitialising) {
-            Timber.d("Referrer already determined; immediately answering")
+            Timber.d("Referrer already determined (%s); immediately answering", referralResult.javaClass.simpleName)
             return referralResult
         }
 
@@ -164,6 +170,7 @@ class PlayStoreAppReferrerStateListener @Inject constructor(
                 variantManager.updateAppReferrerVariant(VariantManager.RESERVED_EU_AUCTION_VARIANT)
                 appReferrerDataStore.installedFromEuAuction = true
             }
+            else -> {}
         }
 
         appReferrerDataStore.referrerCheckedPreviously = true

@@ -16,10 +16,7 @@
 
 package com.duckduckgo.app.global.exception
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.TypeConverter
+import androidx.room.*
 
 @Dao
 abstract class UncaughtExceptionDao {
@@ -33,6 +30,12 @@ abstract class UncaughtExceptionDao {
     @Query("SELECT * FROM UncaughtExceptionEntity")
     abstract fun all(): List<UncaughtExceptionEntity>
 
+    @Query("SELECT * FROM UncaughtExceptionEntity ORDER BY id DESC LIMIT 1")
+    abstract fun getLatestException(): UncaughtExceptionEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract fun update(uncaughtException: UncaughtExceptionEntity)
+
     @Query("DELETE FROM UncaughtExceptionEntity WHERE id=:id")
     abstract fun delete(id: Long)
 }
@@ -40,6 +43,7 @@ abstract class UncaughtExceptionDao {
 enum class UncaughtExceptionSource {
     GLOBAL,
     SHOULD_INTERCEPT_REQUEST,
+    SHOULD_INTERCEPT_REQUEST_FROM_SERVICE_WORKER,
     ON_PAGE_STARTED,
     ON_PAGE_FINISHED,
     SHOULD_OVERRIDE_REQUEST,

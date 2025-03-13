@@ -16,24 +16,18 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <!-- Use Our App Flow -->
-    <string name="useOurAppDialogText">Did you know the Facebook app can make requests for data even when you\'re not using it?&lt;br/&gt;&lt;br/&gt;Replace the app with a home screen shortcut that opens Facebook in DuckDuckGo. Then delete the Facebook app.</string>
-    <string name="useOurAppDialogButtonText">Add Facebook Shortcut</string>
-    <string name="useOurAppDialogCancelButtonText">Not Now</string>
-    <string name="useOurAppNotificationTitle">Worried about Facebook tracking you?</string>
-    <string name="useOurAppNotificationDescription">Here\'s a simple way to reduce its reach.</string>
-    <string name="useOurAppShortcutAddedText">Success! %s has been added to your home screen.</string>
-    <string name="useOurAppDeletionDialogText">Checking your feed in DuckDuckGo is a great alternative to using the Facebook app!&lt;br/&gt;&lt;br/&gt;But if the Facebook app is on your phone, it can make requests for data even when you\'re not using it.&lt;br/&gt;&lt;br/&gt;Prevent this by deleting it now!</string>
+    <!-- Site Permissions Settings -->
+    <string name="sitePermissionsRemoveAllWebsitesSnackbarText">Permissions Removed for All Sites</string>
 
-    <!-- Email Autofill -->
-    <string name="settingsEmailAutofill">Email Autofill</string>
-    <string name="settingsEmailAutofillEnabledFor">Enabled for %1$s</string>
-    <string name="autofillSettingCancel">Cancel</string>
-    <string name="autofillSettingDisable">Disable</string>
-    <string name="aliasToClipboardMessage">New address copied to your clipboard</string>
-    <string name="autofillTooltipUseYourAlias">Use %1$s</string>
-    <string name="autofillTooltipUseYourAliasDescription">Blocks email trackers</string>
-    <string name="autofillTooltipGenerateAddress">Generate a Private Address</string>
-    <string name="autofillTooltipGenerateAddressDescription">Blocks email trackers and hides your address</string>
-    <string name="newEmailAliasMenuTitle">Create Duck Address</string>
+    <!-- Autofill -->
+    <string name="autofillSnackbarAction">View</string>
+    <string name="autofillLoginSavedSnackbarMessage">Login saved</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Login updated</string>
+    <string name="autofillDisableAutofillPromptTitle">Do you want to keep using Autofill?</string>
+    <string name="autofillDisableAutofillPromptMessage">You can disable Autofill at any time in Settings.</string>
+    <string name="autofillDisableAutofillPromptPositiveButton">Keep using</string>
+    <string name="autofillDisableAutofillPromptNegativeButton">Disable</string>
+
+    <!-- We won't have a translation for this, to be used later. -->
+    <string name="trackersOverviewEmpty">No tracking requests were blocked from loading on this page. If a company\'s requests are loaded, it can allow them to profile you.</string>
 </resources>

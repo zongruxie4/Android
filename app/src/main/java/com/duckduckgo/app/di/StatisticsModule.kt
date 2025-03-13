@@ -17,27 +17,36 @@
 package com.duckduckgo.app.di
 
 import android.content.Context
+import androidx.lifecycle.LifecycleObserver
 import com.duckduckgo.app.global.db.AppDatabase
 import com.duckduckgo.app.global.device.ContextDeviceInfo
 import com.duckduckgo.app.global.device.DeviceInfo
 import com.duckduckgo.app.global.exception.UncaughtExceptionRepository
+import com.duckduckgo.app.global.plugins.PluginPoint
 import com.duckduckgo.app.statistics.AtbInitializer
 import com.duckduckgo.app.statistics.AtbInitializerListener
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.api.*
+import com.duckduckgo.app.statistics.config.StatisticsLibraryConfig
 import com.duckduckgo.app.statistics.pixels.RxBasedPixel
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.app.statistics.store.OfflinePixelCountDataStore
 import com.duckduckgo.app.statistics.store.PendingPixelDao
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
+import com.duckduckgo.di.DaggerSet
+import com.duckduckgo.di.scopes.AppScope
+import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
 import dagger.Provides
+import dagger.multibindings.IntoSet
+import kotlinx.coroutines.CoroutineScope
 import retrofit2.Retrofit
 import javax.inject.Named
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
 
 @Module
-class StatisticsModule {
+@ContributesTo(AppScope::class)
+object StatisticsModule {
 
     @Provides
     fun statisticsService(@Named("api") retrofit: Retrofit): StatisticsService = retrofit.create(StatisticsService::class.java)
@@ -46,9 +55,13 @@ class StatisticsModule {
     fun statisticsUpdater(
         statisticsDataStore: StatisticsDataStore,
         statisticsService: StatisticsService,
-        variantManager: VariantManager
-    ): StatisticsUpdater =
-        StatisticsRequester(statisticsDataStore, statisticsService, variantManager)
+        variantManager: VariantManager,
+        plugins: PluginPoint<RefreshRetentionAtbPlugin>,
+    ): StatisticsUpdater {
+        return StatisticsRequester(
+            statisticsDataStore, statisticsService, variantManager, plugins
+        )
+    }
 
     @Provides
     fun pixelService(@Named("nonCaching") retrofit: Retrofit): PixelService {
@@ -62,36 +75,47 @@ class StatisticsModule {
         RxBasedPixel(pixelSender)
 
     @Provides
+    @SingleInstanceIn(AppScope::class)
     fun pixelSender(
         pixelService: PixelService,
         statisticsDataStore: StatisticsDataStore,
         variantManager: VariantManager,
         deviceInfo: DeviceInfo,
-        pendingPixelDao: PendingPixelDao
-    ): PixelSender =
-        RxPixelSender(pixelService, pendingPixelDao, statisticsDataStore, variantManager, deviceInfo)
+        pendingPixelDao: PendingPixelDao,
+        statisticsLibraryConfig: StatisticsLibraryConfig
+    ): PixelSender {
+        return RxPixelSender(pixelService, pendingPixelDao, statisticsDataStore, variantManager, deviceInfo, statisticsLibraryConfig)
+    }
+
+    @Provides
+    @SingleInstanceIn(AppScope::class)
+    @IntoSet
+    fun pixelSenderObserver(pixelSender: PixelSender): LifecycleObserver = pixelSender
 
     @Provides
     fun offlinePixelSender(
         offlinePixelCountDataStore: OfflinePixelCountDataStore,
         uncaughtExceptionRepository: UncaughtExceptionRepository,
-        pixelSender: PixelSender
-    ): OfflinePixelSender = OfflinePixelSender(offlinePixelCountDataStore, uncaughtExceptionRepository, pixelSender)
+        pixelSender: PixelSender,
+        offlinePixels: DaggerSet<OfflinePixel>
+    ): OfflinePixelSender = OfflinePixelSender(offlinePixelCountDataStore, uncaughtExceptionRepository, pixelSender, offlinePixels)
 
     @Provides
     fun deviceInfo(context: Context): DeviceInfo = ContextDeviceInfo(context)
 
     @Provides
-    @Singleton
+    @IntoSet
+    @SingleInstanceIn(AppScope::class)
     fun atbInitializer(
+        @AppCoroutineScope appCoroutineScope: CoroutineScope,
         statisticsDataStore: StatisticsDataStore,
         statisticsUpdater: StatisticsUpdater,
-        listeners: Set<@JvmSuppressWildcards AtbInitializerListener>
-    ): AtbInitializer {
-        return AtbInitializer(statisticsDataStore, statisticsUpdater, listeners)
+        listeners: DaggerSet<AtbInitializerListener>
+    ): LifecycleObserver {
+        return AtbInitializer(appCoroutineScope, statisticsDataStore, statisticsUpdater, listeners)
     }
 
-    @Singleton
+    @SingleInstanceIn(AppScope::class)
     @Provides
     fun pixelDao(database: AppDatabase): PendingPixelDao {
         return database.pixelDao()

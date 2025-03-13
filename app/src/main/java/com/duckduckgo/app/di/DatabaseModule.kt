@@ -17,40 +17,33 @@
 package com.duckduckgo.app.di
 
 import android.content.Context
-import android.webkit.WebViewDatabase
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.duckduckgo.app.browser.addtohome.AddToHomeCapabilityDetector
-import com.duckduckgo.app.browser.httpauth.RealWebViewHttpAuthStore
-import com.duckduckgo.app.browser.httpauth.WebViewHttpAuthStore
-import com.duckduckgo.app.fire.DatabaseCleaner
-import com.duckduckgo.app.fire.DatabaseLocator
-import com.duckduckgo.app.global.DispatcherProvider
+import com.duckduckgo.app.browser.DefaultWebViewDatabaseProvider
+import com.duckduckgo.app.browser.WebViewDatabaseProvider
 import com.duckduckgo.app.global.db.AppDatabase
 import com.duckduckgo.app.global.db.MigrationsProvider
 import com.duckduckgo.app.settings.db.SettingsDataStore
+import com.duckduckgo.di.scopes.AppScope
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
-import javax.inject.Singleton
+import dagger.SingleInstanceIn
 
 @Module(includes = [DaoModule::class])
-class DatabaseModule {
+object DatabaseModule {
 
     @Provides
-    @Singleton
-    fun provideWebViewHttpAuthStore(
-        context: Context,
-        databaseCleaner: DatabaseCleaner,
-        @Named("authDbLocator") authDatabaseLocator: DatabaseLocator,
-        dispatcherProvider: DispatcherProvider
-    ): WebViewHttpAuthStore {
-        return RealWebViewHttpAuthStore(WebViewDatabase.getInstance(context), databaseCleaner, authDatabaseLocator, dispatcherProvider)
+    @SingleInstanceIn(AppScope::class)
+    fun provideWebViewDatabaseProvider(context: Context): WebViewDatabaseProvider {
+        return DefaultWebViewDatabaseProvider(context)
     }
 
     @Provides
-    @Singleton
-    fun provideDatabase(context: Context, migrationsProvider: MigrationsProvider): AppDatabase {
+    @SingleInstanceIn(AppScope::class)
+    fun provideAppDatabase(
+        context: Context,
+        migrationsProvider: MigrationsProvider
+    ): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, "app.db")
             .addMigrations(*migrationsProvider.ALL_MIGRATIONS.toTypedArray())
             .addCallback(migrationsProvider.BOOKMARKS_DB_ON_CREATE)
@@ -62,9 +55,8 @@ class DatabaseModule {
     @Provides
     fun provideDatabaseMigrations(
         context: Context,
-        settingsDataStore: SettingsDataStore,
-        addToHomeCapabilityDetector: AddToHomeCapabilityDetector
+        settingsDataStore: SettingsDataStore
     ): MigrationsProvider {
-        return MigrationsProvider(context, settingsDataStore, addToHomeCapabilityDetector)
+        return MigrationsProvider(context, settingsDataStore)
     }
 }

@@ -20,6 +20,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.duckduckgo.app.CoroutineTestRule
+import kotlinx.coroutines.test.runTest
 import com.duckduckgo.app.blockingObserve
 import com.duckduckgo.app.browser.logindetection.FireproofDialogsEventHandler.Event
 import com.duckduckgo.app.browser.logindetection.FireproofDialogsEventHandler.Event.FireproofWebSiteSuccess
@@ -30,13 +31,12 @@ import com.duckduckgo.app.global.events.db.UserEventEntity
 import com.duckduckgo.app.global.events.db.UserEventKey.*
 import com.duckduckgo.app.global.events.db.UserEventsStore
 import com.duckduckgo.app.pixels.AppPixelName
-import com.duckduckgo.app.runBlocking
 import com.duckduckgo.app.settings.db.SettingsDataStore
-import com.duckduckgo.app.statistics.VariantManager
+import com.duckduckgo.app.settings.db.SettingsSharedPreferences.LoginDetectorPrefsMapper.AutomaticFireproofSetting
 import com.duckduckgo.app.statistics.pixels.Pixel
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Assert.assertNull
@@ -58,14 +58,12 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     private val mockUserEventsStore: UserEventsStore = mock()
     private val mockPixel: Pixel = mock()
     private val mockAppSettingsPreferencesStore: SettingsDataStore = mock()
-    private val mockVariantManager: VariantManager = mock()
     private lateinit var db: AppDatabase
     private lateinit var fireproofWebsiteDao: FireproofWebsiteDao
     private lateinit var testee: FireproofDialogsEventHandler
 
     @Before
     fun before() {
-        whenever(mockVariantManager.getVariant()).thenReturn(VariantManager.DEFAULT_VARIANT)
         db = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getInstrumentation().targetContext, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
@@ -76,7 +74,6 @@ class BrowserTabFireproofDialogsEventHandlerTest {
             mockPixel,
             fireproofWebsiteRepository,
             mockAppSettingsPreferencesStore,
-            mockVariantManager,
             coroutineRule.testDispatcherProvider
         )
     }
@@ -87,7 +84,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenFireproofLoginShownBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenFireproofLoginShownBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onFireproofLoginDialogShown()
 
         verify(mockPixel).fire(
@@ -97,7 +94,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenFireproofLoginShownAfterUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenFireproofLoginShownAfterUserTriedFireButtonThenPixelSent() = runTest {
         givenUserTriedFireButton()
 
         testee.onFireproofLoginDialogShown()
@@ -109,7 +106,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToFireproofWebsiteBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToFireproofWebsiteBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onUserConfirmedFireproofDialog("twitter.com")
 
         verify(mockPixel).fire(
@@ -119,7 +116,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToFireproofWebsiteAfterUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToFireproofWebsiteAfterUserTriedFireButtonThenPixelSent() = runTest {
         givenUserTriedFireButton()
 
         testee.onUserConfirmedFireproofDialog("twitter.com")
@@ -131,7 +128,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToFireproofWebsiteThenEventEmitted() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToFireproofWebsiteThenEventEmitted() = runTest {
         testee.onUserConfirmedFireproofDialog("twitter.com")
 
         val event = testee.event.blockingObserve()
@@ -139,14 +136,14 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToFireproofWebsiteThenResetLoginDismissedEvents() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToFireproofWebsiteThenResetLoginDismissedEvents() = runTest {
         testee.onUserConfirmedFireproofDialog("twitter.com")
 
         verify(mockUserEventsStore).removeUserEvent(FIREPROOF_LOGIN_DIALOG_DISMISSED)
     }
 
     @Test
-    fun whenUserDismissesFireproofLoginDialogBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserDismissesFireproofLoginDialogBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onUserDismissedFireproofLoginDialog()
 
         verify(mockPixel).fire(
@@ -156,7 +153,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserDismissesFireproofLoginDialogAfterUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserDismissesFireproofLoginDialogAfterUserTriedFireButtonThenPixelSent() = runTest {
         givenUserTriedFireButton()
         testee.onUserDismissedFireproofLoginDialog()
 
@@ -167,14 +164,14 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserDismissedFireproofLoginDialogThenRegisterEvent() = coroutineRule.runBlocking {
+    fun whenUserDismissedFireproofLoginDialogThenRegisterEvent() = runTest {
         testee.onUserDismissedFireproofLoginDialog()
 
         verify(mockUserEventsStore).registerUserEvent(FIREPROOF_LOGIN_DIALOG_DISMISSED)
     }
 
     @Test
-    fun whenUserDismissedFireproofLoginDialogTwiceInRowThenAskToDisableLoginDetection() = coroutineRule.runBlocking {
+    fun whenUserDismissedFireproofLoginDialogTwiceInRowThenAskToDisableLoginDetection() = runTest {
         givenUserPreviouslyDismissedDialog()
 
         testee.onUserDismissedFireproofLoginDialog()
@@ -184,7 +181,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserEnabledFireproofLoginDetectionThenNeverAskToDisableIt() = coroutineRule.runBlocking {
+    fun whenUserEnabledFireproofLoginDetectionThenNeverAskToDisableIt() = runTest {
         givenUserEnabledFireproofLoginDetection()
         givenUserPreviouslyDismissedDialog()
 
@@ -195,7 +192,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserDidNotDisableLoginDetectionThenNeverAskToDisableItAgain() = coroutineRule.runBlocking {
+    fun whenUserDidNotDisableLoginDetectionThenNeverAskToDisableItAgain() = runTest {
         givenUserDidNotDisableLoginDetection()
         givenUserPreviouslyDismissedDialog()
 
@@ -206,7 +203,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenDisableLoginDetectionDialogShownBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenDisableLoginDetectionDialogShownBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onDisableLoginDetectionDialogShown()
 
         verify(mockPixel).fire(
@@ -216,7 +213,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToDisableLoginDetectionBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToDisableLoginDetectionBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onUserConfirmedDisableLoginDetectionDialog()
 
         verify(mockPixel).fire(
@@ -226,7 +223,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToDisableLoginDetectionAfterUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToDisableLoginDetectionAfterUserTriedFireButtonThenPixelSent() = runTest {
         givenUserTriedFireButton()
 
         testee.onUserConfirmedDisableLoginDetectionDialog()
@@ -238,14 +235,14 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserConfirmsToDisableLoginDetectionThenLoginDetectionDisabled() = coroutineRule.runBlocking {
+    fun whenUserConfirmsToDisableLoginDetectionThenLoginDetectionDisabled() = runTest {
         testee.onUserConfirmedDisableLoginDetectionDialog()
 
-        verify(mockAppSettingsPreferencesStore).appLoginDetection = false
+        verify(mockAppSettingsPreferencesStore).automaticFireproofSetting = AutomaticFireproofSetting.NEVER
     }
 
     @Test
-    fun whenUserDismissesDisableFireproofLoginDialogBeforeUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserDismissesDisableFireproofLoginDialogBeforeUserTriedFireButtonThenPixelSent() = runTest {
         testee.onUserDismissedDisableLoginDetectionDialog()
 
         verify(mockPixel).fire(
@@ -255,7 +252,7 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserDismissesDisableFireproofLoginDialogAfterUserTriedFireButtonThenPixelSent() = coroutineRule.runBlocking {
+    fun whenUserDismissesDisableFireproofLoginDialogAfterUserTriedFireButtonThenPixelSent() = runTest {
         givenUserTriedFireButton()
 
         testee.onUserDismissedDisableLoginDetectionDialog()
@@ -267,12 +264,63 @@ class BrowserTabFireproofDialogsEventHandlerTest {
     }
 
     @Test
-    fun whenUserDismissesDisableFireproofLoginDialogThenRegisterEvent() = coroutineRule.runBlocking {
+    fun whenUserDismissesDisableFireproofLoginDialogThenRegisterEvent() = runTest {
         givenUserTriedFireButton()
 
         testee.onUserDismissedDisableLoginDetectionDialog()
 
         verify(mockUserEventsStore).registerUserEvent(FIREPROOF_DISABLE_DIALOG_DISMISSED)
+    }
+
+    @Test
+    fun whenUserEnabledAutomaticFireproofLoginDialogThenPixelSent() = runTest {
+        testee.onUserEnabledAutomaticFireproofing("twitter.com")
+
+        verify(mockPixel).fire(
+            pixel = AppPixelName.FIREPROOF_AUTOMATIC_DIALOG_ALWAYS,
+            parameters = mapOf(Pixel.PixelParameter.FIRE_EXECUTED to "false")
+        )
+    }
+
+    @Test
+    fun whenUserEnabledAutomaticFireproofLoginDialogThenSetAutomaticFireproofSettingToAlways() = runTest {
+        testee.onUserEnabledAutomaticFireproofing("twitter.com")
+
+        verify(mockAppSettingsPreferencesStore).automaticFireproofSetting = AutomaticFireproofSetting.ALWAYS
+    }
+
+    @Test
+    fun whenUserFireproofSiteInAutomaticFireproofLoginDialogThenPixelSent() = runTest {
+        testee.onUserRequestedAskEveryTime("twitter.com")
+
+        verify(mockPixel).fire(
+            pixel = AppPixelName.FIREPROOF_AUTOMATIC_DIALOG_FIREPROOF_SITE,
+            parameters = mapOf(Pixel.PixelParameter.FIRE_EXECUTED to "false")
+        )
+    }
+
+    @Test
+    fun whenUserFireproofSiteInAutomaticFireproofLoginDialogThenSetAutomaticFireproofSettingToAskEveryTime() = runTest {
+        testee.onUserRequestedAskEveryTime("twitter.com")
+
+        verify(mockAppSettingsPreferencesStore).automaticFireproofSetting = AutomaticFireproofSetting.ASK_EVERY_TIME
+    }
+
+    @Test
+    fun whenUserDismissesAutomaticFireproofLoginDialogThenPixelSent() = runTest {
+        testee.onUserDismissedAutomaticFireproofLoginDialog()
+
+        verify(mockPixel).fire(
+            pixel = AppPixelName.FIREPROOF_AUTOMATIC_DIALOG_NOT_NOW,
+            parameters = mapOf(Pixel.PixelParameter.FIRE_EXECUTED to "false")
+        )
+    }
+
+    @Test
+    fun whenUserDismissesAutomaticFireproofLoginDialogThenSetAutomaticFireproofSettingToAskEveryTime() = runTest {
+        testee.onUserDismissedAutomaticFireproofLoginDialog()
+
+        verify(mockAppSettingsPreferencesStore).automaticFireproofSetting = AutomaticFireproofSetting.ASK_EVERY_TIME
     }
 
     private suspend fun givenUserDidNotDisableLoginDetection() {

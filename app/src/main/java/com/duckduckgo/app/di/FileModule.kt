@@ -22,11 +22,10 @@ import dagger.Module
 import dagger.Provides
 
 @Module
-class FileModule {
+object FileModule {
 
     @Provides
     fun providesFileDeleter(): FileDeleter {
         return AndroidFileDeleter()
     }
-
 }

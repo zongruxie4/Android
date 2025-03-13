@@ -36,7 +36,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/review"
             android:layout_width="match_parent"
-            android:layout_height="169dp"
+            android:layout_height="wrap_content"
             android:background="@android:color/white"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
@@ -47,7 +47,6 @@
                 android:id="@+id/httpsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="onEncryptionClicked"
                 app:layout_constraintBottom_toTopOf="@id/networksContainer">
 
                 <ImageView
@@ -69,14 +68,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:onClick="onNetworksClicked"
                 app:layout_constraintTop_toBottomOf="@id/httpsContainer">
 
-                <ImageView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/networksIcon"
                     style="@style/DashboardEntryIcon"
                     android:importantForAccessibility="no"
-                    android:src="@drawable/networks_icon_good" />
+                    app:srcCompat="@drawable/networks_icon_good" />
 
                 <TextView
                     android:id="@+id/networksText"
@@ -86,12 +84,31 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/domainsLoadedContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@id/networksContainer">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/domainsLoadedIcon"
+                    style="@style/DashboardEntryIcon"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_other_domains_info" />
+
+                <TextView
+                    android:id="@+id/domainsLoadedText"
+                    style="@style/DashboardEntryText"
+                    tools:text="2 Other Domains Loaded" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/practicesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:onClick="onPracticesClicked"
-                app:layout_constraintTop_toBottomOf="@id/networksContainer">
+                app:layout_constraintTop_toBottomOf="@id/domainsLoadedContainer">
 
                 <ImageView
                     android:id="@+id/practicesIcon"
@@ -131,10 +148,11 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.appcompat.widget.SwitchCompat
+                tools:ignore="AndroidSwitchInXml"
                 android:id="@+id/privacyToggle"
                 android:layout_width="wrap_content"
                 android:layout_height="26dp"
-                android:theme="@style/SwitchTheme"
+                android:theme="@style/Widget.DuckDuckGo.Switch.White"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -166,12 +184,11 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <View
-                android:layout_width="1dp"
+            <com.duckduckgo.mobile.android.ui.view.divider.VerticalDivider
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:background="@color/grayish" />
+                android:layout_marginBottom="4dp" />
 
             <TextView
                 android:id="@+id/brokenSiteButton"
@@ -196,8 +213,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/trackerNetworkLeaderboard"
             android:layout_width="match_parent"
-            android:layout_height="108dp"
-            android:onClick="onLeaderboardClick"
+            android:layout_height="wrap_content"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             app:layout_constraintTop_toBottomOf="@id/buttonContainer">

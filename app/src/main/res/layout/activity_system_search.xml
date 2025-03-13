@@ -25,7 +25,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:theme="@style/AppTheme.Dark.AppBarOverlay">
+        android:theme="@style/Widget.DuckDuckGo.ToolbarTheme">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/toolbarContainer"
@@ -45,7 +45,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_scrollFlags="scroll|enterAlways"
-                app:popupTheme="@style/AppTheme.Dark.PopupOverlay">
+                app:popupTheme="@style/Widget.DuckDuckGo.PopUpOverflowMenu">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/omniBarContainer"
@@ -86,7 +86,7 @@
                         android:textSize="16sp"
                         android:textStyle="normal"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/clearTextButton"
+                        app:layout_constraintEnd_toStartOf="@id/voiceSearchButton"
                         app:layout_constraintStart_toEndOf="@id/logo"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:text="https://duckduckgo.com/?q=areallylongexampleexample">
@@ -94,6 +94,17 @@
                         <requestFocus />
 
                     </androidx.appcompat.widget.AppCompatEditText>
+
+                    <com.duckduckgo.mobile.android.ui.view.button.IconButton
+                        android:id="@+id/voiceSearchButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/voiceSearchIconContentDescription"
+                        android:padding="@dimen/keyline_2"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/clearTextButton"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@drawable/ic_microphone"/>
 
                     <ImageView
                         android:id="@+id/clearTextButton"
@@ -110,13 +121,13 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-
             </androidx.appcompat.widget.Toolbar>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     </com.google.android.material.appbar.AppBarLayout>
+
+    <include layout="@layout/include_quick_access_items"/>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/results"
@@ -157,6 +168,7 @@
                 android:text="@string/systemSearchDeviceAppLabel"
                 android:textColor="?normalTextColor"
                 android:textSize="13sp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/autocompleteSuggestions"
@@ -172,7 +184,9 @@
                 tools:itemCount="4"
                 tools:listitem="@layout/item_device_app_suggestion" />
 
-            <include layout="@layout/include_system_search_onboarding" />
+            <include
+                android:id="@+id/includeSystemSearchOnboarding"
+                layout="@layout/include_system_search_onboarding" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

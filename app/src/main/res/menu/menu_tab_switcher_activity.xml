@@ -27,7 +27,7 @@
 
     <item
         android:id="@+id/newTab"
-        android:icon="@drawable/ic_add_24dp"
+        android:icon="@drawable/ic_add"
         android:title="@string/newTabMenuItem"
         app:showAsAction="always" />
 
@@ -39,6 +39,11 @@
     <item
         android:id="@+id/closeAllTabs"
         android:title="@string/closeAllTabsMenuItem"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/downloads"
+        android:title="@string/downloadsMenuItemTitle"
         app:showAsAction="never" />
 
     <item

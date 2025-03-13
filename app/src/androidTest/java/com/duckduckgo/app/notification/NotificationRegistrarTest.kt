@@ -20,36 +20,51 @@ import android.app.NotificationManager
 import android.content.Context.NOTIFICATION_SERVICE
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.platform.app.InstrumentationRegistry
+import com.duckduckgo.app.global.plugins.PluginPoint
+import com.duckduckgo.app.notification.model.NotificationPlugin
+import com.duckduckgo.app.notification.model.SchedulableNotificationPlugin
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.settings.db.SettingsDataStore
 import com.duckduckgo.app.statistics.VariantManager
 import com.duckduckgo.app.statistics.VariantManager.Companion.DEFAULT_VARIANT
 import com.duckduckgo.app.statistics.pixels.Pixel
-import com.nhaarman.mockitokotlin2.*
+import com.duckduckgo.appbuildconfig.api.AppBuildConfig
+import org.mockito.kotlin.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Test
 
+@ExperimentalCoroutinesApi
 class NotificationRegistrarTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val notifcationManagerCompat = NotificationManagerCompat.from(context)
+    private val notificationManagerCompat = NotificationManagerCompat.from(context)
     private val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
     private val mockSettingsDataStore: SettingsDataStore = mock()
     private val mockVariantManager: VariantManager = mock()
     private val mockPixel: Pixel = mock()
+    private val mockSchedulableNotificationPluginPoint: PluginPoint<SchedulableNotificationPlugin> = mock()
+    private val mockNotificationPluginPoint: PluginPoint<NotificationPlugin> = mock()
+    private val appBuildConfig: AppBuildConfig = mock()
 
     private lateinit var testee: NotificationRegistrar
 
     @Before
     fun before() {
         whenever(mockVariantManager.getVariant(any())).thenReturn(DEFAULT_VARIANT)
+        whenever(appBuildConfig.sdkInt).thenReturn(30)
         testee = NotificationRegistrar(
+            TestScope(),
             context,
             notificationManager,
-            notifcationManagerCompat,
+            notificationManagerCompat,
             mockSettingsDataStore,
-            mockPixel
+            mockPixel,
+            mockSchedulableNotificationPluginPoint,
+            mockNotificationPluginPoint,
+            appBuildConfig,
         )
     }
 

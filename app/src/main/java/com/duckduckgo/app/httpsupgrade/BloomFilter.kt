@@ -16,37 +16,49 @@
 
 package com.duckduckgo.app.httpsupgrade
 
-class BloomFilter {
+import android.content.Context
+import com.duckduckgo.library.loader.LibraryLoader
+
+class BloomFilter constructor(context: Context, private val config: Config) {
 
     private val nativePointer: Long
-
     init {
-        System.loadLibrary("https-bloom-lib")
+        LibraryLoader.loadLibrary(context, "https-bloom-lib")
+
+        nativePointer = when (config) {
+            is Config.PathConfig -> createBloomFilterFromFile(config.path, config.bits, config.maxItems)
+            is Config.ProbabilityConfig -> createBloomFilter(config.maxItems, config.targetProbability)
+        }
     }
 
-    constructor(maxItems: Int, targetProbability: Double) {
-        nativePointer = createBloomFilter(maxItems, targetProbability)
-    }
+    private external fun createBloomFilter(
+        maxItems: Int,
+        targetProbability: Double
+    ): Long
 
-    constructor(path: String, bits: Int, maxItems: Int) {
-        nativePointer = createBloomFilterFromFile(path, bits, maxItems)
-    }
-
-    private external fun createBloomFilter(maxItems: Int, targetProbability: Double): Long
-
-    private external fun createBloomFilterFromFile(path: String, bits: Int, maxItems: Int): Long
+    private external fun createBloomFilterFromFile(
+        path: String,
+        bits: Int,
+        maxItems: Int
+    ): Long
 
     fun add(element: String) {
         add(nativePointer, element)
     }
 
-    private external fun add(nativePointer: Long, element: String)
+    private external fun add(
+        nativePointer: Long,
+        element: String
+    )
 
     fun contains(element: String): Boolean {
         return contains(nativePointer, element)
     }
 
-    private external fun contains(nativePointer: Long, element: String): Boolean
+    private external fun contains(
+        nativePointer: Long,
+        element: String
+    ): Boolean
 
     @Suppress("unused", "protectedInFinal")
     protected fun finalize() {
@@ -54,4 +66,9 @@ class BloomFilter {
     }
 
     private external fun releaseBloomFilter(nativePointer: Long)
+
+    sealed class Config(open val maxItems: Int) {
+        data class PathConfig(override val maxItems: Int, val path: String, val bits: Int) : Config(maxItems)
+        data class ProbabilityConfig(override val maxItems: Int, val targetProbability: Double) : Config(maxItems)
+    }
 }

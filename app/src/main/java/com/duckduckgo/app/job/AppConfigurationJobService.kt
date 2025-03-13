@@ -19,11 +19,17 @@ package com.duckduckgo.app.job
 import android.app.job.JobParameters
 import android.app.job.JobScheduler
 import android.app.job.JobService
+import com.duckduckgo.anvil.annotations.InjectWith
+import com.duckduckgo.di.scopes.ActivityScope
 import dagger.android.AndroidInjection
 import timber.log.Timber
 import javax.inject.Inject
 
-@Deprecated("This is the old sync service which uses JobScheduler. A new version, `AppConfigurationWorker` uses WorkManager and should be used going forwards.")
+@Deprecated(
+    "This is the old sync service which uses JobScheduler. " +
+        "A new version, `AppConfigurationWorker` uses WorkManager and should be used going forwards."
+)
+@InjectWith(ActivityScope::class)
 class AppConfigurationJobService : JobService() {
 
     @Inject

@@ -23,33 +23,43 @@ import androidx.annotation.UiThread
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.browser.logindetection.LoginDetectionJavascriptInterface.Companion.JAVASCRIPT_INTERFACE_NAME
 import com.duckduckgo.app.global.getValidUrl
-import com.duckduckgo.app.global.useourapp.UseOurAppDetector
 import com.duckduckgo.app.settings.db.SettingsDataStore
+import com.duckduckgo.app.settings.db.SettingsSharedPreferences.LoginDetectorPrefsMapper.AutomaticFireproofSetting
 import timber.log.Timber
 import javax.inject.Inject
 
 interface DOMLoginDetector {
-    fun addLoginDetection(webView: WebView, onLoginDetected: () -> Unit)
+    fun addLoginDetection(
+        webView: WebView,
+        onLoginDetected: () -> Unit
+    )
+
     fun onEvent(event: WebNavigationEvent)
 }
 
 sealed class WebNavigationEvent {
     data class OnPageStarted(val webView: WebView) : WebNavigationEvent()
-    data class ShouldInterceptRequest(val webView: WebView, val request: WebResourceRequest) : WebNavigationEvent()
+    data class ShouldInterceptRequest(
+        val webView: WebView,
+        val request: WebResourceRequest
+    ) : WebNavigationEvent()
 }
 
-class JsLoginDetector @Inject constructor(private val settingsDataStore: SettingsDataStore, private val useOurAppDetector: UseOurAppDetector) :
+class JsLoginDetector @Inject constructor(private val settingsDataStore: SettingsDataStore) :
     DOMLoginDetector {
     private val javaScriptDetector = JavaScriptDetector()
     private val loginPathRegex = Regex("login|sign-in|signin|session")
 
-    override fun addLoginDetection(webView: WebView, onLoginDetected: () -> Unit) {
+    override fun addLoginDetection(
+        webView: WebView,
+        onLoginDetected: () -> Unit
+    ) {
         webView.addJavascriptInterface(LoginDetectionJavascriptInterface { onLoginDetected() }, JAVASCRIPT_INTERFACE_NAME)
     }
 
     @UiThread
     override fun onEvent(event: WebNavigationEvent) {
-        if (settingsDataStore.appLoginDetection || useOurAppDetector.allowLoginDetection(event)) {
+        if (settingsDataStore.automaticFireproofSetting != AutomaticFireproofSetting.NEVER) {
             when (event) {
                 is WebNavigationEvent.OnPageStarted -> injectLoginFormDetectionJS(event.webView)
                 is WebNavigationEvent.ShouldInterceptRequest -> {

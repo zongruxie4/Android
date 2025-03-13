@@ -18,13 +18,13 @@ package com.duckduckgo.app.privacy.ui
 
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.*
+import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.app.brokensite.BrokenSiteData
-import com.duckduckgo.app.global.DefaultDispatcherProvider
+import com.duckduckgo.app.di.AppCoroutineScope
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.SingleLiveEvent
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.global.model.domain
-import com.duckduckgo.app.global.plugins.view_model.ViewModelFactoryPlugin
 import com.duckduckgo.app.pixels.AppPixelName.*
 import com.duckduckgo.app.privacy.db.NetworkLeaderboardDao
 import com.duckduckgo.app.privacy.db.NetworkLeaderboardEntry
@@ -35,20 +35,23 @@ import com.duckduckgo.app.privacy.model.PrivacyPractices
 import com.duckduckgo.app.privacy.model.PrivacyPractices.Summary.UNKNOWN
 import com.duckduckgo.app.privacy.ui.PrivacyDashboardViewModel.Command.LaunchManageWhitelist
 import com.duckduckgo.app.privacy.ui.PrivacyDashboardViewModel.Command.LaunchReportBrokenSite
+import com.duckduckgo.app.privacy.ui.PrivacyDashboardViewModel.Command.LaunchTrackerNetworksActivity
 import com.duckduckgo.app.statistics.pixels.Pixel
-import com.duckduckgo.di.scopes.AppObjectGraph
-import com.squareup.anvil.annotations.ContributesMultibinding
-import kotlinx.coroutines.GlobalScope
+import com.duckduckgo.di.scopes.ActivityScope
+import com.duckduckgo.privacy.config.api.ContentBlocking
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Provider
 
-class PrivacyDashboardViewModel(
+@ContributesViewModel(ActivityScope::class)
+class PrivacyDashboardViewModel @Inject constructor(
     private val userWhitelistDao: UserWhitelistDao,
+    private val contentBlocking: ContentBlocking,
     networkLeaderboardDao: NetworkLeaderboardDao,
     private val pixel: Pixel,
-    private val dispatchers: DispatcherProvider = DefaultDispatcherProvider()
+    @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     data class ViewState(
@@ -57,18 +60,22 @@ class PrivacyDashboardViewModel(
         val afterGrade: PrivacyGrade,
         val httpsStatus: HttpsStatus,
         val trackerCount: Int,
+        val otherDomainsLoadedCount: Int = 0,
+        val specialDomainsLoadedCount: Int = 0,
         val allTrackersBlocked: Boolean,
         val practices: PrivacyPractices.Summary,
         val toggleEnabled: Boolean?,
         val shouldShowTrackerNetworkLeaderboard: Boolean,
         val sitesVisited: Int,
         val trackerNetworkEntries: List<NetworkLeaderboardEntry>,
-        val shouldReloadPage: Boolean
+        val shouldReloadPage: Boolean,
+        val isSiteInTempAllowedList: Boolean
     )
 
     sealed class Command {
         object LaunchManageWhitelist : Command()
         class LaunchReportBrokenSite(val data: BrokenSiteData) : Command()
+        class LaunchTrackerNetworksActivity(val trackersBlockedCount: Int, val specialDomainsLoadedCount: Int, val toggleEnabled: Boolean) : Command()
     }
 
     val viewState: MutableLiveData<ViewState> = MutableLiveData()
@@ -112,7 +119,17 @@ class PrivacyDashboardViewModel(
         )
     }
 
-    private fun showTrackerNetworkLeaderboard(siteVisitedCount: Int, networkCount: Int): Boolean {
+    fun onNetworksContainerClicked() {
+        pixel.fire(PRIVACY_DASHBOARD_NETWORKS)
+        viewState.value?.let {
+            command.value = LaunchTrackerNetworksActivity(it.trackerCount, it.specialDomainsLoadedCount, it.toggleEnabled ?: false)
+        }
+    }
+
+    private fun showTrackerNetworkLeaderboard(
+        siteVisitedCount: Int,
+        networkCount: Int
+    ): Boolean {
         return siteVisitedCount > LEADERBOARD_MIN_DOMAINS_EXCLUSIVE && networkCount >= LEADERBOARD_MIN_NETWORKS
     }
 
@@ -132,13 +149,16 @@ class PrivacyDashboardViewModel(
             afterGrade = PrivacyGrade.UNKNOWN,
             httpsStatus = HttpsStatus.SECURE,
             trackerCount = 0,
+            specialDomainsLoadedCount = 0,
+            otherDomainsLoadedCount = 0,
             allTrackersBlocked = true,
             toggleEnabled = null,
             practices = UNKNOWN,
             shouldShowTrackerNetworkLeaderboard = false,
             sitesVisited = 0,
             trackerNetworkEntries = emptyList(),
-            shouldReloadPage = false
+            shouldReloadPage = false,
+            isSiteInTempAllowedList = false
         )
     }
 
@@ -146,6 +166,9 @@ class PrivacyDashboardViewModel(
         val grades = site.calculateGrades()
         val domain = site.domain ?: ""
         val toggleEnabled = withContext(dispatchers.io()) { !userWhitelistDao.contains(domain) }
+        val isInTemporaryAllowlist = withContext(dispatchers.io()) {
+            contentBlocking.isAnException(domain)
+        }
 
         withContext(dispatchers.main()) {
             viewState.value = viewState.value?.copy(
@@ -154,9 +177,12 @@ class PrivacyDashboardViewModel(
                 afterGrade = grades.improvedGrade,
                 httpsStatus = site.https,
                 trackerCount = site.trackerCount,
+                otherDomainsLoadedCount = site.otherDomainsLoadedCount,
+                specialDomainsLoadedCount = site.specialDomainsLoadedCount,
                 allTrackersBlocked = site.allTrackersBlocked,
                 toggleEnabled = toggleEnabled,
-                practices = site.privacyPractices.summary
+                practices = site.privacyPractices.summary,
+                isSiteInTempAllowedList = isInTemporaryAllowlist
             )
         }
     }
@@ -176,7 +202,7 @@ class PrivacyDashboardViewModel(
         )
 
         val domain = site?.domain ?: return
-        GlobalScope.launch(dispatchers.io()) {
+        appCoroutineScope.launch(dispatchers.io()) {
             if (enabled) {
                 userWhitelistDao.delete(domain)
                 pixel.fire(PRIVACY_DASHBOARD_WHITELIST_REMOVE)
@@ -200,21 +226,5 @@ class PrivacyDashboardViewModel(
     private companion object {
         private const val LEADERBOARD_MIN_NETWORKS = 3
         private const val LEADERBOARD_MIN_DOMAINS_EXCLUSIVE = 30
-    }
-}
-
-@ContributesMultibinding(AppObjectGraph::class)
-class PrivacyDashboardViewModelFactory @Inject constructor(
-    private val userWhitelistDao: Provider<UserWhitelistDao>,
-    private val networkLeaderboardDao: Provider<NetworkLeaderboardDao>,
-    private val pixel: Provider<Pixel>
-) : ViewModelFactoryPlugin {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T? {
-        with(modelClass) {
-            return when {
-                isAssignableFrom(PrivacyDashboardViewModel::class.java) -> PrivacyDashboardViewModel(userWhitelistDao.get(), networkLeaderboardDao.get(), pixel.get()) as T
-                else -> null
-            }
-        }
     }
 }

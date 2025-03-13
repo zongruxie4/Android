@@ -43,22 +43,22 @@ class TrackingParametersPluginTest {
     @Test
     fun whenFeatureNameDoesNotMatchTrackingParametersThenReturnFalse() {
         PrivacyFeatureName.values().filter { it != FEATURE_NAME }.forEach {
-            Assert.assertFalse(testee.store(it, EMPTY_JSON_STRING))
+            Assert.assertFalse(testee.store(it.value, EMPTY_JSON_STRING))
         }
     }
 
     @Test
     fun whenFeatureNameMatchesTrackingParametersThenReturnTrue() {
-        assertTrue(testee.store(FEATURE_NAME, EMPTY_JSON_STRING))
+        assertTrue(testee.store(FEATURE_NAME_VALUE, EMPTY_JSON_STRING))
     }
 
     @Test
     fun whenFeatureNameMatchesTrackingParametersAndIsEnabledThenStoreFeatureEnabled() {
         val jsonString = FileUtilities.loadText(TrackingParametersPluginTest::class.java.classLoader!!, "json/tracking_parameters.json")
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
-        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME, true))
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, true, null))
     }
 
     @Test
@@ -68,16 +68,28 @@ class TrackingParametersPluginTest {
             "json/tracking_parameters_disabled.json"
         )
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
-        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME, false))
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, false, null))
+    }
+
+    @Test
+    fun whenFeatureNameMatchesTrackingParametersAndHasMinSupportedVersionThenStoreMinSupportedVersion() {
+        val jsonString = FileUtilities.loadText(
+            TrackingParametersPluginTest::class.java.classLoader!!,
+            "json/tracking_parameters_min_supported_version.json"
+        )
+
+        testee.store(FEATURE_NAME_VALUE, jsonString)
+
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, true, 1234))
     }
 
     @Test
     fun whenFeatureNameMatchesTrackingParametersThenUpdateAllExistingValues() {
         val jsonString = FileUtilities.loadText(TrackingParametersPluginTest::class.java.classLoader!!, "json/tracking_parameters.json")
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
         val exceptionArgumentCaptor = argumentCaptor<List<TrackingParameterExceptionEntity>>()
         val trackingParameterArgumentCaptor = argumentCaptor<List<TrackingParameterEntity>>()
@@ -101,6 +113,7 @@ class TrackingParametersPluginTest {
 
     companion object {
         private val FEATURE_NAME = PrivacyFeatureName.TrackingParametersFeatureName
+        private val FEATURE_NAME_VALUE = FEATURE_NAME.value
         private const val EMPTY_JSON_STRING = "{}"
     }
 }

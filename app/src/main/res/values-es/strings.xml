@@ -14,7 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="appName" translatable="false">DuckDuckGo</string>
@@ -107,43 +106,20 @@
     <string name="closeTab">Cerrar pestaña</string>
     <string name="tabClosed">Pestaña cerrada</string>
     <string name="tabClosedUndo">Deshacer</string>
+    <string name="downloadsMenuItemTitle">Descargas</string>
 
     <!-- Privacy Dashboard Activities -->
     <string name="privacyProtectionToggle">Protección de privacidad del sitio web</string>
     <string name="privacyProtectionEnabled">PROTECCIÓN DEL SITIO WEB HABILITADA</string>
     <string name="privacyProtectionDisabled">PROTECCIÓN DEL SITIO WEB DESHABILITADA</string>
     <string name="privacyDashboardActivityTitle">Panel de privacidad</string>
-    <string name="privacyProtectionUpgraded" tools:ignore="TypographyQuotes">MEJORADA DE &lt;img src=\"%1$d\" /&gt; A &lt;img src=\"%2$d\" /&gt;</string>
+    <string name="privacyProtectionUpgraded" tools:ignore="TypographyQuotes">MEJORA DE &lt;img src=\"%1$d\" /&gt; CON &lt;img src=\"%2$d\" /&gt;</string>
     <string name="privacyGradeContentDescription">Nivel de privacidad</string>
     <string name="privacyProtectionTemporarilyDisabled">Hemos desactivado temporalmente la protección de privacidad, ya que parece que está causando errores en el sitio.</string>
 
     <string name="httpsGood">Conexión cifrada</string>
     <string name="httpsMixed">Conexión con cifrado mixto</string>
     <string name="httpsBad">Conexión no cifrada</string>
-
-    <string name="networksActivityTitle">Redes de rastreadores</string>
-    <string name="networksContentDescription">Redes de rastreadores</string>
-    <string name="networksOverview">Las redes de rastreadores agregan tu historial web para crear un perfil de datos sobre ti. Las principales redes de rastreadores suponen una mayor amenaza, ya que abarcan una mayor parte de Internet para rastrearte e identificarte.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">%1$s rastreador encontrado</item>
-        <item quantity="other">%1$s rastreadores encontrados</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">%1$s rastreador bloqueado</item>
-        <item quantity="other">%1$s rastreadores bloqueados</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">%1$s red de rastreadores principal encontrada</item>
-        <item quantity="other">%1$s redes de rastreadores principales encontradas</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">%1$s red de rastreadores principal bloqueada</item>
-        <item quantity="other">%1$s redes de rastreadores principales bloqueadas</item>
-    </plurals>
 
     <string name="scorecardActivityTitle">Nivel de privacidad</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">El sitio web es una de las principales redes de rastreadores</string>
@@ -163,6 +139,45 @@
     <string name="networkTrackerSummaryHeader">PRINCIPALES CULPABLES DE LAS REDES DE RASTREADORES</string>
     <string name="networkTrackerSummaryNotReady">Continuamos recopilando datos que demuestran cuántos rastreadores hemos bloqueado.</string>
 
+    <string name="trackersActivityTitle">Solicitudes de rastreo bloqueadas</string>
+    <string name="trackersContentDescription">Solicitudes de rastreo bloqueadas</string>
+    <string name="trackersOverview">Se ha bloqueado la carga de las siguientes solicitudes de dominios de terceros porque se han identificado como solicitudes de seguimiento. Si se cargan las solicitudes de una empresa, se les permite elaborar un perfil tuyo.</string>
+    <string name="trackersOverviewProtectionsOff">No se ha bloqueado la carga de solicitudes de rastreo porque las protecciones están desactivadas para este sitio. Si se cargan las solicitudes de una empresa, se les permite elaborar un perfil tuyo.</string>
+
+    <string name="domainsLoadedActivityTitle">Solicitudes de terceros cargadas</string>
+    <string name="domainsLoadedContentDescription">Solicitudes de terceros cargadas</string>
+    <string name="domainsLoadedOverview">Se han cargado las siguientes solicitudes de dominios de terceros.  Si se cargan las solicitudes de una empresa, esto puede permitirles elaborar un perfil tuyo, aunque siga aplicándose el resto de nuestras protecciones de seguimiento en la web.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">No se ha bloqueado la carga de solicitudes de terceros porque las protecciones están desactivadas para este sitio. Si se cargan las solicitudes de una empresa, se les permite elaborar un perfil tuyo.</string>
+    <string name="domainsLoadedOverviewEmpty">No hemos detectado solicitudes de dominios de terceros.</string>
+    <string name="domainsLoadedHeadingText">No se han cargado dominios de terceros</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">Acerca de nuestras protecciones de rastreo en la web</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">Se han cargado las solicitudes de los siguientes dominios.</string>
+
+    <string name="adLoadedSectionDescription">Las siguientes solicitudes de dominio se han cargado porque recientemente se ha hecho clic en un anuncio de %1$s en DuckDuckGo. Estas solicitudes ayudan a evaluar la efectividad de los anuncios. Todos los anuncios en DuckDuckGo son del tipo que no permite perfilado.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">Cómo afectan nuestros anuncios de búsqueda a nuestras protecciones</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">También se han cargado las siguientes solicitudes de dominios.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">Se han cargado las siguientes solicitudes de rastreo de dominios.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">No hemos detectado solicitudes de dominios de terceros.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">Se han cargado las siguientes solicitudes de dominio para evitar la interrupción del sitio.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">Las solicitudes del siguiente dominio se han cargado porque están asociadas a %1$s.</string>
+
+    <string name="trackersBlockedText">Solicitudes cuya carga se ha bloqueado</string>
+    <string name="trackersNotBlockedText">No se han bloqueado solicitudes de rastreo</string>
+    <string name="trackersNoFoundText">No se han encontrado solicitudes de rastreo</string>
+    <string name="trackersFoundText">Solicitudes de rastreo encontradas</string>
+
+    <string name="domainsLoadedText">Solicitudes de terceros cargadas</string>
+    <string name="domainsNotLoadedText">No se han cargado solicitudes de terceros</string>
+
+    <string name="majorNetworksNoFound">No se han encontrado redes de rastreadores principales</string>
+    <string name="majorNetworksFound">Principales redes de rastreadores encontradas</string>
+
     <!-- Fire -->
     <string name="fireMenu">Borrar datos</string>
     <string name="fireClearAll">Borrar todos los datos y pestañas</string>
@@ -172,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Ajustes</string>
     <string name="settingsMenuItemTitle">Ajustes</string>
-    <string name="settingsHeadingGeneral">General</string>
-    <string name="settingsHeadingOther">Otros</string>
     <string name="settingsHeadingPrivacy">Privacidad</string>
     <string name="settingsAboutDuckduckgo">Acerca de DuckDuckGo</string>
     <string name="settingsVersion">Versión</string>
@@ -191,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Preguntar cada vez</string>
     <string name="settingsAppLinksAlways">Siempre</string>
     <string name="settingsAppLinksNever">Nunca</string>
+    <string name="settingsHeadingAppearance">Apariencia</string>
+    <string name="settingsHeadingCustomize">Personalizar</string>
+    <string name="settingsHeadingAbout">Sobre</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Guardar</string>
@@ -265,6 +281,7 @@
     <string name="delete">Eliminar</string>
     <string name="edit">Editar</string>
     <string name="remove">Eliminar</string>
+    <string name="removeAll">Eliminar todo</string>
 
     <!-- Widget -->
     <string name="searchWidgetTextHint">Buscar en DuckDuckGo</string>
@@ -285,16 +302,16 @@
     <string name="searchWidgetLabel">Buscar</string>
 
     <!-- Home Screen Shortcuts -->
-    <string name="addToHome">Añadir a la pantalla de inicio</string>
+    <string name="addToHome">Añadir a la Pantalla de Inicio</string>
     <string name="shortcutAddedText">%1$s se ha añadido a tu pantalla de inicio correctamente.</string>
 
     <!-- User Survey -->
     <string name="surveyCtaTitle">Ayúdanos a mejorar la aplicación</string>
-    <string name="surveyCtaDescription">Responde a nuestra breve encuesta anónima y comparte tu opinión.</string>
+    <string name="surveyCtaDescription">Responde a nuestra breve encuesta y comparte tu opinión.</string>
     <string name="surveyCtaLaunchButton">Responder a la encuesta</string>
     <string name="surveyCtaDismissButton">No, gracias</string>
     <string name="surveyActivityTitle">Encuesta de usuario</string>
-    <string name="surveyTitle">ENCUESTA DE DUCKDUCKGO</string>
+    <string name="surveyTitle">ENCUESTA DUCKDUCKGO</string>
     <string name="surveyDismissContentDescription">Omitir encuesta</string>
     <string name="surveyLoadingErrorTitle">¡Vaya!</string>
     <string name="surveyLoadingErrorText">Nuestra encuesta no se pudo cargar en este momento.\nVuelve a intentarlo más tarde.</string>
@@ -465,7 +482,7 @@
     <string name="onboardingLetsDoItButton">¡De acuerdo!</string>
     <string name="daxIntroCtaText"><![CDATA[¡A continuación, intenta visitar uno de tus sitios favoritos!<br/><br/>Bloquearé los rastreadores para que no puedan espiarte. También haré tu conexión segura si es posible. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[¡Lo estás haciendo muy bien!<br/><br/>Recuerda: cada vez que navegas conmigo corto las alas a un anuncio horrible. 👍]]></string>
-    <string name="daxSerpCtaText">Tus búsquedas con DuckDuckGo son anónimas y nunca almaceno tu historial de búsqueda. Nunca. 🙌</string>
+    <string name="daxSerpCtaText">Tus búsquedas de DuckDuckGo son anónimas. Siempre. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[ y <b>%1$d más</b> intentaban rastrearte aquí. <br/><br/>¡Los he bloqueado!<br/><br/> ☝️Puedes consultar la barra de navegación para ver quién está tratando de rastrearte cuando visitas un nuevo sitio.️]]></item>
         <item quantity="other"><![CDATA[ y <b>%1$d más</b> intentaban rastrearte aquí. <br/><br/>¡Los he bloqueado!<br/><br/> ☝️Puedes consultar la barra de navegación para ver quién está tratando de rastrearte cuando visitas un nuevo sitio.️]]></item>
@@ -479,7 +496,7 @@
     <string name="daxMainNetworkOwnedCtaText">¡Advertencia! Ya que %1$s es el dueño de %2$s, no puedo evitar que vea tu actividad aquí.&lt;br/&gt;&lt;br/&gt;Pero si navegas conmigo, puedo reducir lo que %3$s sabe de ti en general bloqueando sus rastreadores en muchas otras páginas.</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Continuar</string>
+    <string name="downloadConfirmationContinue">Guardar en descargas</string>
     <string name="downloadConfirmationSaveFileTitle">Guardar %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Mantener los dos</string>
     <string name="downloadConfirmationReplaceOldFileText">Reemplazar</string>
@@ -522,7 +539,7 @@
     <string name="fireproofWebsitesActivityTitle">Sitios web a prueba de fuego</string>
     <string name="settingsFireproofWebsites">Sitios web a prueba de fuego</string>
     <string name="fireproofWebsiteMenuTitleAdd">Activar a prueba de fuego para este sitio</string>
-    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; ya está a prueba de fuego.</string>
+    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; ya está a prueba de fuego</string>
     <string name="fireproofWebsiteSnackbarAction">Deshacer</string>
     <string name="fireproofWebsiteDeleteConfirmMessage">¿Está seguro de que desea eliminar &lt;b&gt;%1$s&lt;/b&gt;?</string>
     <string name="fireproofWebsiteFeatureDescription">Los sitios web dependen de cookies para mantener tu sesión iniciada. Cuando marcas una web como «a prueba de fuego» no se borrarán las cookies y tu sesión permanecerá iniciada, incluso después de utilizar el botón Fuego. Seguiremos bloqueando rastreadores de terceros que se encuentren en sitios web a prueba de fuego.</string>
@@ -532,6 +549,10 @@
     <string name="fireproofWebsiteLoginDialogPositive">A prueba de fuego</string>
     <string name="fireproofWebsiteLoginDialogNegative">Ahora no</string>
     <string name="fireproofWebsiteItemsSectionTitle">Sitios web a prueba de fuego</string>
+    <string name="fireproofWebsiteEmptyListHint">Todavía no hay sitios web a prueba de fuego</string>
+    <string name="fireproofWebsiteSettingSelectionTitle">Marcar sitios web como a prueba de fuego al iniciar sesión</string>
+    <string name="fireproofWebsiteRemoveAllConfirmation">Se ha eliminado la prueba de fuego en todos los sitios</string>
+    <string name="fireproofWebsiteRemovalConfirmation">A prueba de fuego desactivado para &lt;b&gt;%1$s&lt;/b&gt;</string>
     <string name="fireproofWebsiteSettingsSelectionDialogAskEveryTime">Preguntar cada vez</string>
     <string name="fireproofWebsiteSettingsSelectionDialogAlways">Siempre</string>
     <string name="fireproofWebsiteSettingsSelectionDialogNever">Nunca</string>
@@ -539,7 +560,12 @@
     <string name="disableLoginDetectionDialogDescription">Puedes cambiar esta preferencia en cualquier momento en Ajustes.</string>
     <string name="disableLoginDetectionDialogPositive">DESHABILITAR</string>
     <string name="disableLoginDetectionDialogNegative">CANCELAR</string>
-    <string name="fireproofWebsiteRemovalConfirmation">A prueba de fuego desactivado para &lt;b&gt;%1$s&lt;/b&gt;</string>
+    <string name="automaticFireproofWebsiteLoginDialogTitle">¿Marcar los sitios web como a prueba de fuego automáticamente al iniciar sesión?</string>
+    <string name="automaticFireproofWebsiteLoginDialogDescription">Marcar estos sitios como a prueba de fuego hará que la sesión se mantenga iniciada después de usar el botón Fuego. Siempre puedes cambiar esto más tarde en Ajustes. </string>
+    <string name="automaticFireproofWebsiteLoginDialogFirstOption">Marcar siempre como a prueba de fuego</string>
+    <string name="automaticFireproofWebsiteLoginDialogSecondOption">Activar a prueba de fuego para este sitio</string>
+    <string name="automaticFireproofWebsiteLoginDialogThirdOption">Ahora no</string>
+
 
     <!-- Fire Animation settings -->
     <string name="settingsFireAnimation">Animación del botón Fuego</string>
@@ -552,11 +578,6 @@
 
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Conexión abortada. Esta web puede ser dañina para tu dispositivo.</string>
-
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">El gestor de descargas está desactivado</string>
-    <string name="downloadManagerIncompatible">El gestor de descargas no está disponible para este dispositivo</string>
-    <string name="enable">Activar</string>
 
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">¿Habilitar la ubicación del dispositivo para el navegador privado de DuckDuckGo?</string>
@@ -571,7 +592,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Solo para esta sesión</string>
     <string name="preciseLocationSiteDialogDenyAlways">Rechazar siempre</string>
     <string name="preciseLocationSiteDialogDenyOnce">Rechazar para esta sesión</string>
-    <string name="settingsPreciseLocation">Ubicación</string>
     <string name="preciseLocationFeatureDescription">Puede que los sitios que visites pidan acceder a la ubicación de tu dispositivo. No podrán acceder a ella hasta que les concedas permiso específicamente. DuckDuckGo solo utiliza tu ubicación de forma anónima para mostrar resultados de búsqueda locales.</string>
     <string name="preciseLocationToggleText">Los sitios pueden solicitar mi ubicación</string>
     <string name="preciseLocationEmptyListHint">No se ha concedido permiso para acceder a la ubicación a ningún sitio web</string>
@@ -589,7 +609,7 @@
     <!--  Global Privacy Control-->
     <string name="globalPrivacyControlActivityTitle">Control Global de Privacidad (GPC)</string>
     <string name="globalPrivacyControlDescription">
-        <![CDATA[DuckDuckGo bloquea automáticamente muchos rastreadores. Con el Control Global de Privacidad (GPC), también puedes solicitar a los sitios web participantes que restrinjan la venta o el uso compartido de tus datos personales con otras empresas. <u><a href="">Más información</a><u/>]]>
+        <![CDATA[DuckDuckGo bloquea automáticamente muchos rastreadores. Con el Control Global de Privacidad (GPC), también puedes solicitar a los sitios web participantes que restrinjan la venta o el uso compartido de tus datos personales con otras empresas. <u><a href=\"\">Más información</a><u/>]]>
     </string>
     <string name="globalPrivacyControlSetting">Control Global de Privacidad (GPC)</string>
     <string name="globalPrivacyControlToggle">Control Global de Privacidad (GPC)</string>
@@ -615,52 +635,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Bloquea los rastreadores de correo electrónico y oculta tu dirección</string>
     <string name="newEmailAliasMenuTitle">Crear dirección Duck</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">¿Eliminar las protecciones de correo electrónico?</string>
-    <string name="emailSignOutDialogText">Nota: Eliminar las protecciones de correo electrónico de este dispositivo no eliminará tu dirección Duck.</string>
-    <string name="emailSignOutDialogCancel">Cancelar</string>
-    <string name="emailSignOutDialogDisable">Eliminar</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">Lista de espera de correo electrónico</string>
-    <string name="waitlistNotificationTitle">¡Email Protection está listo!</string>
-    <string name="waitlistNotificationDescription">Abrir tu invitación</string>
-
     <string name="waitlistNotificationDialogDescription">¿Quieres que te enviemos una notificación cuando te toque?</string>
     <string name="waitlistNotificationDialogNoThanks">No, gracias</string>
     <string name="waitlistNotificationDialogNotifyMe">NOTIFICARME</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">Protección de correo electrónico (beta)</string>
     <string name="emailProtectionActivityTitle">Protección de correo electrónico (beta)</string>
-    <string name="emailProtectionFooterDescription">No tendrás que compartir ninguna información personal para unirte a la lista de espera. Asegurarás tu lugar en la fila con una marca de tiempo que existe únicamente en tu dispositivo para que podamos notificarte cuando sea tu turno.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Se ha producido un error al unirte a la lista de espera, inténtalo de nuevo más tarde</string>
-    <string name="emailProtectionDuckAddressCta">Ya tengo una dirección Duck</string>
-    <string name="emailProtectionInviteCodeCta">Tengo un código de invitación</string>
-    <string name="emailProtectionWaitlistCta">Unirse a la lista de espera privada</string>
-    <string name="emailProtectionGetStartedCta">Empezar</string>
     <string name="emailNotSupported">Dispositivo no compatible</string>
     <string name="emailNotSupportedExplanation">Email Protection te permite crear direcciones de correo electrónico privadas que eliminan los rastreadores de correo electrónico. Necesitamos encriptar y almacenar las direcciones que creas localmente en tu dispositivo. Debido a que tu dispositivo no admite el almacenamiento cifrado, Email Protection no está disponible.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Privacidad de correo electrónico, simplificada.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Bloquea los rastreadores de correo electrónico y oculta tu dirección sin cambiar de proveedor de correo electrónico. <a href=\"\"><b>Más información</b></a>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">¡Estás en la lista!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Te enviaremos una notificación cuando<br/> la protección de correo electrónico esté lista para ti. <a href=\"\"><b>Más información</b></a>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Tu invitación aparecerá aquí cuando estemos listos para ti. ¿Quieres <a href=\"\"><b>recibir una notificación</b></a> cuando llegue?<br/><a href=\"\"><b>Más información</b></a> sobre la protección de correo electrónico.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">¡Estás invitado!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Bloquea los rastreadores de correo electrónico y oculta tu dirección sin cambiar de proveedor de correo electrónico. <a href=\"\"><b>Más información</b></a>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Dirección personal Duck</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Eliminar la protección de correo electrónico de este dispositivo elimina la opción de completar tu dirección Duck personal o una dirección Duck privada recién generada en los campos de correo electrónico mientras navegas por internet.<br/><br/>Para eliminar por completo tus direcciones Duck, o para cualquier otra pregunta o comentario, ponte en contacto con nosotros en <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Eliminar del dispositivo</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Editar marcador</string>
@@ -698,4 +681,60 @@
     <!-- Home Screen Widget -->
     <string name="homeScreenWidgetAdded">Widget %1$s añadido a la pantalla de inicio</string>
     <string name="settingsAddHomeScreenWidget">Widget de pantalla de inicio</string>
+
+    <!-- MacOs Settings -->
+    <string name="macos_settings_description">Navega de forma privada con nuestra aplicación para Mac</string>
+    <string name="macos_settings_title">Aplicación de escritorio DuckDuckGo</string>
+
+    <!-- Downloads -->
+    <string name="downloadsMenuItem">Descargas</string>
+    <string name="downloadsActivityTitle">Descargas</string>
+    <string name="downloadsActivityNoItemsDescription">Todavía no se han descargado archivos</string>
+    <string name="downloadsShareTitle">Compartir con…</string>
+    <string name="downloadsDownloadFinishedActionName">Abrir</string>
+    <string name="downloadsCannotOpenFileErrorMessage">No se puede abrir el archivo. Busca una aplicación compatible.</string>
+    <string name="downloadsFileNotFoundErrorMessage">El archivo ya no existe</string>
+    <string name="downloadsItemMenuShare">Compartir</string>
+    <string name="downloadsItemMenuDelete">Eliminar</string>
+    <string name="downloadsItemMenuCancel">Cancelar</string>
+    <string name="downloadsActivityMenuDeleteAll">Eliminar todo</string>
+    <string name="downloadsFileDeletedMessage">%1$s eliminado</string>
+    <string name="downloadsAllFilesDeletedMessage">Todos los archivos eliminados</string>
+    <string name="downloadsMoreOptionsContentDescription">Más opciones para %1$s</string>
+    <string name="downloadsUndoActionName">Deshacer</string>
+    <string name="downloadsStateInProgress">En curso…</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">Protección frente al rastreo de aplicaciones</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Bloquea los rastreadores de aplicaciones en tu dispositivo</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Activado</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Desactivado</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Parece que este sitio tiene una ventana emergente de consentimiento para cookies 👇</string>
+    <string name="autoconsentDialogDescription">¿Quieres que me encargue de ella por ti? Puedo intentar minimizar las cookies, maximizar la privacidad y ocultar ventanas emergentes como estas.</string>
+    <string name="autoconsentPrimaryCta">Administrar ventanas emergentes de cookies</string>
+    <string name="autoconsentSecondaryCta">No, gracias</string>
+
+    <string name="autoconsentSetting">Administrar ventanas emergentes de cookies</string>
+    <string name="autoconsentAnimationText">Cookies gestionadas</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Permisos del sitio</string>
+    <string name="sitePermissionsSettingsDescription">Puede que los sitios que visites soliciten acceder a la ubicación de tu dispositivo, a la cámara o al micrófono. No podrán acceder a ellos a menos que les des permiso explícitamente.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Permitir que todos los sitios soliciten:</string>
+    <string name="sitePermissionsSettingsLocation">Ubicación</string>
+    <string name="sitePermissionsSettingsCamera">Cámara</string>
+    <string name="sitePermissionsSettingsMicrophone">Micrófono</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Administrar sitios</string>
+    <string name="sitePermissionsSettingsEmptyText">Aún no hay sitios</string>
+    <string name="permissionPerWebsiteText">Permisos para \"%1$s\" </string>
+    <string name="permissionsPerWebsiteAskSetting">Solicitar</string>
+    <string name="permissionsPerWebsiteDenySetting">Rechazar</string>
+    <string name="permissionsPerWebsiteAllowSetting">Permitir</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s permiso para %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Autocompletar</string>
+
 </resources>

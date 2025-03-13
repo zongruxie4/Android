@@ -28,8 +28,6 @@
     <dimen name="feedbackCardHorizontalMargin">16dp</dimen>
     <dimen name="feedbackTitleMarginTop">30dp</dimen>
 
-    <dimen name="settingsItemHorizontalPadding">20dp</dimen>
-
     <dimen name="systemSearchResultsElevation">4dp</dimen>
 
     <dimen name="changeAppIconPadding">16dp</dimen>
@@ -54,4 +52,8 @@
 
     <dimen name="messageCtaCloseButtonSize">40dp</dimen>
     <dimen name="messageCtaIllustrationSize">64dp</dimen>
+
+    <dimen name="outlinedTextPasswordIconSize">54dp</dimen>
+    <dimen name="outlinedTextPasswordEndMarginWithEndIcon">50dp</dimen>
+    <dimen name="outlinedTextPasswordEndMarginWithoutEndIcon">@dimen/keyline_1</dimen>
 </resources>

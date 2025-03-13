@@ -16,10 +16,6 @@
 
 <resources>
 
-    <!-- Colors common to old styles and new Design System  -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
-
     <!-- Dark theme primary colors -->
     <color name="darkThemePrimaryDark">@color/black</color>
     <color name="darkThemePrimary">@color/newBlack</color>
@@ -29,8 +25,6 @@
     <color name="lightThemePrimary">@color/whiteFive</color>
 
     <!-- Widget colors -->
-    <color name="divider">@color/subtleGrayTwo</color>
-    <color name="slightlyTransparentDivider">#1A000000</color>
     <color name="webViewScrollbarTrackColor">#ff333333</color>
     <color name="webViewScrollbarThumbColor">#ffababab</color>
 

@@ -26,6 +26,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     FORGET_ALL_EXECUTED("mf"),
     FORGET_ALL_AUTO_RESTART("m_f_r"),
     FORGET_ALL_AUTO_RESTART_WITH_INTENT("m_f_ri"),
+    DATA_CLEARED_DAILY("m_data_cleared_today"),
 
     BROKEN_SITE_REPORTED("m_bsr"),
     BROKEN_SITE_REPORT("epbf"),
@@ -45,6 +46,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     PRIVACY_DASHBOARD_GLOBAL_STATS("mp_s"),
     PRIVACY_DASHBOARD_PRIVACY_PRACTICES("mp_p"),
     PRIVACY_DASHBOARD_NETWORKS("mp_n"),
+    PRIVACY_DASHBOARD_OTHER_DOMAINS_LOADED_CLICKED("m_privacy_dashboard_other_domains_loaded_clicked"),
     PRIVACY_DASHBOARD_WHITELIST_ADD("mp_wla"),
     PRIVACY_DASHBOARD_WHITELIST_REMOVE("mp_wlr"),
     PRIVACY_DASHBOARD_MANAGE_WHITELIST("mp_mw"),
@@ -116,6 +118,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     SETTINGS_APP_LINKS_ALWAYS_SELECTED("ms_app_links_always_setting_selected"),
     SETTINGS_APP_LINKS_NEVER_SELECTED("ms_app_links_never_setting_selected"),
     SETTINGS_ADD_HOME_SCREEN_WIDGET_CLICKED("ms_add_home_screen_widget_clicked"),
+    SETTINGS_AUTOFILL_MANAGEMENT_OPENED("m_autofill_settings_opened"),
 
     SURVEY_CTA_SHOWN(pixelName = "mus_cs"),
     SURVEY_CTA_DISMISSED(pixelName = "mus_cd"),
@@ -181,6 +184,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     MENU_ACTION_REMOVE_FAVORITE_PRESSED("m_nav_rf_p"),
     MENU_ACTION_SHARE_PRESSED("m_nav_sh_p"),
     MENU_ACTION_FIND_IN_PAGE_PRESSED("m_nav_fip_p"),
+    MENU_ACTION_PRINT_PRESSED("m_nav_print_menu_item_pressed"),
     MENU_ACTION_ADD_TO_HOME_PRESSED("m_nav_ath_p"),
     MENU_ACTION_DESKTOP_SITE_ENABLE_PRESSED("m_nav_dse_p"),
     MENU_ACTION_DESKTOP_SITE_DISABLE_PRESSED("m_nav_dsd_p"),
@@ -188,9 +192,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     MENU_ACTION_SETTINGS_PRESSED("m_nav_s_p"),
     MENU_ACTION_APP_LINKS_OPEN_PRESSED("m_nav_app_links_open_menu_item_pressed"),
     MENU_ACTION_DOWNLOADS_PRESSED("m_nav_downloads_menu_item_pressed"),
-
-    COOKIE_DATABASE_EXCEPTION_OPEN_ERROR("m_cdb_e_oe"),
-    COOKIE_DATABASE_EXCEPTION_DELETE_ERROR("m_cdb_e_de"),
+    MENU_ACTION_AUTOFILL_PRESSED("m_nav_autofill_menu_item_pressed"),
 
     FIREPROOF_WEBSITE_ADDED("m_fw_a"),
     FIREPROOF_WEBSITE_REMOVE("m_fw_r"),

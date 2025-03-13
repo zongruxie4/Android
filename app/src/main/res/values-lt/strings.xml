@@ -14,7 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="appName" translatable="false">DuckDuckGo</string>
@@ -107,6 +106,7 @@
     <string name="closeTab">Uždaryti kortelė</string>
     <string name="tabClosed">Skirtukas uždarytas</string>
     <string name="tabClosedUndo">Anuliuoti</string>
+    <string name="downloadsMenuItemTitle">Atsisiuntimai</string>
 
     <!-- Privacy Dashboard Activities -->
     <string name="privacyProtectionToggle">Svetainės privatumo apsauga</string>
@@ -120,38 +120,6 @@
     <string name="httpsGood">Šifruotas ryšys</string>
     <string name="httpsMixed">Ryšys su mišriu šifravimu</string>
     <string name="httpsBad">Nešifruotas ryšys</string>
-
-    <string name="networksActivityTitle">Sekiklių tinklai</string>
-    <string name="networksContentDescription">Sekiklių tinklai</string>
-    <string name="networksOverview">Sekiklių tinklai stebi jūsų naršymo tinkle istoriją ir iš jos sudaro jūsų duomenų profilį. Daugelis sekiklių tinklų yra pavojingesni, nes jie gali sekti ir rasti jus didesnėje interneto erdvėje.</string>
-
-    <plurals name="trackersFound">
-        <item quantity="one">Rasta %1$s stebėjimo priemonė</item>
-        <item quantity="few">Rastos %1$s stebėjimo priemonės</item>
-        <item quantity="many">Rasta %1$s stebėjimo priemonės</item>
-        <item quantity="other">Rasta %1$s stebėjimo priemonių</item>
-    </plurals>
-
-    <plurals name="trackerBlocked">
-        <item quantity="one">Užblokuota %1$s stebėjimo priemonė</item>
-        <item quantity="few">Užblokuotos %1$s stebėjimo priemonės</item>
-        <item quantity="many">Užblokuota %1$s stebėjimo priemonė</item>
-        <item quantity="other">Užblokuota %1$s stebėjimo priemonių</item>
-    </plurals>
-
-    <plurals name="majorNetworksFound">
-        <item quantity="one">Rastas %1$s pagrindinis stebėjimo priemonės tinklas</item>
-        <item quantity="few">Rasti %1$s pagrindiniai stebėjimo priemonės tinklai</item>
-        <item quantity="many">Rasta %1$s pagrindinio stebėjimo priemonės tinklo</item>
-        <item quantity="other">Rasta %1$s pagrindinių stebėjimo priemonės tinklų</item>
-    </plurals>
-
-    <plurals name="majorNetworksBlocked">
-        <item quantity="one">Užblokuotas %1$s pagrindinis stebėjimo priemonės tinklas</item>
-        <item quantity="few">Užblokuoti %1$s pagrindiniai stebėjimo priemonės tinklai</item>
-        <item quantity="many">Užblokuota %1$s pagrindinio stebėjimo priemonės tinklo</item>
-        <item quantity="other">Užblokuota %1$s pagrindinių stebėjimo priemonės tinklų</item>
-    </plurals>
 
     <string name="scorecardActivityTitle">Privatumo laipsnis</string>
     <string name="scorecardSiteIsMemberOfMajorNetwork">Svetainė yra didelis stebėjimo priemonių tinklas</string>
@@ -171,6 +139,45 @@
     <string name="networkTrackerSummaryHeader">DAŽNIAUSI PAŽEIDĖJAI SEKIKLIŲ TINKLE</string>
     <string name="networkTrackerSummaryNotReady">Renkame duomenis, kad galėtumėme pranešti apie tai, kiek sekiklių užblokavome.</string>
 
+    <string name="trackersActivityTitle">Sekimo užklausos užblokuotos</string>
+    <string name="trackersContentDescription">Sekimo užklausos užblokuotos</string>
+    <string name="trackersOverview">Toliau nurodytų trečiųjų šalių domenų užklausų įkėlimas buvo užblokuotas, nes jos buvo identifikuotos kaip sekimo užklausos. Jei įmonės užklausos įkeliamos, ji gali leisti joms rinkti informaciją apie jus.</string>
+    <string name="trackersOverviewProtectionsOff">Nebuvo užblokuotas jokių sekimo užklausų įkėlimas, nes šioje svetainėje apsauga yra išjungta. Jei įmonės užklausos įkeliamos, ji gali leisti joms rinkti informaciją apie jus.</string>
+
+    <string name="domainsLoadedActivityTitle">Įkeltos trečiųjų šalių užklausos</string>
+    <string name="domainsLoadedContentDescription">Įkeltos trečiųjų šalių užklausos</string>
+    <string name="domainsLoadedOverview">Buvo įkeltos šios trečiųjų šalių domenų užklausos. Jei įmonės užklausos įkeliamos, ji gali leisti joms rinkti informaciją apie jus, nors kitos mūsų žiniatinklio sekimo apsaugos priemonės tebegalioja.</string>
+    <string name="domainsLoadedOverviewProtectionsOff">Nebuvo užblokuotas jokių trečiųjų šalių užklausų įkėlimas, nes šios svetainės apsaugos priemonės yra išjungtos. Jei įmonės užklausos įkeliamos, ji gali leisti joms rinkti informaciją apie jus.</string>
+    <string name="domainsLoadedOverviewEmpty">Užklausų iš trečiųjų šalių domenų neaptikome.</string>
+    <string name="domainsLoadedHeadingText">Nėra įkeltų trečiųjų šalių domenų</string>
+
+    <string name="webTrackingProtectionsText"><annotation type="learn_more_link">Apie žiniatinklio stebėjimo apsaugos priemones</annotation></string>
+    <string name="webTrackingProtectionsUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/</string>
+
+    <string name="trackersBlockedNoSectionDescription">Buvo įkeltos šios domenų užklausos.</string>
+
+    <string name="adLoadedSectionDescription">Šio domeno užklausos buvo įkeltos, nes neseniai buvo spustelėta %1$s „DuckDuckGo“ reklama. Šios užklausos padeda įvertinti reklamų efektyvumą. Visos „DuckDuckGo“ reklamos nerenka informacijos apie naudotoją.</string>
+    <string name="adLoadedSectionLinkText"><annotation type="learn_more_link">Kaip paieškos skelbimai veikia mūsų apsaugą</annotation></string>
+    <string name="adLoadedSectionUrl">https://help.duckduckgo.com/duckduckgo-help-pages/privacy/web-tracking-protections/#3rd-party-tracker-loading-protection</string>
+
+    <string name="domainsLoadedSectionDescription">Taip pat buvo įkeltos šios domeno užklausos.</string>
+    <string name="domainsLoadedSectionSingleSectionDescription">Buvo įkeltos šios domenų stebėjimo užklausos.</string>
+    <string name="domainsLoadedSectionEmptyListDescription">Užklausų iš trečiųjų šalių domenų neaptikome.</string>
+
+    <string name="domainsLoadedBreakageSectionDescription">Siekiant išvengti svetainės sutrikimų, buvo įkeltos šios domeno užklausos.</string>
+    <string name="domainsLoadedAssociatedSectionDescription">Šios domeno užklausos buvo įkeltos, nes jos susijusios su %1$s.</string>
+
+    <string name="trackersBlockedText">Užklausos užblokuotos įkelti</string>
+    <string name="trackersNotBlockedText">Neužblokuota jokių sekimo užklausų</string>
+    <string name="trackersNoFoundText">Sekimo užklausų nerasta</string>
+    <string name="trackersFoundText">Rastos sekimo užklausos</string>
+
+    <string name="domainsLoadedText">Įkeltos trečiųjų šalių užklausos</string>
+    <string name="domainsNotLoadedText">Nėra įkeltų trečiųjų šalių užklausų</string>
+
+    <string name="majorNetworksNoFound">Nerasta jokių pagrindinių sekimo priemonės tinklų</string>
+    <string name="majorNetworksFound">Rasti pagrindiniai stebėjimo priemonės tinklai</string>
+
     <!-- Fire -->
     <string name="fireMenu">Valyti duomenis</string>
     <string name="fireClearAll">Valyti visas korteles ir duomenis</string>
@@ -180,8 +187,6 @@
     <!-- Settings Activity -->
     <string name="settingsActivityTitle">Nustatymai</string>
     <string name="settingsMenuItemTitle">Nustatymai</string>
-    <string name="settingsHeadingGeneral">Bendrieji</string>
-    <string name="settingsHeadingOther">Kiti</string>
     <string name="settingsHeadingPrivacy">Privatumas</string>
     <string name="settingsAboutDuckduckgo">Apie „DuckDuckGo“</string>
     <string name="settingsVersion">Versija</string>
@@ -199,6 +204,9 @@
     <string name="settingsAppLinksAskEveryTime">Klausti kiekvieną kartą</string>
     <string name="settingsAppLinksAlways">Visada</string>
     <string name="settingsAppLinksNever">Niekada</string>
+    <string name="settingsHeadingAppearance">Išvaizda</string>
+    <string name="settingsHeadingCustomize">Tinkinti</string>
+    <string name="settingsHeadingAbout">Apie</string>
 
     <!-- Settings - Automatically clearing data -->
     <string name="settingsAutomaticallyClearingDialogSave">Išsaugoti</string>
@@ -273,6 +281,7 @@
     <string name="delete">Trinti</string>
     <string name="edit">Redaguoti</string>
     <string name="remove">Pašalinti</string>
+    <string name="removeAll">Pašalinti visus</string>
 
     <!-- Widget -->
     <string name="searchWidgetTextHint">Ieškoti „DuckDuckGo“</string>
@@ -298,7 +307,7 @@
 
     <!-- User Survey -->
     <string name="surveyCtaTitle">Padėkite mums tobulinti programą!</string>
-    <string name="surveyCtaDescription">Atsakykite į trumpos anoniminės apklausos klausimus ir pasidalinkite atsiliepimais.</string>
+    <string name="surveyCtaDescription">Atsakykite į trumpos apklausos klausimus ir pasidalinkite atsiliepimais.</string>
     <string name="surveyCtaLaunchButton">Dalyvauti apklausoje</string>
     <string name="surveyCtaDismissButton">Ne, dėkoju</string>
     <string name="surveyActivityTitle">Naudotojų apklausa</string>
@@ -473,7 +482,7 @@
     <string name="onboardingLetsDoItButton">Pasiekime tai!</string>
     <string name="daxIntroCtaText"><![CDATA[Toliau pabandykite apsilankyti viename mėgstamiausių tinklapių! <br/><br/>Užblokuosiu sekimo įrenginius, kad jie negalėtų jūsų šnipinėti. Jei įmanoma, atnaujinsiu jūsų ryšio saugumą. 🔒]]></string>
     <string name="daxEndCtaText"><![CDATA[Atlikta!<br/><br/>Įsidėmėkite: kiekvieną kartą, kai naršote su manimi, bauginantis skelbimas praranda galią. 👍]]></string>
-    <string name="daxSerpCtaText">„DuckDuckGo“ paieškos yra anoniminės ir niekada nekaupiu jūsų paieškos istorijos. Niekada. 🙌</string>
+    <string name="daxSerpCtaText">Jūsų „DuckDuckGo“ paieškos yra anoniminės. Visada. 🙌</string>
     <plurals name="daxTrackersBlockedCtaText">
         <item quantity="one"><![CDATA[ ir <b>%1$d kitas</b> bandė tave stebėti. <br/><br/>Užblokavau juos!<br/><br/> ☝️Patikrink URL juostą ir pamatyk, kas bando tave stebėti, kai lankaisi naujoje svetainėje.️]]></item>
         <item quantity="few"><![CDATA[ ir <b>%1$d kiti</b> bandė tave stebėti. <br/><br/>Užblokavau juos!<br/><br/> ☝️Patikrink URL juostą ir pamatyk, kas bando tave stebėti, kai lankaisi naujoje svetainėje.️]]></item>
@@ -491,7 +500,7 @@
     <string name="daxMainNetworkOwnedCtaText">Įspėjimas! Kadangi %1$s priklauso %2$s, negaliu neleisti jiems matyti tavo veiklos.&lt;br/&gt;&lt;br/&gt;Tačiau naršyk kartu su manimi ir aš sumažinsiu informacijos, kurią %3$s žino apie tave, kiekį užblokuodamas stebėjimo priemones kitose svetainėse.</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Tęsti</string>
+    <string name="downloadConfirmationContinue">Išsaugoti Atsisiuntimuose</string>
     <string name="downloadConfirmationSaveFileTitle">Išsaugoti %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Palikti abu</string>
     <string name="downloadConfirmationReplaceOldFileText">Pakeisti</string>
@@ -534,7 +543,7 @@
     <string name="fireproofWebsitesActivityTitle">Apsaugoti svetaines</string>
     <string name="settingsFireproofWebsites">Apsaugoti svetaines</string>
     <string name="fireproofWebsiteMenuTitleAdd">Apsaugoti šią svetainę</string>
-    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; dabar yra apsaugota!</string>
+    <string name="fireproofWebsiteSnackbarConfirmation">&lt;b&gt;%1$s&lt;/b&gt; dabar yra apsaugota</string>
     <string name="fireproofWebsiteSnackbarAction">Anuliuoti</string>
     <string name="fireproofWebsiteDeleteConfirmMessage">Ar tikrai norite ištrinti &lt;b&gt;%1$s&lt;/b&gt;?</string>
     <string name="fireproofWebsiteFeatureDescription">Svetainės pagrįstos slapukais, kad liktumėte prisijungę. Pasirinkus parinktį „Fireproof“, slapukai nėra ištrinami ir liksite prisijungę net panaudoję mygtuką „Fire“. Vis tiek blokuosime trečiųjų šalių stebėjimo priemones, randamas svetainėse, kuriose pasinaudosite parinktimi „Fireproof“.</string>
@@ -544,6 +553,10 @@
     <string name="fireproofWebsiteLoginDialogPositive">Parinktis „Fireproof“</string>
     <string name="fireproofWebsiteLoginDialogNegative">Ne dabar</string>
     <string name="fireproofWebsiteItemsSectionTitle">Apsaugoti svetaines</string>
+    <string name="fireproofWebsiteEmptyListHint">Apsaugotų svetainių dar nėra</string>
+    <string name="fireproofWebsiteSettingSelectionTitle">Apsaugokite svetaines prisijungdami</string>
+    <string name="fireproofWebsiteRemoveAllConfirmation">Visų svetainių apsauga pašalinta</string>
+    <string name="fireproofWebsiteRemovalConfirmation">&lt;b&gt;%1$s&lt;/b&gt; apsauga pašalinta</string>
     <string name="fireproofWebsiteSettingsSelectionDialogAskEveryTime">Klausti kiekvieną kartą</string>
     <string name="fireproofWebsiteSettingsSelectionDialogAlways">Visada</string>
     <string name="fireproofWebsiteSettingsSelectionDialogNever">Niekada</string>
@@ -551,7 +564,12 @@
     <string name="disableLoginDetectionDialogDescription">Šią nuostatą galite bet kada pakeisti nustatymuose.</string>
     <string name="disableLoginDetectionDialogPositive">IŠJUNGTI</string>
     <string name="disableLoginDetectionDialogNegative">ATŠAUKTI</string>
-    <string name="fireproofWebsiteRemovalConfirmation">&lt;b&gt;%1$s&lt;/b&gt; apsauga pašalinta</string>
+    <string name="automaticFireproofWebsiteLoginDialogTitle">Apsaugoti svetaines automatiškai prisijungiant?</string>
+    <string name="automaticFireproofWebsiteLoginDialogDescription">Pasirinkę svetainių apsaugą, liksite prisijungę net panaudoję mygtuką „Fire“. Vėliau visada galite tai pakeisti nustatymuose. </string>
+    <string name="automaticFireproofWebsiteLoginDialogFirstOption">Visuomet apsaugoti</string>
+    <string name="automaticFireproofWebsiteLoginDialogSecondOption">Apsaugoti šią svetainę</string>
+    <string name="automaticFireproofWebsiteLoginDialogThirdOption">Ne dabar</string>
+
 
     <!-- Fire Animation settings -->
     <string name="settingsFireAnimation">Mygtuko „Fire“ animacija</string>
@@ -564,11 +582,6 @@
 
     <!-- Dos Attack error-->
     <string name="dosErrorMessage">Prisijungimas nutrauktas. Ši svetainė gali pakenkti jūsų įrenginiui.</string>
-
-    <!-- Download Manager problems -->
-    <string name="downloadManagerDisabled">Parinktis „Download Manager“ išjungta</string>
-    <string name="downloadManagerIncompatible">Parinktis „Download Manager“ nepasiekiama šiame įrenginyje</string>
-    <string name="enable">Įjungti</string>
 
     <!-- Precise Location -->
     <string name="preciseLocationSystemDialogTitle">Įgalinti įrenginio vietą „DuckDuckGo“ privatumo naršyklėje?</string>
@@ -583,7 +596,6 @@
     <string name="preciseLocationSiteDialogAllowOnce">Tik šiam seansui</string>
     <string name="preciseLocationSiteDialogDenyAlways">Visada atsisakyti</string>
     <string name="preciseLocationSiteDialogDenyOnce">Atsisakyti šiam seansui</string>
-    <string name="settingsPreciseLocation">Vieta</string>
     <string name="preciseLocationFeatureDescription">Svetainės, kuriose lankotės, gali prašyti jūsų įrenginio vietos. Jos negalės jo pasiekti, kol duosite leidimą. „DuckDuckGo“ jūsų vietą naudoja tik anonimiškai, kad pateiktų vietinės paieškos rezultatus.</string>
     <string name="preciseLocationToggleText">Svetainės gali prašyti mano vietos</string>
     <string name="preciseLocationEmptyListHint">Jokios svetainės nesuteikė leidimo pasiekti vietą</string>
@@ -601,7 +613,7 @@
     <!--  Global Privacy Control-->
     <string name="globalPrivacyControlActivityTitle">Visuotinė privatumo kontrolė (VPK)</string>
     <string name="globalPrivacyControlDescription">
-        <![CDATA[„DuckDuckGo“ automatiškai blokuoja daugelį stebėjimo priemonių. Pasirinkę visuotinę privatumo kontrolę (VPK), taip pat galite paprašyti dalyvaujančių svetainių apriboti jūsų asmeninių duomenų prekybą ir bendrinimą su kitomis įmonėmis. <u><a href="">Sužinoti daugiau</a><u/>]]>
+        <![CDATA[„DuckDuckGo“ automatiškai blokuoja daugelį stebėjimo priemonių. Pasirinkę visuotinę privatumo kontrolę (VPK), taip pat galite paprašyti dalyvaujančių svetainių apriboti jūsų asmeninių duomenų prekybą ir bendrinimą su kitomis įmonėmis. <u><a href=\"\">Sužinoti daugiau</a><u/>]]>
     </string>
     <string name="globalPrivacyControlSetting">Visuotinė privatumo kontrolė (VPK)</string>
     <string name="globalPrivacyControlToggle">Visuotinė privatumo kontrolė (VPK)</string>
@@ -627,52 +639,15 @@
     <string name="autofillTooltipGenerateAddressDescription">Blokuoja el. pašto sekimo priemones ir slepia jūsų adresą</string>
     <string name="newEmailAliasMenuTitle">Kurti „Duck“ adresą</string>
 
-    <!-- Email Sign Out Dialog -->
-    <string name="emailSignOutDialogTitle">Pašalinti el. pašto apsaugą?</string>
-    <string name="emailSignOutDialogText">Pastaba. Pašalinus el. pašto apsaugą iš šio įrenginio, jūsų „Duck“ adresas nebus ištrintas.</string>
-    <string name="emailSignOutDialogCancel">Atšaukti</string>
-    <string name="emailSignOutDialogDisable">Pašalinti</string>
-
     <!-- Waitlist Notification -->
-    <string name="notificationChannelEmailWaitlist">El. pašto laukimo sąrašas</string>
-    <string name="waitlistNotificationTitle">El. pašto apsauga įjungta!</string>
-    <string name="waitlistNotificationDescription">Atidaryti pakvietimą</string>
-
     <string name="waitlistNotificationDialogDescription">Ar norėtumėte, kad atsiųstume jums pranešimą, kai ateis jūsų eilė?</string>
     <string name="waitlistNotificationDialogNoThanks">Ne, dėkoju</string>
     <string name="waitlistNotificationDialogNotifyMe">INFORMUOTI</string>
 
     <!-- Email Protection -->
-    <string name="emailProtectionWebViewActivityTitle">El. pašto apsauga (beta)</string>
     <string name="emailProtectionActivityTitle">El. pašto apsauga (beta)</string>
-    <string name="emailProtectionFooterDescription">Jums nereikia dalintis savo asmenine informacija, kad prisijungtumėte prie laukiančiųjų sąrašo. Užsitikrinsite vietą eilėje laiko žyma, kuri egzistuoja tik jūsų įrenginyje, kad galėtumėte jus įspėti, kai ateis jūsų eilė.</string>
-    <string name="emailProtectionErrorJoiningWaitlist">Prisijungiant prie laukimo sąrašo įvyko klaida, bandykite dar kartą vėliau</string>
-    <string name="emailProtectionDuckAddressCta">Jau turiu „Duck“ adresą</string>
-    <string name="emailProtectionInviteCodeCta">Turiu kvietimo kodą</string>
-    <string name="emailProtectionWaitlistCta">Prisijungti prie privataus laukimo sąrašo</string>
-    <string name="emailProtectionGetStartedCta">Pradėti</string>
     <string name="emailNotSupported">Nepalaikomas įrenginys</string>
     <string name="emailNotSupportedExplanation">El. pašto apsauga leidžia jums sukurti privačius el. pašto adresus, kurie pašalina el. laiškų sekimo priemones. Mums reikia užšifruoti ir saugoti šiuos adresus, kuriuos lokaliai sukuriate įrenginyje. Kadangi jūsų įrenginys nepalaiko užšifruotos talpyklos funkcijos, El. pašto apsaugos funkcija neprieinama.</string>
-
-    <!-- Screen 1-->
-    <string name="emailProtectionStatusTitleJoin">Supaprastintas el. pašto privatumas.</string>
-    <string name="emailProtectionDescriptionJoin"><![CDATA[Blokuokite el. pašto sekimo priemones ir slėpkite savo adresą nekeisdami savo el. pašto teikėjo.<b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-
-    <!-- Screen 2 -->
-    <string name="emailProtectionStatusTitleJoined">Jūs jau sąraše!</string>
-    <string name="emailProtectionDescriptionJoinedWithNotification"><![CDATA[Atsiųsime jums pranešimą, kai<br/> el. pašto apsauga bus parengta. <b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-    <string name="emailProtectionDescriptionJoinedWithoutNotification"><![CDATA[Jūsų kvietimas pasirodys čia, kai bus parengtas. Ar norite <a href=\"\"><b>gauti pranešimą,</b></a> kai jis pasirodys?<br/><a href=\"\"><b>Sužinokite daugiau</b></a> apie el. pašto apsaugą.]]></string>
-
-    <!-- Screen 3 -->
-    <string name="emailProtectionStatusTitleInBeta">Esate pakviesti!</string>
-    <string name="emailProtectionDescriptionInBeta"><![CDATA[Blokuokite el. pašto sekimo priemones ir slėpkite savo adresą nekeisdami savo el. pašto teikėjo.<b><a href=\"\">Sužinoti daugiau</a></b>.]]></string>
-
-    <!-- Email Protection Sign Out -->
-    <string name="emailProtectionSignOutTitle">Asmeninis „Duck“ adresas</string>
-    <string name="emailProtectionSignOutFooter">
-        <![CDATA[Pašalinus el. pašto apsaugą iš šio įrenginio, bus pašalinta parinktis įrašyti savo asmeninį „Duck“ adresą arba naujai sukurtą privatų „Duck“ adresą į el. pašto laukelius, kol naršysite svetainėje.<br/><br/>Norėdami visam laikui ištrinti „Duck“ adresus arba turėdami kitų klausimų ar atsiliepimų, susisiekite su mumis el. paštu <a href=\"mailto:support@duck.com\">support@duck.com</a>.]]>
-    </string>
-    <string name="emailProtectionSignOutRemoveCta">Pašalinti šį įrenginį</string>
 
     <!-- Bookmark folders -->
     <string name="bookmarkDialogTitleEdit">Redaguoti žymę</string>
@@ -714,4 +689,60 @@
     <!-- Home Screen Widget -->
     <string name="homeScreenWidgetAdded">%1$s valdiklis pridėtas prie pagrindinio ekrano</string>
     <string name="settingsAddHomeScreenWidget">Pagrindinio ekrano valdiklis</string>
+
+    <!-- MacOs Settings -->
+    <string name="macos_settings_description">Naršykite privačiai su mūsų „Mac“ skirta programa</string>
+    <string name="macos_settings_title">„DuckDuckGo“ darbalaukio programa</string>
+
+    <!-- Downloads -->
+    <string name="downloadsMenuItem">Atsisiuntimai</string>
+    <string name="downloadsActivityTitle">Atsisiuntimai</string>
+    <string name="downloadsActivityNoItemsDescription">Nėra atsisiųstų failų</string>
+    <string name="downloadsShareTitle">Dalintis su...</string>
+    <string name="downloadsDownloadFinishedActionName">Atviras</string>
+    <string name="downloadsCannotOpenFileErrorMessage">Nepavyko atidaryti failo. Patikrinkite, ar yra suderinama programa.</string>
+    <string name="downloadsFileNotFoundErrorMessage">Failo nebėra</string>
+    <string name="downloadsItemMenuShare">Bendrinti</string>
+    <string name="downloadsItemMenuDelete">Trinti</string>
+    <string name="downloadsItemMenuCancel">Atšaukti</string>
+    <string name="downloadsActivityMenuDeleteAll">Ištrinti viską</string>
+    <string name="downloadsFileDeletedMessage">Ištrinta %1$s</string>
+    <string name="downloadsAllFilesDeletedMessage">Visi failai ištrinti</string>
+    <string name="downloadsMoreOptionsContentDescription">Daugiau parinkčių, skirtų %1$s</string>
+    <string name="downloadsUndoActionName">Anuliuoti</string>
+    <string name="downloadsStateInProgress">Vykdoma...</string>
+
+    <!-- App Tracking Protection -->
+    <string name="atp_SettingsTitle">Programų sekimo apsauga</string>
+    <string name="atp_SettingsDeviceShieldNeverEnabled">Blokuokite programėlių stebėjimo priemones savo įrenginyje</string>
+    <string name="atp_SettingsDeviceShieldEnabled">Įjungta</string>
+    <string name="atp_SettingsDeviceShieldDisabled">Išjungta</string>
+
+    <!-- Autoconsent -->
+    <string name="autoconsentDialogTitle">Atrodo, kad šioje svetainėje yra sutikimo su slapukais iššokantysis langas👇</string>
+    <string name="autoconsentDialogDescription">Norite, kad viską sutvarkyčiau? Galiu pabandyti sumažinti slapukų skaičių, sustiprinti privatumą ir paslėpti tokius iššokančiuosius langus.</string>
+    <string name="autoconsentPrimaryCta">Valdyti slapukų iššokančiuosius langus</string>
+    <string name="autoconsentSecondaryCta">Ne, dėkoju</string>
+
+    <string name="autoconsentSetting">Valdyti slapukų iššokančiuosius langus</string>
+    <string name="autoconsentAnimationText">Slapukai valdomi</string>
+
+    <!-- Site Permissions Settings -->
+    <string name="settingsSitePermissions">Svetainės leidimai</string>
+    <string name="sitePermissionsSettingsDescription">Svetainėse, kuriose lankotės, gali būti prašoma prieigos prie jūsų įrenginio vietos, kameros arba mikrofono. Jos negalės prie jų prisijungti, nebent aiškiai suteiksite joms leidimą.</string>
+    <string name="sitePermissionsSettingsEnablePermissionTitle">Leisti visoms svetainėms prašyti:</string>
+    <string name="sitePermissionsSettingsLocation">Vieta</string>
+    <string name="sitePermissionsSettingsCamera">Fotoaparatas</string>
+    <string name="sitePermissionsSettingsMicrophone">Mikrofonas</string>
+    <string name="sitePermissionsSettingsAllowedSitesTitle">Tvarkyti svetaines</string>
+    <string name="sitePermissionsSettingsEmptyText">Svetainių dar nėra</string>
+    <string name="permissionPerWebsiteText">Leidimai „%1$s“ </string>
+    <string name="permissionsPerWebsiteAskSetting">Klausti</string>
+    <string name="permissionsPerWebsiteDenySetting">Atsisakyti</string>
+    <string name="permissionsPerWebsiteAllowSetting">Leisti</string>
+    <string name="permissionsPerWebsiteSelectorDialogTitle">%1$s leidimas %2$s</string>
+
+    <!-- Autofill -->
+    <string name="autofillSettingsDisplayName">Automatinis pildymas</string>
+
 </resources>

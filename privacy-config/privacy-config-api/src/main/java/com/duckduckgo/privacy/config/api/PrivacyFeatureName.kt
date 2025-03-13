@@ -16,10 +16,8 @@
 
 package com.duckduckgo.privacy.config.api
 
-import com.duckduckgo.feature.toggles.api.FeatureName
-
-/** List of [FeatureName] that belong to the Privacy Configuration */
-enum class PrivacyFeatureName(override val value: String) : FeatureName {
+/** List of [PrivacyFeatureName] that belong to the Privacy Configuration */
+enum class PrivacyFeatureName(val value: String) {
     ContentBlockingFeatureName("contentBlocking"),
     GpcFeatureName("gpc"),
     HttpsFeatureName("https"),
@@ -28,4 +26,5 @@ enum class PrivacyFeatureName(override val value: String) : FeatureName {
     AmpLinksFeatureName("ampLinks"),
     TrackingParametersFeatureName("trackingParameters"),
     AutofillFeatureName("autofill"),
+    UserAgentFeatureName("customUserAgent"),
 }

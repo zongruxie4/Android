@@ -43,22 +43,22 @@ class AmpLinksPluginTest {
     @Test
     fun whenFeatureNameDoesNotMatchAmpLinksThenReturnFalse() {
         PrivacyFeatureName.values().filter { it != FEATURE_NAME }.forEach {
-            Assert.assertFalse(testee.store(it, EMPTY_JSON_STRING))
+            Assert.assertFalse(testee.store(it.value, EMPTY_JSON_STRING))
         }
     }
 
     @Test
     fun whenFeatureNameMatchesAmpLinksThenReturnTrue() {
-        assertTrue(testee.store(FEATURE_NAME, EMPTY_JSON_STRING))
+        assertTrue(testee.store(FEATURE_NAME_VALUE, EMPTY_JSON_STRING))
     }
 
     @Test
     fun whenFeatureNameMatchesAmpLinksAndIsEnabledThenStoreFeatureEnabled() {
         val jsonString = FileUtilities.loadText(AmpLinksPluginTest::class.java.classLoader!!, "json/amp_links.json")
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
-        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME, true))
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, true, null))
     }
 
     @Test
@@ -68,16 +68,25 @@ class AmpLinksPluginTest {
             "json/amp_links_disabled.json"
         )
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
-        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME, false))
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, false, null))
+    }
+
+    @Test
+    fun whenFeatureNameMatchesAmpLinksAndHasMinSupportedVersionThenStoreMinSupportedVersion() {
+        val jsonString = FileUtilities.loadText(AmpLinksPluginTest::class.java.classLoader!!, "json/amp_links_min_supported_version.json")
+
+        testee.store(FEATURE_NAME_VALUE, jsonString)
+
+        verify(mockFeatureTogglesRepository).insert(PrivacyFeatureToggles(FEATURE_NAME_VALUE, true, 1234))
     }
 
     @Test
     fun whenFeatureNameMatchesAmpLinksThenUpdateAllExistingValues() {
         val jsonString = FileUtilities.loadText(AmpLinksPluginTest::class.java.classLoader!!, "json/amp_links.json")
 
-        testee.store(FEATURE_NAME, jsonString)
+        testee.store(FEATURE_NAME_VALUE, jsonString)
 
         val exceptionArgumentCaptor = argumentCaptor<List<AmpLinkExceptionEntity>>()
         val ampLinkFormatArgumentCaptor = argumentCaptor<List<AmpLinkFormatEntity>>()
@@ -108,6 +117,7 @@ class AmpLinksPluginTest {
 
     companion object {
         private val FEATURE_NAME = PrivacyFeatureName.AmpLinksFeatureName
+        private val FEATURE_NAME_VALUE = FEATURE_NAME.value
         private const val EMPTY_JSON_STRING = "{}"
     }
 }

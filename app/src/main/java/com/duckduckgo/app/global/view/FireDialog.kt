@@ -18,6 +18,7 @@ package com.duckduckgo.app.global.view
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.provider.Settings
@@ -54,6 +55,7 @@ import kotlinx.coroutines.launch
 private const val ANIMATION_MAX_SPEED = 1.4f
 private const val ANIMATION_SPEED_INCREMENT = 0.15f
 
+@SuppressLint("NoBottomSheetDialog")
 class FireDialog(
     context: Context,
     private val ctaViewModel: CtaViewModel,
@@ -72,7 +74,7 @@ class FireDialog(
         get() = if (this::fireCtaBinding.isInitialized) fireCtaBinding.daxCtaContainer.isVisible else false
 
     private val accelerateAnimatorUpdateListener = object : ValueAnimator.AnimatorUpdateListener {
-        override fun onAnimationUpdate(animation: ValueAnimator?) {
+        override fun onAnimationUpdate(animation: ValueAnimator) {
             binding.fireAnimationView.speed += ANIMATION_SPEED_INCREMENT
             if (binding.fireAnimationView.speed > ANIMATION_MAX_SPEED) {
                 binding.fireAnimationView.removeUpdateListener(this)
@@ -171,10 +173,10 @@ class FireDialog(
         binding.fireAnimationView.show()
         binding.fireAnimationView.playAnimation()
         binding.fireAnimationView.addAnimatorListener(object : Animator.AnimatorListener {
-            override fun onAnimationRepeat(animation: Animator?) {}
-            override fun onAnimationCancel(animation: Animator?) {}
-            override fun onAnimationStart(animation: Animator?) {}
-            override fun onAnimationEnd(animation: Animator?) {
+            override fun onAnimationRepeat(animation: Animator) {}
+            override fun onAnimationCancel(animation: Animator) {}
+            override fun onAnimationStart(animation: Animator) {}
+            override fun onAnimationEnd(animation: Animator) {
                 onFireDialogClearAllEvent(AnimationFinished)
             }
         })

@@ -16,7 +16,6 @@
 
 package com.duckduckgo.app.survey.ui
 
-import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
@@ -74,7 +73,11 @@ class SurveyViewModelTest {
         whenever(mockAppBuildConfig.versionName).thenReturn("name")
 
         testee = SurveyViewModel(
-            mockSurveyDao, mockStatisticsStore, mockAppInstallStore, mockAppBuildConfig, coroutineTestRule.testDispatcherProvider
+            mockSurveyDao,
+            mockStatisticsStore,
+            mockAppInstallStore,
+            mockAppBuildConfig,
+            coroutineTestRule.testDispatcherProvider
         )
         testee.command.observeForever(mockCommandObserver)
     }
@@ -99,6 +102,8 @@ class SurveyViewModelTest {
         whenever(mockStatisticsStore.atb).thenReturn(Atb("123"))
         whenever(mockStatisticsStore.variant).thenReturn("abc")
         whenever(mockAppInstallStore.installTimestamp).thenReturn(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2))
+        whenever(mockAppBuildConfig.sdkInt).thenReturn(16)
+        whenever(mockAppBuildConfig.manufacturer).thenReturn("pixel")
 
         val captor = argumentCaptor<Command.LoadSurvey>()
         testee.start(Survey("", "https://survey.com", null, SCHEDULED))
@@ -108,10 +113,32 @@ class SurveyViewModelTest {
         assertEquals("123", loadedUri.getQueryParameter("atb"))
         assertEquals("abc", loadedUri.getQueryParameter("var"))
         assertEquals("2", loadedUri.getQueryParameter("delta"))
-        assertEquals("${Build.VERSION.SDK_INT}", loadedUri.getQueryParameter("av"))
+        assertEquals("16", loadedUri.getQueryParameter("av"))
         assertEquals("name", loadedUri.getQueryParameter("ddgv"))
-        assertEquals(Build.MANUFACTURER, loadedUri.getQueryParameter("man"))
-        assertEquals(Build.MODEL, loadedUri.getQueryParameter("mo"))
+        assertEquals("pixel", loadedUri.getQueryParameter("man"))
+    }
+
+    @Test
+    fun whenSurveyStartedAndInAppTpRetentionStudyThenParametersAddedToUrl() {
+        whenever(mockStatisticsStore.atb).thenReturn(Atb("123"))
+        whenever(mockStatisticsStore.variant).thenReturn("abc")
+        whenever(mockAppInstallStore.installTimestamp).thenReturn(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2))
+        whenever(mockAppBuildConfig.sdkInt).thenReturn(16)
+        whenever(mockAppBuildConfig.manufacturer).thenReturn("pixel")
+        whenever(mockAppBuildConfig.model).thenReturn("XL")
+
+        val captor = argumentCaptor<Command.LoadSurvey>()
+        testee.start(Survey("", "https://survey.com", null, SCHEDULED))
+        verify(mockCommandObserver).onChanged(captor.capture())
+        val loadedUri = captor.lastValue.url.toUri()
+
+        assertEquals("123", loadedUri.getQueryParameter("atb"))
+        assertEquals("abc", loadedUri.getQueryParameter("var"))
+        assertEquals("2", loadedUri.getQueryParameter("delta"))
+        assertEquals("16", loadedUri.getQueryParameter("av"))
+        assertEquals("name", loadedUri.getQueryParameter("ddgv"))
+        assertEquals("pixel", loadedUri.getQueryParameter("man"))
+        assertEquals("XL", loadedUri.getQueryParameter("mo"))
     }
 
     @Test

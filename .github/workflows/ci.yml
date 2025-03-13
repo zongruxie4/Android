@@ -1,4 +1,4 @@
-name: Spotless and Tests
+name: CI Checks
 
 on:
   push:
@@ -7,77 +7,117 @@ on:
       - develop
     paths-ignore:
       - '**.md'
+      - '.github/**'
   pull_request:
     paths-ignore:
       - '**.md'
+      - '.github/**'
+
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
-  unit_tests:
-    name: JVM CI checks
+  spotless:
+    name: Spotless
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cancel previous
-        uses: styfle/cancel-workflow-action@0.7.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'adopt'
 
       - name: Spotless
-        run: ./gradlew spotlessCheck --stacktrace
-
-      - name: JVM checks
-        run: ./gradlew jvm_checks
-
-      - name: Bundle the JVM checks report
-        if: always()
-        run: find . -type d -name 'reports' | zip -@ -r jvm-checks-report.zip
-
-      - name: Upload the JVM checks report
-        if: always()
-        uses: actions/upload-artifact@v2
+        uses: gradle/gradle-build-action@v2
         with:
-          name: jvm-checks-report
-          path: jvm-checks-report.zip
+          arguments: spotless
 
-  android_tests:
+  unit_tests:
+    name: Unit tests
     runs-on: ubuntu-latest
-    name: Android CI checks
 
     steps:
-      - name: Cancel previous
-        uses: styfle/cancel-workflow-action@0.7.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Gradle cache
-        uses: actions/cache@v2
+      - name: JVM tests
+        uses: gradle/gradle-build-action@v2
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+          arguments: jvm_tests
+
+      - name: Bundle the JVM checks report
+        if: always()
+        run: find . -type d -name 'reports' | zip -@ -r unit-tests-report.zip
+
+      - name: Upload the JVM checks report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-tests-report
+          path: unit-tests-report.zip
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Lint
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: lint
+
+      - name: Bundle the lint report
+        if: always()
+        run: find . -name lint-results\* | zip -@ -r lint-report.zip
+
+      - name: Upload the JVM lint report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-report
+          path: lint-report.zip
+
+  android_tests:
+    runs-on: ubuntu-latest
+    name: Android CI tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
 
       - name: Decode secret
         env:
@@ -85,18 +125,22 @@ jobs:
         run: echo $FLANK > flank.json
 
       - name: Build
-        run: ./gradlew androidTestsBuild
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: androidTestsBuild
 
       - name: Run Android Tests
-        run: ./gradlew runFlankAndroidTests
-
-      - name: Bundle the Android CI checks report
-        if: always()
-        run: find . -type d -name 'fladleResults' | zip -@ -r android-checks-report.zip
-
-      - name: Upload the Android CI checks report
-        if: always()
-        uses: actions/upload-artifact@v2
+        uses: gradle/gradle-build-action@v2
         with:
-          name: android-checks-report
-          path: android-checks-report.zip
+          arguments: runFlankAndroidTests
+
+      - name: Bundle the Android CI tests report
+        if: always()
+        run: find . -type d -name 'fladleResults' | zip -@ -r android-tests-report.zip
+
+      - name: Upload the Android CI tests report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-tests-report
+          path: android-tests-report.zip

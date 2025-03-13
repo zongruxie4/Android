@@ -28,9 +28,9 @@ import com.duckduckgo.remote.messaging.impl.models.MatchingAttribute.EmailEnable
 import com.duckduckgo.remote.messaging.impl.models.MatchingAttribute.Locale
 import com.duckduckgo.remote.messaging.impl.models.MatchingAttribute.Unknown
 import com.duckduckgo.remote.messaging.impl.models.RemoteConfig
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -44,7 +44,8 @@ class RemoteMessagingConfigMatcherTest {
     private val remoteMessagingRepository: RemoteMessagingRepository = mock()
 
     private val testee = RemoteMessagingConfigMatcher(
-        deviceAttributeMatcher, androidAppAttributeMatcher, remoteMessagingRepository, userAttributeMatcher
+        setOf(deviceAttributeMatcher, androidAppAttributeMatcher, userAttributeMatcher),
+        remoteMessagingRepository
     )
 
     @Test
